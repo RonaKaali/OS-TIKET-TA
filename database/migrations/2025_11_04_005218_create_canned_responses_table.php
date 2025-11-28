@@ -12,8 +12,8 @@ return new class extends Migration {
     {
         Schema::create('respons_template', function (Blueprint $t) {
             $t->id();
-            $t->string('judul');
-            $t->longText('isi');
+            $t->string('title');
+            $t->longText('body');
             $t->timestamps();
         });
     }

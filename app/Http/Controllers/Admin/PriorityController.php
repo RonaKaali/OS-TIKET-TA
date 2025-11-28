@@ -26,7 +26,7 @@ class PriorityController extends Controller
     public function store(Request $r)
     {
         $data = $r->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:priorities,name'],
+            'name' => ['required', 'string', 'max:255', 'unique:prioritas,name'],
             'weight' => ['required', 'integer', 'min:1', 'max:10'],
         ]);
         Priority::create($data);
@@ -41,7 +41,7 @@ class PriorityController extends Controller
     public function update(Request $r, Priority $priority)
     {
         $data = $r->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:priorities,name,' . $priority->id],
+            'name' => ['required', 'string', 'max:255', 'unique:prioritas,name,' . $priority->id],
             'weight' => ['required', 'integer', 'min:1', 'max:10'],
         ]);
         $priority->update($data);

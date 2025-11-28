@@ -11,16 +11,16 @@ class HelpTopic extends Model
 
     protected $table = 'topik_bantuan';
 
-    protected $fillable = ['nama', 'id_departemen', 'skema_formulir'];
-    protected $casts = ['skema_formulir' => 'array'];
+    protected $fillable = ['name', 'department_id', 'form_schema'];
+    protected $casts = ['form_schema' => 'array'];
 
     public function department()
     {
-        return $this->belongsTo(Department::class, 'id_departemen');
+        return $this->belongsTo(Department::class, 'department_id');
     }
 
     public function tickets()
     {
-        return $this->hasMany(Ticket::class, 'id_topik_bantuan');
+        return $this->hasMany(Ticket::class, 'help_topic_id');
     }
 }

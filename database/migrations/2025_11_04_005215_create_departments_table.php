@@ -12,9 +12,9 @@ return new class extends Migration {
     {
         Schema::create('departemen', function (Blueprint $t) {
             $t->id();
-            $t->string('nama');
+            $t->string('name');
             $t->string('email')->nullable();
-            $t->boolean('publik')->default(true);
+            $t->boolean('is_public')->default(true);
             $t->timestamps();
         });
     }

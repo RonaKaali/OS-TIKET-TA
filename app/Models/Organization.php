@@ -11,7 +11,7 @@ class Organization extends Model
 
     protected $table = 'organisasi';
 
-    protected $fillable = ['nama'];
+    protected $fillable = ['name'];
 
     public function users()
     {

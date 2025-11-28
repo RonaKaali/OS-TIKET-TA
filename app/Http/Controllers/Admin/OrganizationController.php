@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
@@ -12,59 +13,43 @@ class OrganizationController extends Controller
         $this->middleware(['auth', 'role:Super Admin']);
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $items = Organization::latest()->paginate(20);
+        return view('admin.organizations.index', compact('items'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        return view('admin.organizations.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(Request $r)
     {
-        //
+        $data = $r->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:organisasi,name'],
+        ]);
+        Organization::create($data);
+        return redirect()->route('admin.organizations.index')->with('ok', 'Organisasi dibuat.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function edit(Organization $organization)
     {
-        //
+        return view('admin.organizations.edit', compact('organization'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+    public function update(Request $r, Organization $organization)
     {
-        //
+        $data = $r->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:organisasi,name,' . $organization->id],
+        ]);
+        $organization->update($data);
+        return redirect()->route('admin.organizations.index')->with('ok', 'Organisasi diperbarui.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    public function destroy(Organization $organization)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $organization->delete();
+        return back()->with('ok', 'Organisasi dihapus.');
     }
 }

@@ -11,18 +11,18 @@ class TicketThread extends Model
 
     protected $table = 'utas_tiket';
 
-    protected $fillable = ['id_tiket', 'tipe', 'id_pengguna', 'isi'];
+    protected $fillable = ['ticket_id', 'type', 'user_id', 'body'];
 
     public function ticket()
     {
-        return $this->belongsTo(Ticket::class, 'id_tiket');
+        return $this->belongsTo(Ticket::class, 'ticket_id');
     }
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_pengguna');
+        return $this->belongsTo(User::class, 'user_id');
     }
     public function attachments()
     {
-        return $this->hasMany(Attachment::class, 'id_utas_tiket');
+        return $this->hasMany(Attachment::class, 'ticket_thread_id');
     }
 }

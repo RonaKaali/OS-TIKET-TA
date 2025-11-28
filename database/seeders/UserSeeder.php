@@ -20,9 +20,9 @@ class UserSeeder extends Seeder
         $superAdmin = User::firstOrCreate(
             ['email' => 'admin@csirt.kalselprov.go.id'],
             [
-                'nama' => 'Super Admin CSIRT',
+                'name' => 'Super Admin CSIRT',
                 'password' => Hash::make('password'),
-                'email_terverifikasi_pada' => now(),
+                'email_verified_at' => now(),
             ]
         );
 
@@ -37,9 +37,9 @@ class UserSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['email' => 'admin1@csirt.kalselprov.go.id'],
             [
-                'nama' => 'Administrator CSIRT',
+                'name' => 'Administrator CSIRT',
                 'password' => Hash::make('password'),
-                'email_terverifikasi_pada' => now(),
+                'email_verified_at' => now(),
             ]
         );
 
@@ -54,9 +54,9 @@ class UserSeeder extends Seeder
         $agent = User::firstOrCreate(
             ['email' => 'agent@csirt.kalselprov.go.id'],
             [
-                'nama' => 'Agent CSIRT',
+                'name' => 'Agent CSIRT',
                 'password' => Hash::make('password'),
-                'email_terverifikasi_pada' => now(),
+                'email_verified_at' => now(),
             ]
         );
 
@@ -71,9 +71,9 @@ class UserSeeder extends Seeder
         $supportAgent = User::firstOrCreate(
             ['email' => 'support@csirt.kalselprov.go.id'],
             [
-                'nama' => 'Support Agent CSIRT',
+                'name' => 'Support Agent CSIRT',
                 'password' => Hash::make('password'),
-                'email_terverifikasi_pada' => now(),
+                'email_verified_at' => now(),
             ]
         );
 
@@ -88,9 +88,9 @@ class UserSeeder extends Seeder
         $agent2 = User::firstOrCreate(
             ['email' => 'agent2@csirt.kalselprov.go.id'],
             [
-                'nama' => 'Agent CSIRT 2',
+                'name' => 'Agent CSIRT 2',
                 'password' => Hash::make('password'),
-                'email_terverifikasi_pada' => now(),
+                'email_verified_at' => now(),
             ]
         );
 

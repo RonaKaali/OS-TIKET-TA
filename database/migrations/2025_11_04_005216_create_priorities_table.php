@@ -12,8 +12,8 @@ return new class extends Migration {
     {
         Schema::create('prioritas', function (Blueprint $t) {
             $t->id();
-            $t->string('nama')->unique();     // Rendah/Normal/Tinggi/Kritis
-            $t->unsignedTinyInteger('bobot'); // 1..10
+            $t->string('name')->unique();     // Rendah/Normal/Tinggi/Kritis
+            $t->unsignedTinyInteger('weight'); // 1..10
             $t->timestamps();
         });
     }

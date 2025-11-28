@@ -11,15 +11,15 @@ class Department extends Model
 
     protected $table = 'departemen';
 
-    protected $fillable = ['nama', 'email', 'publik'];
+    protected $fillable = ['name', 'email', 'is_public'];
 
     public function tickets()
     {
-        return $this->hasMany(Ticket::class, 'id_departemen');
+        return $this->hasMany(Ticket::class, 'department_id');
     }
 
     public function helpTopics()
     {
-        return $this->hasMany(HelpTopic::class, 'id_departemen');
+        return $this->hasMany(HelpTopic::class, 'department_id');
     }
 }

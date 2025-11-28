@@ -146,46 +146,46 @@ class TicketSeeder extends Seeder
             // Create ticket
             $ticket = Ticket::create([
                 'uuid' => (string) Str::uuid(),
-                'nomor_tiket' => $ticketNumber,
-                'subjek' => $subjects[$i],
-                'email_pelapor' => 'user' . ($i + 1) . '@example.com',
-                'nama_pelapor' => 'User ' . ($i + 1),
-                'id_departemen' => $department->id,
-                'id_topik_bantuan' => $topic->id,
-                'id_prioritas' => $priority->id,
-                'id_status' => $status->id,
-                'id_rencana_sla' => $sla->id,
-                'ditugaskan_ke' => $assignedTo,
-                'jatuh_tempo_pada' => now()->addHours($sla->jam_grace),
-                'ditutup_pada' => ($status->slug === 'closed') ? now()->subDays(rand(1, 30)) : null,
+                'ticket_number' => $ticketNumber,
+                'subject' => $subjects[$i],
+                'reporter_email' => 'user' . ($i + 1) . '@example.com',
+                'reporter_name' => 'User ' . ($i + 1),
+                'department_id' => $department->id,
+                'help_topic_id' => $topic->id,
+                'priority_id' => $priority->id,
+                'status_id' => $status->id,
+                'sla_plan_id' => $sla->id,
+                'assigned_to' => $assignedTo,
+                'due_at' => now()->addHours($sla->grace_hours),
+                'closed_at' => ($status->slug === 'closed') ? now()->subDays(rand(1, 30)) : null,
             ]);
 
             // Create initial thread (message from requester)
             $initialThread = TicketThread::create([
-                'id_tiket' => $ticket->id,
-                'tipe' => 'pesan',
-                'id_pengguna' => null,
-                'isi' => $messages[$i],
+                'ticket_id' => $ticket->id,
+                'type' => 'message',
+                'user_id' => null,
+                'body' => $messages[$i],
             ]);
 
             // Create reply threads for answered/in-progress/closed tickets
             if ($status->slug !== 'open') {
                 // Reply from agent
                 TicketThread::create([
-                    'id_tiket' => $ticket->id,
-                    'tipe' => 'balasan',
-                    'id_pengguna' => $agent->id,
-                    'isi' => $replies[$i],
+                    'ticket_id' => $ticket->id,
+                    'type' => 'reply',
+                    'user_id' => $agent->id,
+                    'body' => $replies[$i],
                 ]);
 
                 // Add more threads for closed tickets
                 if ($status->slug === 'closed') {
                     // Final reply from agent
                     TicketThread::create([
-                        'id_tiket' => $ticket->id,
-                        'tipe' => 'balasan',
-                        'id_pengguna' => $agent->id,
-                        'isi' => 'Laporan insiden siber telah diselesaikan. Jika ada pertanyaan lebih lanjut, silakan buat laporan baru.',
+                        'ticket_id' => $ticket->id,
+                        'type' => 'reply',
+                        'user_id' => $agent->id,
+                        'body' => 'Laporan insiden siber telah diselesaikan. Jika ada pertanyaan lebih lanjut, silakan buat laporan baru.',
                     ]);
                 }
             }

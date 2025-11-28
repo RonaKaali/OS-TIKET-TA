@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\{User, Organization};
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +20,8 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        $organizations = Organization::orderBy('name')->get();
+        return view('auth.register', compact('organizations'));
     }
 
     /**
@@ -34,6 +35,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'organization_id' => ['nullable', 'exists:organisasi,id'],
             'telegram_username' => [
                 'nullable',
                 'string',
@@ -49,9 +51,10 @@ class RegisteredUserController extends Controller
         }
 
         $user = User::create([
-            'nama' => $request->name,
+            'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => $request->password, // Laravel akan auto hash karena ada cast 'hashed'
+            'id_organisasi' => $request->organization_id,
             'nama_pengguna_telegram' => $telegramUsername ?: null,
         ]);
 

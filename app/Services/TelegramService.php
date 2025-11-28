@@ -35,13 +35,13 @@ class TelegramService
         $username = ltrim($username, '@');
 
         try {
-            // Coba cari user di database yang memiliki telegram_username ini
-            $user = \App\Models\User::where('telegram_username', $username)->first();
+            // Coba cari user di database yang memiliki nama_pengguna_telegram ini
+            $user = \App\Models\User::where('nama_pengguna_telegram', $username)->first();
 
-            // Jika user memiliki telegram_chat_id yang sudah disimpan, gunakan itu
-            if ($user && $user->telegram_chat_id) {
-                Log::info("Menggunakan chat_id dari database untuk @{$username}: {$user->telegram_chat_id}");
-                return $this->sendMessageByChatId($user->telegram_chat_id, $message);
+            // Jika user memiliki id_chat_telegram yang sudah disimpan, gunakan itu
+            if ($user && $user->id_chat_telegram) {
+                Log::info("Menggunakan chat_id dari database untuk @{$username}: {$user->id_chat_telegram}");
+                return $this->sendMessageByChatId($user->id_chat_telegram, $message);
             }
 
             // Jika tidak ada chat_id di database, coba dapatkan dari getUpdates
@@ -61,7 +61,7 @@ class TelegramService
 
             // Simpan chat_id ke database untuk penggunaan selanjutnya
             if ($user) {
-                $user->telegram_chat_id = $chatId;
+                $user->id_chat_telegram = $chatId;
                 $user->save();
                 Log::info("Chat ID {$chatId} telah disimpan ke database untuk user @{$username}");
             }
@@ -94,9 +94,9 @@ class TelegramService
 
             if ($chatId) {
                 // Simpan ke database jika user ditemukan
-                $user = \App\Models\User::where('telegram_username', $username)->first();
-                if ($user && $user->telegram_chat_id != $chatId) {
-                    $user->telegram_chat_id = $chatId;
+                $user = \App\Models\User::where('nama_pengguna_telegram', $username)->first();
+                if ($user && $user->id_chat_telegram != $chatId) {
+                    $user->id_chat_telegram = $chatId;
                     $user->save();
                     Log::info("Chat ID {$chatId} otomatis disimpan untuk user @{$username}");
                 }

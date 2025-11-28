@@ -12,9 +12,9 @@ return new class extends Migration {
     {
         Schema::create('topik_bantuan', function (Blueprint $t) {
             $t->id();
-            $t->string('nama');
-            $t->foreignId('id_departemen')->constrained('departemen')->cascadeOnDelete();
-            $t->json('skema_formulir')->nullable(); // JSON schema untuk custom fields portal
+            $t->string('name');
+            $t->foreignId('department_id')->constrained('departemen')->cascadeOnDelete();
+            $t->json('form_schema')->nullable(); // JSON schema untuk custom fields portal
             $t->timestamps();
         });
     }

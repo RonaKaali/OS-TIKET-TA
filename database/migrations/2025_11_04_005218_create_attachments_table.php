@@ -12,10 +12,10 @@ return new class extends Migration {
     {
         Schema::create('lampiran', function (Blueprint $t) {
             $t->id();
-            $t->foreignId('id_utas_tiket')->constrained('utas_tiket')->cascadeOnDelete();
-            $t->string('nama_file');
+            $t->foreignId('ticket_thread_id')->constrained('utas_tiket')->cascadeOnDelete();
+            $t->string('filename');
             $t->string('mime');
-            $t->unsignedBigInteger('ukuran');
+            $t->unsignedBigInteger('size');
             $t->string('path'); // storage path (disk public)
             $t->timestamps();
         });

@@ -23,23 +23,23 @@ class TicketController extends Controller
             $q->whereHas('status', fn($qq) => $qq->where('slug', $r->status));
         }
         if ($r->filled('dept')) {
-            $q->where('id_departemen', $r->dept);
+            $q->where('department_id', $r->dept);
         }
         if ($r->filled('assigned')) {
-            $q->where('ditugaskan_ke', $r->assigned);
+            $q->where('assigned_to', $r->assigned);
         }
         if ($r->filled('search')) {
             $s = '%' . $r->search . '%';
             $q->where(function ($qq) use ($s) {
-                $qq->where('nomor_tiket', 'like', $s)
-                    ->orWhere('subjek', 'like', $s)
-                    ->orWhere('email_pelapor', 'like', $s);
+                $qq->where('ticket_number', 'like', $s)
+                    ->orWhere('subject', 'like', $s)
+                    ->orWhere('reporter_email', 'like', $s);
             });
         }
 
         // Batasi untuk agen biasa: hanya lihat tiket yang ditugaskan kepadanya
         if (!$r->user()->hasAnyRole(['Super Admin', 'Admin'])) {
-            $q->where('ditugaskan_ke', $r->user()->id);
+            $q->where('assigned_to', $r->user()->id);
         }
 
         $tickets = $q->latest()->paginate(20)->withQueryString();
@@ -52,7 +52,7 @@ class TicketController extends Controller
         $ticket->load(['threads.attachments', 'status', 'priority', 'department', 'assignee']);
 
         // Cegah agen melihat tiket yang bukan miliknya, kecuali admin/super admin
-        if (!request()->user()->hasAnyRole(['Super Admin', 'Admin']) && $ticket->ditugaskan_ke !== request()->user()->id) {
+        if (!request()->user()->hasAnyRole(['Super Admin', 'Admin']) && $ticket->assigned_to !== request()->user()->id) {
             abort(403);
         }
 
@@ -74,10 +74,10 @@ class TicketController extends Controller
         ]);
 
         $thread = TicketThread::create([
-            'id_tiket' => $ticket->id,
-            'tipe' => 'balasan',
-            'id_pengguna' => $r->user()->id,
-            'isi' => $data['message'],
+            'ticket_id' => $ticket->id,
+            'type' => 'reply',
+            'user_id' => $r->user()->id,
+            'body' => $data['message'],
         ]);
 
         foreach ($r->file('attachments', []) as $f) {
@@ -85,33 +85,33 @@ class TicketController extends Controller
                 continue;
             $path = $f->store('attachments', 'public');
             Attachment::create([
-                'id_utas_tiket' => $thread->id,
-                'nama_file' => $f->getClientOriginalName(),
+                'ticket_thread_id' => $thread->id,
+                'filename' => $f->getClientOriginalName(),
                 'mime' => $f->getClientMimeType(),
-                'ukuran' => $f->getSize(),
+                'size' => $f->getSize(),
                 'path' => $path,
             ]);
         }
 
         // Kembalikan status ke "open" (menunggu pelapor)
         if ($openId = Status::where('slug', 'open')->value('id')) {
-            $ticket->update(['id_status' => $openId]);
+            $ticket->update(['status_id' => $openId]);
         }
 
         // Notifikasi ke pelapor (email + telegram jika user terdaftar)
         try {
             // Cari user berdasarkan email
-            $requester = \App\Models\User::where('email', $ticket->email_pelapor)->first();
+            $requester = \App\Models\User::where('email', $ticket->reporter_email)->first();
 
             if ($requester) {
                 // User terdaftar, kirim ke semua channel (email + telegram)
                 $requester->notify(new \App\Notifications\TicketReplyFromAgent($ticket, $thread));
-                Log::info('Notifikasi balasan dikirim ke pelapor: ' . $ticket->email_pelapor . ' (email' . (!empty($requester->nama_pengguna_telegram) ? ' + telegram' : '') . ')');
+                Log::info('Notifikasi balasan dikirim ke pelapor: ' . $ticket->reporter_email . ' (email' . (!empty($requester->nama_pengguna_telegram) ? ' + telegram' : '') . ')');
             } else {
                 // Guest user, hanya email
-                Notification::route('mail', $ticket->email_pelapor)
+                Notification::route('mail', $ticket->reporter_email)
                     ->notify(new \App\Notifications\TicketReplyFromAgent($ticket, $thread));
-                Log::info('Notifikasi balasan dikirim ke pelapor (guest): ' . $ticket->email_pelapor);
+                Log::info('Notifikasi balasan dikirim ke pelapor (guest): ' . $ticket->reporter_email);
             }
         } catch (\Throwable $e) {
             \Log::warning('Gagal mengirim notifikasi ke pelapor: ' . $e->getMessage());
@@ -133,8 +133,8 @@ class TicketController extends Controller
         $ticket->load(['status', 'priority', 'department']);
 
         $ticket->update([
-            'id_status' => $newStatus->id,
-            'ditutup_pada' => $newStatus->menutup ? now() : null,
+            'status_id' => $newStatus->id,
+            'closed_at' => $newStatus->is_closed ? now() : null,
         ]);
 
         // Reload ticket dengan status baru
@@ -143,7 +143,7 @@ class TicketController extends Controller
         // Kirim notifikasi email ke pelapor jika status berubah menjadi "Dalam Proses" atau "Tertutup" atau "Ditugaskan"
         // Cek berdasarkan slug atau nama status
         $statusSlug = strtolower($newStatus->slug);
-        $statusName = strtolower($newStatus->nama);
+        $statusName = strtolower($newStatus->name);
 
         $shouldNotify = in_array($statusSlug, ['in_progress', 'in-progress', 'dalam-proses', 'closed', 'tertutup', 'assigned', 'ditugaskan']) ||
             str_contains($statusName, 'dalam proses') ||
@@ -153,17 +153,17 @@ class TicketController extends Controller
         if ($shouldNotify) {
             try {
                 // Cari user berdasarkan email
-                $requester = \App\Models\User::where('email', $ticket->email_pelapor)->first();
+                $requester = \App\Models\User::where('email', $ticket->reporter_email)->first();
 
                 if ($requester) {
                     // User terdaftar, kirim ke semua channel (email + telegram)
                     $requester->notify(new \App\Notifications\TicketStatusChanged($ticket, $oldStatus, $newStatus));
-                    Log::info('Notifikasi status dikirim ke pelapor: ' . $ticket->email_pelapor . ' (email' . (!empty($requester->nama_pengguna_telegram) ? ' + telegram' : '') . ')');
+                    Log::info('Notifikasi status dikirim ke pelapor: ' . $ticket->reporter_email . ' (email' . (!empty($requester->nama_pengguna_telegram) ? ' + telegram' : '') . ')');
                 } else {
                     // Guest user, hanya email
-                    Notification::route('mail', $ticket->email_pelapor)
+                    Notification::route('mail', $ticket->reporter_email)
                         ->notify(new \App\Notifications\TicketStatusChanged($ticket, $oldStatus, $newStatus));
-                    Log::info('Notifikasi status dikirim ke pelapor (guest): ' . $ticket->email_pelapor);
+                    Log::info('Notifikasi status dikirim ke pelapor (guest): ' . $ticket->reporter_email);
                 }
             } catch (\Throwable $e) {
                 Log::error('Gagal mengirim notifikasi status ke pelapor: ' . $e->getMessage());

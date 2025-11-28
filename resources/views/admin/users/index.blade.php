@@ -62,6 +62,9 @@
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone
                     </th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Organisasi
+                    </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terdaftar
                     </th>
@@ -79,18 +82,21 @@
                             <div class="text-sm text-gray-900">{{ $user->email }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-500">{{ $user->phone ?? '-' }}</div>
+                            <div class="text-sm text-gray-500">{{ $user->telepon ?? '-' }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-500">{{ $user->organization->name ?? '-' }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($user->roles->isNotEmpty())
                                 @foreach($user->roles as $role)
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                                    @if($role->name == 'Super Admin') bg-purple-100 text-purple-800
-                                                    @elseif($role->name == 'Admin') bg-blue-100 text-blue-800
-                                                    @elseif($role->name == 'Agent') bg-green-100 text-green-800
-                                                    @elseif($role->name == 'Support Agent') bg-yellow-100 text-yellow-800
-                                                    @else bg-gray-100 text-gray-800
-                                                    @endif">
+                                                                @if($role->name == 'Super Admin') bg-purple-100 text-purple-800
+                                                                @elseif($role->name == 'Admin') bg-blue-100 text-blue-800
+                                                                @elseif($role->name == 'Agent') bg-green-100 text-green-800
+                                                                @elseif($role->name == 'Support Agent') bg-yellow-100 text-yellow-800
+                                                                @else bg-gray-100 text-gray-800
+                                                                @endif">
                                         {{ $role->name }}
                                     </span>
                                 @endforeach
@@ -121,7 +127,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                        <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
                             Tidak ada user ditemukan
                         </td>
                     </tr>

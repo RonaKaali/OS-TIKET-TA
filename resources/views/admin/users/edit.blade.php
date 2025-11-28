@@ -38,12 +38,32 @@
                 <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
                     Phone
                 </label>
-                <input type="text" name="phone" id="phone" value="{{ old('phone', $user->phone) }}"
+                <input type="text" name="phone" id="phone" value="{{ old('phone', $user->telepon) }}"
                     placeholder="081234567890"
                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 @error('phone')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
+            </div>
+
+            <!-- Organization -->
+            <div>
+                <label for="organization_id" class="block text-sm font-medium text-gray-700 mb-2">
+                    Organisasi
+                </label>
+                <select name="organization_id" id="organization_id"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <option value="">Tidak ada organisasi</option>
+                    @foreach($organizations as $org)
+                        <option value="{{ $org->id }}" {{ old('organization_id', $user->id_organisasi) == $org->id ? 'selected' : '' }}>
+                            {{ $org->name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('organization_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                <p class="mt-1 text-xs text-gray-500">Pilih organisasi untuk mengelompokkan user</p>
             </div>
 
             <!-- Password -->

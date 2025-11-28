@@ -11,11 +11,11 @@ class Status extends Model
 
     protected $table = 'status';
 
-    protected $fillable = ['nama', 'slug', 'menutup'];
-    protected $casts = ['menutup' => 'boolean'];
+    protected $fillable = ['name', 'slug', 'is_closed'];
+    protected $casts = ['is_closed' => 'boolean'];
 
     public function tickets()
     {
-        return $this->hasMany(Ticket::class, 'id_status');
+        return $this->hasMany(Ticket::class, 'status_id');
     }
 }

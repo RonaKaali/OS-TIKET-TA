@@ -14,29 +14,29 @@ class Ticket extends Model
 
     protected $fillable = [
         'uuid',
-        'nomor_tiket',
-        'subjek',
-        'email_pelapor',
-        'nama_pelapor',
-        'id_pengguna',
-        'id_departemen',
-        'id_topik_bantuan',
-        'id_prioritas',
-        'id_status',
-        'id_rencana_sla',
-        'jatuh_tempo_pada',
-        'ditutup_pada',
-        'ditugaskan_ke',
-        'dikunci_oleh',
-        'dikunci_sampai',
-        'bidang_kustom'
+        'ticket_number',
+        'subject',
+        'reporter_email',
+        'reporter_name',
+        'user_id',
+        'department_id',
+        'help_topic_id',
+        'priority_id',
+        'status_id',
+        'sla_plan_id',
+        'due_at',
+        'closed_at',
+        'assigned_to',
+        'locked_by',
+        'locked_until',
+        'custom_fields'
     ];
 
     protected $casts = [
-        'jatuh_tempo_pada' => 'datetime',
-        'ditutup_pada' => 'datetime',
-        'dikunci_sampai' => 'datetime',
-        'bidang_kustom' => 'array',
+        'due_at' => 'datetime',
+        'closed_at' => 'datetime',
+        'locked_until' => 'datetime',
+        'custom_fields' => 'array',
     ];
 
     protected static function booted()
@@ -45,7 +45,7 @@ class Ticket extends Model
             if (empty($t->uuid)) {
                 $t->uuid = (string) Str::uuid();
             }
-            if (empty($t->nomor_tiket)) {
+            if (empty($t->ticket_number)) {
                 $prefix = env('TICKET_NUMBER_PREFIX', 'CSIRT');
                 $length = (int) env('TICKET_NUMBER_LENGTH', 8);
 
@@ -66,10 +66,10 @@ class Ticket extends Model
                     $attempts++;
 
                     // Cek apakah nomor sudah ada
-                    $exists = static::where('nomor_tiket', $ticketNumber)->exists();
+                    $exists = static::where('ticket_number', $ticketNumber)->exists();
 
                     if (!$exists) {
-                        $t->nomor_tiket = $ticketNumber;
+                        $t->ticket_number = $ticketNumber;
                         break;
                     }
 
@@ -77,7 +77,7 @@ class Ticket extends Model
                     if ($attempts >= $maxAttempts) {
                         $timestamp = substr(str_replace(['-', ':', ' '], '', now()->toDateTimeString()), -8);
                         $randomSuffix = substr(str_shuffle($chars), 0, 4);
-                        $t->nomor_tiket = "{$prefix}-{$timestamp}{$randomSuffix}";
+                        $t->ticket_number = "{$prefix}-{$timestamp}{$randomSuffix}";
                         break;
                     }
                 } while ($attempts < $maxAttempts);
@@ -87,40 +87,40 @@ class Ticket extends Model
 
     public function requester()
     {
-        return $this->belongsTo(User::class, 'id_pengguna');
+        return $this->belongsTo(User::class, 'user_id');
     }
     public function department()
     {
-        return $this->belongsTo(Department::class, 'id_departemen');
+        return $this->belongsTo(Department::class, 'department_id');
     }
     public function topic()
     {
-        return $this->belongsTo(HelpTopic::class, 'id_topik_bantuan');
+        return $this->belongsTo(HelpTopic::class, 'help_topic_id');
     }
     public function status()
     {
-        return $this->belongsTo(Status::class, 'id_status');
+        return $this->belongsTo(Status::class, 'status_id');
     }
     public function priority()
     {
-        return $this->belongsTo(Priority::class, 'id_prioritas');
+        return $this->belongsTo(Priority::class, 'priority_id');
     }
     public function sla()
     {
-        return $this->belongsTo(SlaPlan::class, 'id_rencana_sla');
+        return $this->belongsTo(SlaPlan::class, 'sla_plan_id');
     }
     public function assignee()
     {
-        return $this->belongsTo(User::class, 'ditugaskan_ke');
+        return $this->belongsTo(User::class, 'assigned_to');
     }
     public function locker()
     {
-        return $this->belongsTo(User::class, 'dikunci_oleh');
+        return $this->belongsTo(User::class, 'locked_by');
     }
 
     public function threads()
     {
-        return $this->hasMany(TicketThread::class, 'id_tiket');
+        return $this->hasMany(TicketThread::class, 'ticket_id');
     }
 
     /**
@@ -166,17 +166,17 @@ class Ticket extends Model
     public function isOverdue()
     {
         // Jika sudah ditutup, tidak overdue
-        if ($this->ditutup_pada !== null) {
+        if ($this->closed_at !== null) {
             return false;
         }
 
-        // Jika tidak ada jatuh_tempo_pada, tidak overdue
-        if ($this->jatuh_tempo_pada === null) {
+        // Jika tidak ada due_at, tidak overdue
+        if ($this->due_at === null) {
             return false;
         }
 
-        // Hitung hari kerja sejak jatuh_tempo_pada
-        $workingDaysSinceDue = static::countWorkingDays($this->jatuh_tempo_pada, now());
+        // Hitung hari kerja sejak due_at
+        $workingDaysSinceDue = static::countWorkingDays($this->due_at, now());
 
         // Overdue jika lebih dari 5 hari kerja
         return $workingDaysSinceDue > 5;
@@ -192,9 +192,9 @@ class Ticket extends Model
     public function scopeOverdue($query)
     {
         // Ambil semua tiket yang memenuhi kriteria dasar
-        $candidateIds = $query->whereNull('ditutup_pada')
-            ->whereNotNull('jatuh_tempo_pada')
-            ->where('jatuh_tempo_pada', '<', now())
+        $candidateIds = $query->whereNull('closed_at')
+            ->whereNotNull('due_at')
+            ->where('due_at', '<', now())
             ->pluck('id');
 
         // Filter berdasarkan perhitungan hari kerja

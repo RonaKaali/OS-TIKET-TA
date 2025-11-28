@@ -13,7 +13,7 @@ class TicketController extends Controller
 {
     public function create()
     {
-        $topics = HelpTopic::with('department')->orderBy('nama')->get();
+        $topics = HelpTopic::with('department')->orderBy('name')->get();
         return view('portal.ticket.create', compact('topics'));
     }
 
@@ -32,27 +32,27 @@ class TicketController extends Controller
         $topic = HelpTopic::with('department')->findOrFail($data['help_topic_id']);
         $status = Status::where('slug', 'open')->firstOrFail();
         $slaId = SlaPlan::value('id');
-        $grace = SlaPlan::whereKey($slaId)->value('jam_grace') ?? 48;
+        $grace = SlaPlan::whereKey($slaId)->value('grace_hours') ?? 48;
 
         $ticket = Ticket::create([
-            'subjek' => $data['subject'],
-            'email_pelapor' => $user->email,
-            'nama_pelapor' => $user->nama,
-            'id_pengguna' => $user->id, // Link ke user account
-            'id_departemen' => $topic->id_departemen,
-            'id_topik_bantuan' => $topic->id,
-            'id_prioritas' => $data['priority_id'] ?? null,
-            'id_status' => $status->id,
-            'id_rencana_sla' => $slaId,
-            'jatuh_tempo_pada' => now()->addHours($grace),
-            'bidang_kustom' => $this->extractCustomFields($topic, $r),
+            'subject' => $data['subject'],
+            'reporter_email' => $user->email,
+            'reporter_name' => $user->name,
+            'user_id' => $user->id, // Link ke user account
+            'department_id' => $topic->department_id,
+            'help_topic_id' => $topic->id,
+            'priority_id' => $data['priority_id'] ?? null,
+            'status_id' => $status->id,
+            'sla_plan_id' => $slaId,
+            'due_at' => now()->addHours($grace),
+            'custom_fields' => $this->extractCustomFields($topic, $r),
         ]);
 
         $thread = TicketThread::create([
-            'id_tiket' => $ticket->id,
-            'tipe' => 'pesan',
-            'id_pengguna' => $user->id, // Link ke user account
-            'isi' => $data['message'],
+            'ticket_id' => $ticket->id,
+            'type' => 'message',
+            'user_id' => $user->id, // Link ke user account
+            'body' => $data['message'],
         ]);
 
         $this->storeAttachments($thread, $r->file('attachments', []));
@@ -91,26 +91,26 @@ class TicketController extends Controller
         }
 
         return redirect()
-            ->route('portal.ticket.show', $ticket->nomor_tiket)
+            ->route('portal.ticket.show', $ticket->ticket_number)
             ->with('ok', 'Tiket berhasil dibuat.');
     }
 
     public function show(string $number)
     {
-        $ticket = Ticket::where('nomor_tiket', $number)
+        $ticket = Ticket::where('ticket_number', $number)
             ->with(['threads.attachments', 'status', 'priority', 'department'])
             ->firstOrFail();
 
         $user = request()->user();
 
         // Jika user login dan dia pemilik tiket, langsung allow
-        if ($user && ($ticket->id_pengguna === $user->id || $ticket->email_pelapor === $user->email)) {
+        if ($user && ($ticket->user_id === $user->id || $ticket->reporter_email === $user->email)) {
             return view('portal.ticket.show', compact('ticket'));
         }
 
         // Jika tidak login, cek apakah ada sesi verifikasi dari statusCheck
-        $verifiedEmail = session('ticket_verified_email_' . $ticket->nomor_tiket);
-        if ($verifiedEmail && $verifiedEmail === $ticket->email_pelapor) {
+        $verifiedEmail = session('ticket_verified_email_' . $ticket->ticket_number);
+        if ($verifiedEmail && $verifiedEmail === $ticket->reporter_email) {
             return view('portal.ticket.show', compact('ticket'));
         }
 
@@ -121,12 +121,12 @@ class TicketController extends Controller
 
     public function reply(Request $r, string $number)
     {
-        $ticket = Ticket::where('nomor_tiket', $number)->firstOrFail();
+        $ticket = Ticket::where('ticket_number', $number)->firstOrFail();
         $user = $r->user();
 
         // Cek apakah user yang login adalah pemilik tiket
         abort_unless(
-            $user && ($ticket->id_pengguna === $user->id || $ticket->email_pelapor === $user->email),
+            $user && ($ticket->user_id === $user->id || $ticket->reporter_email === $user->email),
             403,
             'Anda tidak memiliki akses ke tiket ini.'
         );
@@ -137,10 +137,10 @@ class TicketController extends Controller
         ]);
 
         $thread = TicketThread::create([
-            'id_tiket' => $ticket->id,
-            'tipe' => 'pesan',
-            'id_pengguna' => $user->id, // Link ke user account
-            'isi' => $data['message'],
+            'ticket_id' => $ticket->id,
+            'type' => 'message',
+            'user_id' => $user->id, // Link ke user account
+            'body' => $data['message'],
         ]);
 
         $this->storeAttachments($thread, $r->file('attachments', []));
@@ -180,20 +180,20 @@ class TicketController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        $t = Ticket::where('nomor_tiket', $data['ticket_number'])->first();
-        if (!$t || $t->email_pelapor !== $data['email']) {
+        $t = Ticket::where('ticket_number', $data['ticket_number'])->first();
+        if (!$t || $t->reporter_email !== $data['email']) {
             return back()->withErrors(['not_found' => 'Tiket tidak ditemukan atau email tidak cocok.']);
         }
 
         // Simpan verifikasi email di session untuk akses ke halaman show
-        session(['ticket_verified_email_' . $t->nomor_tiket => $data['email']]);
+        session(['ticket_verified_email_' . $t->ticket_number => $data['email']]);
 
-        return redirect()->route('portal.ticket.show', $t->nomor_tiket);
+        return redirect()->route('portal.ticket.show', $t->ticket_number);
     }
 
     private function extractCustomFields(HelpTopic $topic, Request $r): ?array
     {
-        $schema = $topic->skema_formulir ?? null;
+        $schema = $topic->form_schema ?? null;
         if (!$schema)
             return null;
 
@@ -210,10 +210,10 @@ class TicketController extends Controller
                 continue;
             $path = $f->store('attachments', 'public');
             Attachment::create([
-                'id_utas_tiket' => $thread->id,
-                'nama_file' => $f->getClientOriginalName(),
+                'ticket_thread_id' => $thread->id,
+                'filename' => $f->getClientOriginalName(),
                 'mime' => $f->getClientMimeType(),
-                'ukuran' => $f->getSize(),
+                'size' => $f->getSize(),
                 'path' => $path,
             ]);
         }

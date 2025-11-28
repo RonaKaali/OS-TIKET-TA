@@ -11,5 +11,5 @@ class CannedResponse extends Model
 
     protected $table = 'respons_template';
 
-    protected $fillable = ['judul', 'isi'];
+    protected $fillable = ['title', 'body'];
 }

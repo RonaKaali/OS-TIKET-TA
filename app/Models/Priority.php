@@ -11,10 +11,10 @@ class Priority extends Model
 
     protected $table = 'prioritas';
 
-    protected $fillable = ['nama', 'bobot'];
+    protected $fillable = ['name', 'weight'];
 
     public function tickets()
     {
-        return $this->hasMany(Ticket::class, 'id_prioritas');
+        return $this->hasMany(Ticket::class, 'priority_id');
     }
 }

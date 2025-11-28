@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 // Tipe relasi (opsional tapi rapi untuk type-hint)
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * Atribut yang boleh diisi mass-assignment.
@@ -25,25 +26,18 @@ class User extends Authenticatable
     protected $table = 'pengguna';
 
     protected $fillable = [
-        'nama',
+        'name',
         'email',
-        'password', // akan di-mapping ke kata_sandi via mutator
-        'kata_sandi', // untuk backward compatibility
-        // tambahkan ini hanya jika kolomnya ada di tabel pengguna
+        'password',
         'id_organisasi',
         'telepon',
+        'phone', // alias untuk telepon via mutator
         'nama_pengguna_telegram',
+        'telegram_username', // alias untuk nama_pengguna_telegram via mutator
         'id_chat_telegram',
+        'telegram_chat_id', // alias untuk id_chat_telegram via mutator
         'remember_token',
     ];
-
-    /**
-     * Get the name of the password attribute for authentication.
-     */
-    public function getAuthPasswordName()
-    {
-        return 'kata_sandi';
-    }
 
     /**
      * Atribut yang disembunyikan saat serialisasi.
@@ -51,26 +45,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'kata_sandi',
         'password',
         'remember_token',
     ];
-
-    /**
-     * Mutator untuk password - map 'password' ke 'kata_sandi'
-     */
-    public function setPasswordAttribute($value)
-    {
-        $this->attributes['kata_sandi'] = $value;
-    }
-
-    /**
-     * Accessor untuk password - map 'kata_sandi' ke 'password'
-     */
-    public function getPasswordAttribute()
-    {
-        return $this->attributes['kata_sandi'] ?? null;
-    }
 
     /**
      * Casting atribut.
@@ -80,10 +57,57 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_terverifikasi_pada' => 'datetime',
-            'kata_sandi' => 'hashed',
-            'password' => 'hashed', // untuk compatibility
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Accessor untuk telegram_username (alias dari nama_pengguna_telegram)
+     */
+    public function getTelegramUsernameAttribute()
+    {
+        return $this->nama_pengguna_telegram;
+    }
+
+    /**
+     * Mutator untuk telegram_username (alias dari nama_pengguna_telegram)
+     */
+    public function setTelegramUsernameAttribute($value)
+    {
+        $this->attributes['nama_pengguna_telegram'] = $value;
+    }
+
+    /**
+     * Accessor untuk telegram_chat_id (alias dari id_chat_telegram)
+     */
+    public function getTelegramChatIdAttribute()
+    {
+        return $this->id_chat_telegram;
+    }
+
+    /**
+     * Mutator untuk telegram_chat_id (alias dari id_chat_telegram)
+     */
+    public function setTelegramChatIdAttribute($value)
+    {
+        $this->attributes['id_chat_telegram'] = $value;
+    }
+
+    /**
+     * Accessor untuk phone (alias dari telepon)
+     */
+    public function getPhoneAttribute()
+    {
+        return $this->telepon;
+    }
+
+    /**
+     * Mutator untuk phone (alias dari telepon)
+     */
+    public function setPhoneAttribute($value)
+    {
+        $this->attributes['telepon'] = $value;
     }
 
     /**
@@ -104,34 +128,34 @@ class User extends Authenticatable
     }
 
     /**
-     * Tiket yang ditugaskan ke user ini (tiket.ditugaskan_ke -> pengguna.id).
+     * Tiket yang ditugaskan ke user ini (tiket.assigned_to -> pengguna.id).
      */
     public function assignedTickets(): HasMany
     {
-        return $this->hasMany(\App\Models\Ticket::class, 'ditugaskan_ke');
+        return $this->hasMany(\App\Models\Ticket::class, 'assigned_to');
     }
 
     /**
-     * Tiket yang dibuat oleh user ini sebagai requester (tiket.id_pengguna -> pengguna.id).
+     * Tiket yang dibuat oleh user ini sebagai requester (tiket.user_id -> pengguna.id).
      */
     public function requestedTickets(): HasMany
     {
-        return $this->hasMany(\App\Models\Ticket::class, 'id_pengguna');
+        return $this->hasMany(\App\Models\Ticket::class, 'user_id');
     }
 
     /**
-     * Tiket yang sedang dikunci oleh user ini (tiket.dikunci_oleh -> pengguna.id).
+     * Tiket yang sedang dikunci oleh user ini (tiket.locked_by -> pengguna.id).
      */
     public function lockedTickets(): HasMany
     {
-        return $this->hasMany(\App\Models\Ticket::class, 'dikunci_oleh');
+        return $this->hasMany(\App\Models\Ticket::class, 'locked_by');
     }
 
     /**
-     * Thread yang dibuat oleh user ini (utas_tiket.id_pengguna -> pengguna.id).
+     * Thread yang dibuat oleh user ini (utas_tiket.user_id -> pengguna.id).
      */
     public function ticketThreads(): HasMany
     {
-        return $this->hasMany(\App\Models\TicketThread::class, 'id_pengguna');
+        return $this->hasMany(\App\Models\TicketThread::class, 'user_id');
     }
 }

@@ -12,8 +12,8 @@ return new class extends Migration {
     {
         Schema::create('rencana_sla', function (Blueprint $t) {
             $t->id();
-            $t->string('nama')->unique();
-            $t->unsignedInteger('jam_grace'); // jatuh tempo dalam X jam
+            $t->string('name')->unique();
+            $t->unsignedInteger('grace_hours'); // jatuh tempo dalam X jam
             $t->timestamps();
         });
     }

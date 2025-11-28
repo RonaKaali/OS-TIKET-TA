@@ -12,9 +12,9 @@ return new class extends Migration {
     {
         Schema::create('status', function (Blueprint $t) {
             $t->id();
-            $t->string('nama');             // Terbuka, Menunggu Pelapor, Tertutup, Terlambat
+            $t->string('name');             // Terbuka, Menunggu Pelapor, Tertutup, Terlambat
             $t->string('slug')->unique();   // terbuka, menunggu_pelapor, tertutup, terlambat
-            $t->boolean('menutup')->default(false);
+            $t->boolean('is_closed')->default(false);
             $t->timestamps();
         });
     }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\{User, Organization};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -34,12 +34,12 @@ class UserController extends Controller
         if ($r->filled('search')) {
             $search = $r->search;
             $q->where(function ($query) use ($search) {
-                $query->where('nama', 'like', "%{$search}%")
+                $query->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
-        $users = $q->latest()->paginate(20)->withQueryString();
+        $users = $q->with('organization')->latest()->paginate(20)->withQueryString();
         $roles = Role::all();
 
         return view('admin.users.index', compact('users', 'roles'));
@@ -51,7 +51,8 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        return view('admin.users.create', compact('roles'));
+        $organizations = Organization::orderBy('name')->get();
+        return view('admin.users.create', compact('roles', 'organizations'));
     }
 
     /**
@@ -64,14 +65,16 @@ class UserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'phone' => ['nullable', 'string', 'max:20'],
+            'organization_id' => ['nullable', 'exists:organisasi,id'],
             'role' => ['required', 'exists:roles,name'],
         ]);
 
         $user = User::create([
-            'nama' => $data['name'],
+            'name' => $data['name'],
             'email' => $data['email'],
-            'password' => Hash::make($data['password']),
+            'password' => $data['password'],
             'telepon' => $data['phone'] ?? null,
+            'id_organisasi' => $data['organization_id'] ?? null,
         ]);
 
         // Assign role
@@ -86,8 +89,9 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $roles = Role::all();
-        $user->load('roles');
-        return view('admin.users.edit', compact('user', 'roles'));
+        $organizations = Organization::orderBy('name')->get();
+        $user->load('roles', 'organization');
+        return view('admin.users.edit', compact('user', 'roles', 'organizations'));
     }
 
     /**
@@ -100,18 +104,20 @@ class UserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:pengguna,email,' . $user->id],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
             'phone' => ['nullable', 'string', 'max:20'],
+            'organization_id' => ['nullable', 'exists:organisasi,id'],
             'role' => ['required', 'exists:roles,name'],
         ]);
 
         $updateData = [
-            'nama' => $data['name'],
+            'name' => $data['name'],
             'email' => $data['email'],
             'telepon' => $data['phone'] ?? null,
+            'id_organisasi' => $data['organization_id'] ?? null,
         ];
 
         // Update password jika diisi
         if (!empty($data['password'])) {
-            $updateData['password'] = Hash::make($data['password']);
+            $updateData['password'] = $data['password'];
         }
 
         $user->update($updateData);

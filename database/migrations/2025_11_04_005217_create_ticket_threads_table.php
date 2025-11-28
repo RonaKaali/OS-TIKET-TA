@@ -12,10 +12,10 @@ return new class extends Migration {
     {
         Schema::create('utas_tiket', function (Blueprint $t) {
             $t->id();
-            $t->foreignId('id_tiket')->constrained('tiket')->cascadeOnDelete();
-            $t->enum('tipe', ['pesan', 'balasan', 'catatan']); // pesan=pelapor, balasan=agen, catatan=internal
-            $t->foreignId('id_pengguna')->nullable()->constrained('pengguna')->nullOnDelete(); // agen/user
-            $t->longText('isi');
+            $t->foreignId('ticket_id')->constrained('tiket')->cascadeOnDelete();
+            $t->enum('type', ['message', 'reply', 'note']); // message=pelapor, reply=agen, note=internal
+            $t->foreignId('user_id')->nullable()->constrained('pengguna')->nullOnDelete(); // agen/user
+            $t->longText('body');
             $t->timestamps();
         });
     }

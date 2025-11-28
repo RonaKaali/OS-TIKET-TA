@@ -11,10 +11,10 @@ class Attachment extends Model
 
     protected $table = 'lampiran';
 
-    protected $fillable = ['id_utas_tiket', 'nama_file', 'mime', 'ukuran', 'path'];
+    protected $fillable = ['ticket_thread_id', 'filename', 'mime', 'size', 'path'];
 
     public function thread()
     {
-        return $this->belongsTo(TicketThread::class, 'id_utas_tiket');
+        return $this->belongsTo(TicketThread::class, 'ticket_thread_id');
     }
 }

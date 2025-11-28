@@ -47,6 +47,34 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
+        <!-- Organization -->
+        <div>
+            <label for="organization_id" class="block text-sm font-semibold text-gray-700 mb-2">
+                Organisasi <span class="text-gray-500 text-xs font-normal">(Opsional)</span>
+            </label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <select id="organization_id" name="organization_id"
+                    class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition appearance-none bg-white">
+                    <option value="">Pilih Organisasi (Opsional)</option>
+                    @foreach($organizations as $org)
+                        <option value="{{ $org->id }}" {{ old('organization_id') == $org->id ? 'selected' : '' }}>
+                            {{ $org->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <x-input-error :messages="$errors->get('organization_id')" class="mt-2" />
+            <p class="mt-1.5 text-xs text-gray-500">
+                Pilih organisasi/institusi Anda (jika ada)
+            </p>
+        </div>
+
         <!-- Password -->
         <div>
             <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">

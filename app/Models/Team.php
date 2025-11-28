@@ -11,7 +11,7 @@ class Team extends Model
 
     protected $table = 'tim';
 
-    protected $fillable = ['nama'];
+    protected $fillable = ['name'];
 
     public function users()
     {

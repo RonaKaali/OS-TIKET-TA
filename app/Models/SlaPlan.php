@@ -12,10 +12,10 @@ class SlaPlan extends Model
 
     protected $table = 'rencana_sla';
 
-    protected $fillable = ['nama', 'jam_grace'];
+    protected $fillable = ['name', 'grace_hours'];
 
     public function tickets()
     {
-        return $this->hasMany(Ticket::class, 'id_rencana_sla');
+        return $this->hasMany(Ticket::class, 'sla_plan_id');
     }
 }

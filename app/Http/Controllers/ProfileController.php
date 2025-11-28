@@ -29,15 +29,25 @@ class ProfileController extends Controller
         $user = $request->user();
         $validated = $request->validated();
 
+        // Update name dan email
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+
+        // Update phone
+        if (isset($validated['phone'])) {
+            $user->phone = $validated['phone'];
+        }
+
         // Bersihkan @ dari awal telegram_username jika ada
         $telegramUsernameChanged = false;
         if (isset($validated['telegram_username']) && !empty($validated['telegram_username'])) {
             $newTelegramUsername = ltrim($validated['telegram_username'], '@');
             $telegramUsernameChanged = ($user->telegram_username !== $newTelegramUsername);
-            $validated['telegram_username'] = $newTelegramUsername;
+            $user->telegram_username = $newTelegramUsername;
+        } elseif (isset($validated['telegram_username']) && empty($validated['telegram_username'])) {
+            // Jika dikosongkan, set ke null
+            $user->telegram_username = null;
         }
-
-        $user->fill($validated);
 
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;

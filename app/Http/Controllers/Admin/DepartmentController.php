@@ -27,15 +27,11 @@ class DepartmentController extends Controller
     public function store(Request $r)
     {
         $data = $r->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:departemen,nama'],
+            'name' => ['required', 'string', 'max:255', 'unique:departemen,name'],
             'email' => ['nullable', 'email', 'max:255'],
             'is_public' => ['required', 'boolean'],
         ]);
-        Department::create([
-            'nama' => $data['name'],
-            'email' => $data['email'],
-            'publik' => $data['is_public'],
-        ]);
+        Department::create($data);
         return redirect()->route('admin.departments.index')->with('ok', 'Department dibuat.');
     }
 
@@ -47,15 +43,11 @@ class DepartmentController extends Controller
     public function update(Request $r, Department $department)
     {
         $data = $r->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:departemen,nama,' . $department->id],
+            'name' => ['required', 'string', 'max:255', 'unique:departemen,name,' . $department->id],
             'email' => ['nullable', 'email', 'max:255'],
             'is_public' => ['required', 'boolean'],
         ]);
-        $department->update([
-            'nama' => $data['name'],
-            'email' => $data['email'],
-            'publik' => $data['is_public'],
-        ]);
+        $department->update($data);
         return redirect()->route('admin.departments.index')->with('ok', 'Department diperbarui.');
     }
 
