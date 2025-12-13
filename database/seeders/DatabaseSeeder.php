@@ -26,5 +26,8 @@ class DatabaseSeeder extends Seeder
 
         // Seed sample tickets with threads
         $this->call(TicketSeeder::class);
+
+        // Seed chatbot responses
+        $this->call(ChatbotResponseSeeder::class);
     }
 }

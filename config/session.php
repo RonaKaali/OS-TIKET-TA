@@ -32,7 +32,7 @@ return [
     |
     */
 
-    'lifetime' => (int) env('SESSION_LIFETIME', 5), // 5 menit untuk auto logout
+    'lifetime' => (int) env('SESSION_LIFETIME', 3), // 3 menit untuk auto logout
 
     'expire_on_close' => env('SESSION_EXPIRE_ON_CLOSE', false),
 

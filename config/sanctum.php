@@ -47,7 +47,7 @@ return [
     |
     */
 
-    'expiration' => 5, // Token expired setelah 5 menit (sesuai dengan session timeout)
+    'expiration' => 3, // Token expired setelah 3 menit (sesuai dengan session timeout)
 
     /*
     |--------------------------------------------------------------------------

@@ -18,24 +18,32 @@ class CheckUserActivity
     {
         if (Auth::check()) {
             $user = Auth::user();
-            $lastActivity = session('last_activity');
-            $inactiveTimeout = 5; // 5 menit dalam menit
+            $lastActivity = $request->session()->get('last_activity');
+            $inactiveTimeout = 3; // 3 menit dalam menit
 
-            // Jika ada last_activity dan sudah lebih dari 5 menit, logout
+            // Jika ada last_activity, cek apakah sudah melewati timeout
             if ($lastActivity) {
-                $lastActivityTime = \Carbon\Carbon::parse($lastActivity);
-                $minutesSinceLastActivity = now()->diffInMinutes($lastActivityTime);
-                
-                if ($minutesSinceLastActivity >= $inactiveTimeout) {
-                    // Revoke semua token user
-                    $user->tokens()->delete();
-                    
-                    Auth::logout();
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
+                try {
+                    $lastActivityTime = \Carbon\Carbon::parse($lastActivity);
+                    $minutesSinceLastActivity = now()->diffInMinutes($lastActivityTime);
 
-                    return redirect()->route('login')
-                        ->with('status', 'Session Anda telah berakhir karena tidak ada aktivitas selama 5 menit. Silakan login kembali.');
+                    // Jika sudah lebih dari 3 menit tanpa aktivitas, logout
+                    if ($minutesSinceLastActivity >= $inactiveTimeout) {
+                        // Revoke semua token user
+                        if (method_exists($user, 'tokens')) {
+                            $user->tokens()->delete();
+                        }
+
+                        Auth::logout();
+                        $request->session()->invalidate();
+                        $request->session()->regenerateToken();
+
+                        return redirect()->route('login')
+                            ->with('status', 'Session Anda telah berakhir karena tidak ada aktivitas selama 3 menit. Silakan login kembali.');
+                    }
+                } catch (\Exception $e) {
+                    // Jika parsing gagal, reset last_activity
+                    $lastActivity = null;
                 }
             }
 

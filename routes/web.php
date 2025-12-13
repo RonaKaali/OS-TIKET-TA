@@ -16,11 +16,16 @@ use App\Http\Controllers\Admin\{
     TeamController,
     CannedResponseController,
     OrganizationController,
-    UserController
+    UserController,
+    ChatbotResponseController
 };
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ChatbotController;
 
 Route::get('/', fn() => view('welcome'))->name('welcome');
+
+# Chatbot API (public access)
+Route::post('/chatbot/message', [ChatbotController::class, 'message'])->name('chatbot.message');
 
 # Portal (Harus login untuk melaporkan)
 Route::prefix('portal')->group(function () {
@@ -73,6 +78,7 @@ Route::middleware(['auth', 'role:Super Admin'])->prefix('admin')->as('admin.')->
     Route::resource('canned', CannedResponseController::class)->except('show');
     Route::resource('organizations', OrganizationController::class)->except('show');
     Route::resource('users', UserController::class)->except('show');
+    Route::resource('chatbot-responses', ChatbotResponseController::class);
 });
 
 # Profile (untuk user yang sudah login)
@@ -80,6 +86,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Session check untuk auto logout
+    Route::get('/session/check', [\App\Http\Controllers\SessionController::class, 'check'])->name('session.check');
 });
 
 # Telegram Webhook (untuk menerima update dari bot Telegram)

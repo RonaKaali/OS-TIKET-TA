@@ -32,11 +32,11 @@ class AuthenticatedSessionController extends Controller
 
         // Generate bearer token untuk keamanan tambahan (disimpan di session, tidak ditampilkan)
         // Token akan digunakan untuk validasi request internal
-        $tokenResult = $user->createToken('web-session-token', ['*'], now()->addMinutes(5));
-        
+        $tokenResult = $user->createToken('web-session-token', ['*'], now()->addMinutes(3));
+
         // Simpan token ID di session untuk validasi (bukan plain text token)
         $request->session()->put('auth_token_id', $tokenResult->accessToken->id);
-        
+
         // Set last activity time untuk auto logout
         $request->session()->put('last_activity', now()->toDateTimeString());
 

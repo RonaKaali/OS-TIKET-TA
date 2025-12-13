@@ -71,6 +71,10 @@
                                     class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                                     Canned Response
                                 </a>
+                                <a href="{{ route('admin.chatbot-responses.index') }}"
+                                    class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
+                                    Chatbot Responses
+                                </a>
                                 <a href="{{ route('admin.organizations.index') }}"
                                     class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
                                     Organizations

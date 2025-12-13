@@ -197,10 +197,10 @@ class TicketSeeder extends Seeder
         $this->command->info('✓ Sample tickets created: ' . $ticketsCreated);
         $this->command->info('');
         $this->command->info('Ticket Status Summary:');
-        $this->command->info('  - Open: ' . Ticket::where('id_status', $openStatus->id)->count());
-        $this->command->info('  - Answered: ' . Ticket::where('id_status', $answeredStatus->id)->count());
-        $this->command->info('  - In Progress: ' . Ticket::where('id_status', $inProgressStatus->id)->count());
-        $this->command->info('  - Closed: ' . Ticket::where('id_status', $closedStatus->id)->count());
+        $this->command->info('  - Open: ' . Ticket::where('status_id', $openStatus->id)->count());
+        $this->command->info('  - Answered: ' . Ticket::where('status_id', $answeredStatus->id)->count());
+        $this->command->info('  - In Progress: ' . Ticket::where('status_id', $inProgressStatus->id)->count());
+        $this->command->info('  - Closed: ' . Ticket::where('status_id', $closedStatus->id)->count());
         $this->command->info('');
         $this->command->info('Total Threads: ' . TicketThread::count());
     }
