@@ -62,7 +62,7 @@ class UserController extends Controller
     {
         $data = $r->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:pengguna,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'phone' => ['nullable', 'string', 'max:20'],
             'organization_id' => ['nullable', 'exists:organisasi,id'],

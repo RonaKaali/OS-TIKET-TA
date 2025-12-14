@@ -18,7 +18,7 @@ class AssignmentController extends Controller
     public function __invoke(Request $r, Ticket $ticket)
     {
         $data = $r->validate([
-            'user_id' => ['required', 'exists:users,id'],
+            'user_id' => ['required', 'exists:pengguna,id'],
         ]);
 
         $agent = User::findOrFail($data['user_id']);

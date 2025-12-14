@@ -27,9 +27,9 @@ class TeamController extends Controller
     public function store(Request $r)
     {
         $data = $r->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:teams,name'],
+            'name' => ['required', 'string', 'max:255', 'unique:tim,name'],
             'user_ids' => ['array'],
-            'user_ids.*' => ['exists:users,id'],
+            'user_ids.*' => ['exists:pengguna,id'],
         ]);
         $team = Team::create(['name' => $data['name']]);
         $team->users()->sync($data['user_ids'] ?? []);
@@ -46,9 +46,9 @@ class TeamController extends Controller
     public function update(Request $r, Team $team)
     {
         $data = $r->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:teams,name,' . $team->id],
+            'name' => ['required', 'string', 'max:255', 'unique:tim,name,' . $team->id],
             'user_ids' => ['array'],
-            'user_ids.*' => ['exists:users,id'],
+            'user_ids.*' => ['exists:pengguna,id'],
         ]);
         $team->update(['name' => $data['name']]);
         $team->users()->sync($data['user_ids'] ?? []);

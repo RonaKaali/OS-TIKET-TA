@@ -10,6 +10,7 @@
 6. [Fitur Notifikasi](#fitur-notifikasi)
 7. [Cara Setup dan Instalasi](#cara-setup-dan-instalasi)
 8. [Demo Fitur](#demo-fitur)
+9. [Chatbot Otomatis](#6-chatbot-otomatis)
 
 ---
 
@@ -21,6 +22,7 @@
 -   **Tracking dan monitoring** status penanganan insiden
 -   **Notifikasi real-time** melalui Email dan Telegram
 -   **Manajemen tiket** untuk agent/admin
+-   **Chatbot otomatis** untuk membantu user mendapatkan informasi cepat
 
 ### Tujuan Proyek
 
@@ -72,6 +74,16 @@
 -   ✅ Permission management
 -   ✅ Profile management
 
+### 6. Chatbot Otomatis
+
+-   ✅ **Chatbot berbasis keyword** - Respon otomatis berdasarkan kata kunci
+-   ✅ **Multiple match types** - Contains, Exact, Starts With
+-   ✅ **Priority system** - Prioritas untuk multiple matches
+-   ✅ **Aktif/Nonaktif** - Kontrol per response
+-   ✅ **Manajemen via Admin Panel** - CRUD chatbot responses
+-   ✅ **Widget Chatbot** - Chatbot widget di website (opsional)
+-   ✅ **Integrasi Telegram Bot** - Chatbot juga berfungsi di Telegram
+
 ---
 
 ## 🛠 Teknologi yang Digunakan
@@ -113,6 +125,7 @@ os-tiket/
 │   │   │   ├── Portal/         # Controller untuk portal public
 │   │   │   ├── Auth/           # Controller autentikasi
 │   │   │   ├── ProfileController.php
+│   │   │   ├── ChatbotController.php  # Controller untuk chatbot API
 │   │   │   └── TelegramWebhookController.php
 │   │   └── Requests/           # Form Request validation
 │   ├── Models/                 # Eloquent Models
@@ -126,7 +139,8 @@ os-tiket/
 │   │   ├── TicketReplyFromAgent.php
 │   │   └── TicketReplyFromRequester.php
 │   ├── Services/
-│   │   └── TelegramService.php # Service untuk Telegram Bot API
+│   │   ├── TelegramService.php # Service untuk Telegram Bot API
+│   │   └── ChatbotService.php  # Service untuk chatbot logic
 │   └── Providers/
 │       └── AppServiceProvider.php
 ├── config/                     # File konfigurasi
@@ -257,6 +271,7 @@ File ini berisi semua route aplikasi:
 -   Route agent/admin panel
 -   Route profile
 -   Route Telegram webhook
+-   Route chatbot API
 
 **Cara Edit**: Edit file `routes/web.php`
 
@@ -446,6 +461,7 @@ Akses: `http://127.0.0.1:8000`
 -   CRUD untuk semua master data
 -   User management
 -   Role & Permission management
+-   **Chatbot Responses Management** - Kelola response chatbot
 
 **File**:
 
@@ -484,6 +500,55 @@ Akses: `http://127.0.0.1:8000`
 -   Telegram Service: `app/Services/TelegramService.php`
 -   Telegram Channel: `app/Notifications/Channels/TelegramChannel.php`
 
+### 6. Chatbot Otomatis
+
+**URL**:
+
+-   API: `http://127.0.0.1:8000/chatbot/message` (POST)
+-   Admin Panel: `http://127.0.0.1:8000/admin/chatbot-responses`
+
+**Fitur**:
+
+-   **Keyword-based responses** - Bot merespons berdasarkan kata kunci
+-   **Multiple match types**:
+    -   `contains` - Pesan mengandung keyword
+    -   `exact` - Pesan persis sama dengan keyword
+    -   `starts_with` - Pesan dimulai dengan keyword
+-   **Priority system** - Jika ada multiple matches, yang priority lebih tinggi dipilih
+-   **Aktif/Nonaktif** - Kontrol per response
+-   **Manajemen via Admin Panel** - Super Admin dapat CRUD chatbot responses
+-   **Widget Chatbot** - Chatbot widget tersedia di website (opsional)
+-   **Integrasi Telegram** - Chatbot juga berfungsi di Telegram Bot
+
+**Cara Test**:
+
+1. **Via Website Widget** (jika ada):
+
+    - Buka website
+    - Klik widget chatbot
+    - Ketik pesan seperti "halo", "bantuan", "cara buat tiket"
+    - Bot akan merespons sesuai keyword
+
+2. **Via Telegram Bot**:
+
+    - Kirim pesan ke bot Telegram
+    - Bot akan merespons sesuai keyword yang dikonfigurasi
+
+3. **Via Admin Panel**:
+    - Login sebagai Super Admin
+    - Akses Admin Panel > Chatbot Responses
+    - Tambah/Edit/Hapus response
+
+**File**:
+
+-   Controller: `app/Http/Controllers/ChatbotController.php`
+-   Admin Controller: `app/Http/Controllers/Admin/ChatbotResponseController.php`
+-   Service: `app/Services/ChatbotService.php`
+-   Model: `app/Models/ChatbotResponse.php`
+-   Route: `routes/web.php` (line 28)
+-   View: `resources/views/admin/chatbot-responses/`
+-   Widget: `resources/views/components/chatbot-widget.blade.php` (jika ada)
+
 ---
 
 ## 📊 Database Schema
@@ -500,6 +565,7 @@ Akses: `http://127.0.0.1:8000`
 8. **organizations** - Organisasi
 9. **teams** - Tim agent
 10. **help_topics** - Kategori insiden
+11. **chatbot_responses** - Data response chatbot
 
 **File Migration**: `database/migrations/`
 
@@ -593,7 +659,8 @@ php artisan db:seed
 2. **TELEGRAM_SETUP.md** - Panduan setup Telegram bot
 3. **TELEGRAM_WEBHOOK_SETUP.md** - Panduan setup webhook
 4. **TELEGRAM_CHAT_ID_GUIDE.md** - Panduan mendapatkan chat_id
-5. **ROLE_PERMISSION.md** - Dokumentasi role & permission
+5. **CHATBOT_RESPONSES_GUIDE.md** - Panduan mengisi chatbot responses
+6. **ROLE_PERMISSION.md** - Dokumentasi role & permission
 
 ---
 
@@ -610,6 +677,7 @@ php artisan db:seed
 -   Portal pelaporan untuk masyarakat
 -   Dashboard agent/admin untuk manajemen tiket
 -   Sistem notifikasi (Email + Telegram)
+-   **Chatbot otomatis** untuk membantu user
 -   Manajemen master data
 
 ### 3. Demo (5 menit)
@@ -617,6 +685,7 @@ php artisan db:seed
 -   Tampilkan portal pelaporan
 -   Tampilkan dashboard agent
 -   Demo notifikasi (email + Telegram)
+-   **Demo chatbot** (via website widget atau Telegram)
 -   Tampilkan fitur profile management
 
 ### 4. Teknologi & Arsitektur (3 menit)
@@ -648,6 +717,7 @@ php artisan db:seed
 | **Telegram Bot**         | `config/services.php`                            | `config/`                     |
 | **Routes**               | `routes/web.php`                                 | `routes/`                     |
 | **Telegram Service**     | `app/Services/TelegramService.php`               | `app/Services/`               |
+| **Chatbot Service**      | `app/Services/ChatbotService.php`                | `app/Services/`               |
 | **Telegram Channel**     | `app/Notifications/Channels/TelegramChannel.php` | `app/Notifications/Channels/` |
 | **App Service Provider** | `app/Providers/AppServiceProvider.php`           | `app/Providers/`              |
 | **Migrations**           | `database/migrations/`                           | `database/migrations/`        |
@@ -659,9 +729,10 @@ php artisan db:seed
 
 1. **Siapkan Demo**: Pastikan aplikasi sudah running dan data sudah ada
 2. **Test Notifikasi**: Pastikan email dan Telegram sudah dikonfigurasi
-3. **Siapkan Screenshot**: Ambil screenshot fitur-fitur penting
-4. **Jelaskan Flow**: Jelaskan alur dari pelaporan sampai penanganan
-5. **Highlight Fitur Unik**: Tekankan fitur notifikasi Telegram yang unik
+3. **Test Chatbot**: Pastikan chatbot responses sudah dikonfigurasi dan berfungsi
+4. **Siapkan Screenshot**: Ambil screenshot fitur-fitur penting
+5. **Jelaskan Flow**: Jelaskan alur dari pelaporan sampai penanganan
+6. **Highlight Fitur Unik**: Tekankan fitur notifikasi Telegram dan chatbot yang unik
 
 ---
 
@@ -684,6 +755,19 @@ A:
 3. Pastikan user sudah mengirim `/start` ke bot
 4. Test dengan command: `php artisan telegram:test email@example.com`
 
+### Q: Bagaimana cara mengatur chatbot responses?
+
+A: Lihat file `CHATBOT_RESPONSES_GUIDE.md` untuk panduan lengkap. Atau akses Admin Panel > Chatbot Responses untuk mengelola response.
+
+### Q: Chatbot tidak merespons?
+
+A:
+
+1. Pastikan response sudah aktif (`is_active = true`)
+2. Cek match type (contains, exact, starts_with)
+3. Cek priority - mungkin ada response lain dengan priority lebih tinggi
+4. Test dengan keyword yang berbeda
+
 ### Q: Bagaimana cara deploy ke production?
 
 A:
@@ -693,6 +777,7 @@ A:
 3. Set `APP_DEBUG=false`
 4. Setup webhook untuk Telegram
 5. Setup queue worker untuk notifikasi
+6. Pastikan chatbot responses sudah dikonfigurasi
 
 ---
 
