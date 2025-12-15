@@ -109,8 +109,36 @@
                 <form method="POST" action="{{ route('agent.tickets.reply', $ticket) }}" enctype="multipart/form-data">
                     @csrf
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Pesan</label>
-                        <textarea name="message" rows="5" required
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-medium text-gray-700">Pesan</label>
+                            @if($cannedResponses->count() > 0)
+                                <div class="relative">
+                                    <button type="button" id="selectTemplateBtn"
+                                        class="text-sm text-indigo-600 hover:text-indigo-900 font-medium"
+                                        title="Pilih Template / Select Canned Response">
+                                        📋 Pilih Template
+                                    </button>
+                                    <div id="templateDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-10 border border-gray-200 max-h-96 overflow-y-auto">
+                                        <div class="p-2">
+                                            <input type="text" id="templateSearch" placeholder="Cari template..."
+                                                class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md mb-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            <div id="templateList" class="space-y-1">
+                                                @foreach($cannedResponses as $template)
+                                                    <button type="button" 
+                                                        class="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 rounded-md border border-transparent hover:border-indigo-200 template-item"
+                                                        data-title="{{ json_encode($template->title) }}"
+                                                        data-body="{{ json_encode($template->body) }}">
+                                                        <div class="font-medium text-gray-900">{{ $template->title }}</div>
+                                                        <div class="text-xs text-gray-500 mt-1 line-clamp-2">{{ Str::limit($template->body, 80) }}</div>
+                                                    </button>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                        <textarea name="message" id="messageTextarea" rows="5" required
                             class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('message') }}</textarea>
                     </div>
                     <div class="mb-4">
@@ -194,4 +222,92 @@
             </div>
         </div>
     </div>
+
+    @if(isset($cannedResponses) && $cannedResponses->count() > 0)
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectBtn = document.getElementById('selectTemplateBtn');
+            const dropdown = document.getElementById('templateDropdown');
+            const searchInput = document.getElementById('templateSearch');
+            const templateList = document.getElementById('templateList');
+            const messageTextarea = document.getElementById('messageTextarea');
+            const templateItems = document.querySelectorAll('.template-item');
+
+            // Toggle dropdown
+            if (selectBtn && dropdown) {
+                selectBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('hidden');
+                    if (!dropdown.classList.contains('hidden')) {
+                        searchInput.focus();
+                    }
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!dropdown.contains(e.target) && e.target !== selectBtn) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Search functionality
+            if (searchInput && templateItems.length > 0) {
+                searchInput.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.toLowerCase();
+                    templateItems.forEach(item => {
+                        const title = item.getAttribute('data-title').toLowerCase();
+                        const body = item.getAttribute('data-body').toLowerCase();
+                        if (title.includes(searchTerm) || body.includes(searchTerm)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            }
+
+            // Insert template into textarea
+            templateItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Parse JSON dari data attribute
+                    let body, title;
+                    try {
+                        body = JSON.parse(this.getAttribute('data-body'));
+                        title = JSON.parse(this.getAttribute('data-title'));
+                    } catch(e) {
+                        // Fallback jika bukan JSON (untuk kompatibilitas)
+                        body = this.getAttribute('data-body');
+                        title = this.getAttribute('data-title');
+                    }
+                    
+                    // Replace placeholder jika ada
+                    let templateBody = body;
+                    templateBody = templateBody.replace(/\{\{TICKET_NUMBER\}\}/g, '{{ $ticket->ticket_number }}');
+                    templateBody = templateBody.replace(/\{\{SUBJECT\}\}/g, '{{ $ticket->subject }}');
+                    templateBody = templateBody.replace(/\{\{REPORTER_NAME\}\}/g, '{{ $ticket->requester_name ?? "Pelapor" }}');
+                    
+                    // Jika textarea sudah ada isi, tanyakan apakah ingin mengganti atau menambahkan
+                    if (messageTextarea.value.trim() !== '') {
+                        if (confirm('Textarea sudah berisi teks. Apakah Anda ingin menggantinya dengan template "' + title + '"?\n\nKlik OK untuk mengganti, Cancel untuk membatalkan.')) {
+                            messageTextarea.value = templateBody;
+                        }
+                    } else {
+                        messageTextarea.value = templateBody;
+                    }
+                    
+                    // Focus ke textarea dan scroll ke bawah sedikit
+                    messageTextarea.focus();
+                    const len = templateBody.length;
+                    messageTextarea.setSelectionRange(len, len);
+                    
+                    // Close dropdown
+                    if (dropdown) {
+                        dropdown.classList.add('hidden');
+                    }
+                });
+            });
+        });
+    </script>
+    @endif
 </x-agent-layout>

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
-use App\Models\{Ticket, TicketThread, Status, Attachment};
+use App\Models\{Ticket, TicketThread, Status, Attachment, CannedResponse};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
@@ -63,7 +63,10 @@ class TicketController extends Controller
             $q->whereIn('roles.name', ['Super Admin', 'Admin', 'Agent', 'Support Agent']);
         })->with('roles')->distinct()->get();
 
-        return view('agent.tickets.show', compact('ticket', 'agents'));
+        // Ambil daftar canned responses untuk dipilih agent
+        $cannedResponses = CannedResponse::latest()->get();
+
+        return view('agent.tickets.show', compact('ticket', 'agents', 'cannedResponses'));
     }
 
     public function reply(Request $r, Ticket $ticket)

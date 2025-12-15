@@ -33,24 +33,24 @@ class CannedResponseController extends Controller
         return redirect()->route('admin.canned.index')->with('ok', 'Template dibuat.');
     }
 
-    public function edit(CannedResponse $cannedResponse)
+    public function edit(CannedResponse $canned)
     {
-        return view('admin.canned.edit', compact('cannedResponse'));
+        return view('admin.canned.edit', ['cannedResponse' => $canned]);
     }
 
-    public function update(Request $r, CannedResponse $cannedResponse)
+    public function update(Request $r, CannedResponse $canned)
     {
         $data = $r->validate([
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string', 'max:50000'],
         ]);
-        $cannedResponse->update($data);
+        $canned->update($data);
         return redirect()->route('admin.canned.index')->with('ok', 'Template diperbarui.');
     }
 
-    public function destroy(CannedResponse $cannedResponse)
+    public function destroy(CannedResponse $canned)
     {
-        $cannedResponse->delete();
+        $canned->delete();
         return back()->with('ok', 'Template dihapus.');
     }
 }
