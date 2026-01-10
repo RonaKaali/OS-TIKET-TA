@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>CSIRT Agent Panel - {{ config('app.name', 'CSIRT Kalselprov') }}</title>
+    <title>Panel Agen CSIRT - {{ config('app.name', 'CSIRT Kalselprov') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -30,13 +30,13 @@
                             </div>
                             <div>
                                 <div class="text-sm font-bold text-gray-900">CSIRT Kalselprov</div>
-                                <div class="text-xs text-gray-600">Agent Panel</div>
+                                <div class="text-xs text-gray-600">Panel Agen</div>
                             </div>
                         </a>
                         <div class="hidden sm:ml-8 sm:flex sm:space-x-1">
                             <x-nav-link :href="route('agent.dashboard')" :active="request()->routeIs('agent.dashboard')"
                                 class="px-4 py-2 rounded-lg transition">
-                                Dashboard
+                                Dasbor
                             </x-nav-link>
                             <x-nav-link :href="route('agent.tickets.index')"
                                 :active="request()->routeIs('agent.tickets.*')" class="px-4 py-2 rounded-lg transition">
@@ -45,7 +45,7 @@
                             @role('Super Admin')
                             <x-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.*')"
                                 class="px-4 py-2 rounded-lg transition">
-                                Admin Panel
+                                Panel Admin
                             </x-nav-link>
                             @endrole
                         </div>
@@ -73,7 +73,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
-                                    <span>Profile</span>
+                                <span>Profil</span>
                                 </x-dropdown-link>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
@@ -84,7 +84,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                         </svg>
-                                        <span>Logout</span>
+                                        <span>Keluar</span>
                                     </x-dropdown-link>
                                 </form>
                             </x-slot>
@@ -107,7 +107,7 @@
                 <div class="pt-2 pb-3 space-y-1 px-4">
                     <x-responsive-nav-link :href="route('agent.dashboard')"
                         :active="request()->routeIs('agent.dashboard')" class="block px-3 py-2 rounded-lg">
-                        Dashboard
+                        Dasbor
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('agent.tickets.index')"
                         :active="request()->routeIs('agent.tickets.*')" class="block px-3 py-2 rounded-lg">
@@ -116,7 +116,7 @@
                     @role('Super Admin')
                     <x-responsive-nav-link :href="route('admin.index')" :active="request()->routeIs('admin.*')"
                         class="block px-3 py-2 rounded-lg">
-                        Admin Panel
+                        Panel Admin
                     </x-responsive-nav-link>
                     @endrole
                 </div>
@@ -132,13 +132,13 @@
                         </div>
                     </div>
                     <x-responsive-nav-link :href="route('profile.edit')"
-                        class="block px-3 py-2 rounded-lg">Profile</x-responsive-nav-link>
+                        class="block px-3 py-2 rounded-lg">Profil</x-responsive-nav-link>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault(); this.closest('form').submit();"
                             class="block px-3 py-2 rounded-lg text-red-600">
-                            Logout
+                            Keluar
                         </x-responsive-nav-link>
                     </form>
                 </div>

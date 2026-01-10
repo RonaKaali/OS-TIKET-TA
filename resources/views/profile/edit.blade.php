@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <div>
-                <h2 class="text-2xl font-bold text-gray-900">Profile</h2>
+                <h2 class="text-2xl font-bold text-gray-900">Profil</h2>
                 <p class="text-sm text-gray-600 mt-1">Kelola informasi profil dan keamanan akun Anda</p>
             </div>
             <a href="{{ route('welcome') }}"

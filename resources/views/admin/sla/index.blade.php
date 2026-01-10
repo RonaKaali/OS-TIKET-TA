@@ -1,6 +1,6 @@
 <x-admin-layout>
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">SLA Plans</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Rencana SLA</h1>
         <a href="{{ route('admin.sla.create') }}"
             class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
             + Tambah SLA Plan

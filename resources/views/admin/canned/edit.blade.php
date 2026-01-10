@@ -1,6 +1,6 @@
 <x-admin-layout>
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900">Edit Canned Response</h1>
+        <h1 class="text-2xl font-bold text-gray-900">Edit Tanggapan Cepat</h1>
     </div>
 
     <div class="bg-white shadow rounded-lg p-6">

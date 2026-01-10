@@ -38,25 +38,24 @@
                     </div>
                     <div>
                         <div class="text-sm font-bold text-gray-900">CSIRT Kalselprov</div>
-                        <div class="text-xs text-gray-600">Computer Security Incident Response Team</div>
+                        <div class="text-xs text-gray-600">Tim Tanggap Insiden Keamanan Komputer</div>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
                     @auth
                         @can('admin.panel')
                             <a href="{{ route('dashboard') }}"
-                                class="text-gray-700 hover:text-blue-600 font-medium transition">Dashboard</a>
+                                class="text-gray-700 hover:text-blue-600 font-medium transition">Dasbor</a>
                         @endcan
                         <a href="{{ route('profile.edit') }}"
-                            class="text-gray-700 hover:text-blue-600 font-medium transition">Profile</a>
+                            class="text-gray-700 hover:text-blue-600 font-medium transition">Profil</a>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
                             <button type="submit"
-                                class="text-gray-700 hover:text-blue-600 font-medium transition">Logout</button>
+                                class="text-gray-700 hover:text-blue-600 font-medium transition">Keluar</button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="text-gray-700 hover:text-blue-600 font-medium transition">Log
-                            in</a>
+                        <a href="{{ route('login') }}" class="text-gray-700 hover:text-blue-600 font-medium transition">Masuk</a>
                         @if (Route::has('register'))
                             <a href="{{ route('register') }}"
                                 class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-all transform hover:-translate-y-0.5">
@@ -328,7 +327,7 @@
                             Kalimantan Selatan.</p>
                     </div>
                     <div>
-                        <h4 class="text-white font-semibold mb-4">Quick Links</h4>
+                        <h4 class="text-white font-semibold mb-4">Tautan Cepat</h4>
                         <ul class="space-y-2">
                             <li><a href="{{ route('portal.ticket.create') }}"
                                     class="hover:text-white transition text-sm">Laporkan Insiden</a></li>
@@ -337,15 +336,15 @@
                             @auth
                                 @can('admin.panel')
                                     <li><a href="{{ route('dashboard') }}"
-                                            class="hover:text-white transition text-sm">Dashboard</a></li>
+                                            class="hover:text-white transition text-sm">Dasbor</a></li>
                                 @endcan
                                 <li><a href="{{ route('profile.edit') }}"
-                                        class="hover:text-white transition text-sm">Profile</a></li>
+                                        class="hover:text-white transition text-sm">Profil</a></li>
                             @else
-                                <li><a href="{{ route('login') }}" class="hover:text-white transition text-sm">Login</a>
+                                <li><a href="{{ route('login') }}" class="hover:text-white transition text-sm">Masuk</a>
                                 </li>
                                 <li><a href="{{ route('register') }}"
-                                        class="hover:text-white transition text-sm">Register</a></li>
+                                        class="hover:text-white transition text-sm">Daftar</a></li>
                             @endauth
                         </ul>
                     </div>

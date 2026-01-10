@@ -171,7 +171,7 @@
                         @endforeach
                     </select>
                     <button type="submit" class="w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
-                        Update Status
+                        Perbarui Status
                     </button>
                 </form>
             </div>
@@ -200,8 +200,8 @@
                             @endforeach
                         </select>
                         <button type="submit"
-                            class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-                            Assign
+                        class="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                            Tugaskan
                         </button>
                     </form>
                 </div>
@@ -285,7 +285,7 @@
                     let templateBody = body;
                     templateBody = templateBody.replace(/\{\{TICKET_NUMBER\}\}/g, '{{ $ticket->ticket_number }}');
                     templateBody = templateBody.replace(/\{\{SUBJECT\}\}/g, '{{ $ticket->subject }}');
-                    templateBody = templateBody.replace(/\{\{REPORTER_NAME\}\}/g, '{{ $ticket->requester_name ?? "Pelapor" }}');
+                    templateBody = templateBody.replace(/\{\{REPORTER_NAME\}\}/g, '{{ $ticket->requester->name ?? $ticket->reporter_name ?? "Pelapor" }}');
                     
                     // Jika textarea sudah ada isi, tanyakan apakah ingin mengganti atau menambahkan
                     if (messageTextarea.value.trim() !== '') {

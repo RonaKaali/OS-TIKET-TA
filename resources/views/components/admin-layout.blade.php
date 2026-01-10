@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>CSIRT Admin Panel - {{ config('app.name', 'CSIRT Kalselprov') }}</title>
+    <title>Panel Admin CSIRT - {{ config('app.name', 'CSIRT Kalselprov') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -27,7 +27,7 @@
                             </div>
                             <div>
                                 <div class="text-sm font-bold text-white">CSIRT Kalselprov</div>
-                                <div class="text-xs text-indigo-200">Admin Panel</div>
+                                <div class="text-xs text-indigo-200">Panel Admin</div>
                             </div>
                         </div>
                     </div>
@@ -35,7 +35,7 @@
                         <nav class="flex-1 px-2 space-y-1">
                             <a href="{{ route('agent.dashboard') }}"
                                 class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                Dashboard
+                                Dasbor
                             </a>
                             <a href="{{ route('agent.tickets.index') }}"
                                 class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
@@ -49,7 +49,7 @@
                                 </a>
                                 <a href="{{ route('admin.help-topics.index') }}"
                                     class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                    Help Topics
+                                    Topik Bantuan
                                 </a>
                                 <a href="{{ route('admin.statuses.index') }}"
                                     class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
@@ -61,11 +61,11 @@
                                 </a>
                                 <a href="{{ route('admin.sla.index') }}"
                                     class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                    SLA Plans
+                                    Rencana SLA
                                 </a>
                                 <a href="{{ route('admin.teams.index') }}"
                                     class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                    Teams
+                                    Tim
                                 </a>
                                 <a href="{{ route('admin.canned.index') }}"
                                     class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
@@ -81,7 +81,7 @@
                                 </a>
                                 <a href="{{ route('admin.users.index') }}"
                                     class="text-white hover:bg-indigo-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-                                    Users
+                                    Pengguna
                                 </a>
                             </div>
                         </nav>
@@ -100,7 +100,7 @@
                             @isset($header)
                                 {{ $header }}
                             @else
-                                <h1 class="text-2xl font-semibold text-gray-900">Admin Panel</h1>
+                                <h1 class="text-2xl font-semibold text-gray-900">Panel Admin</h1>
                             @endisset
                         </div>
                         <div class="flex items-center space-x-4">
@@ -116,12 +116,12 @@
                                     </button>
                                 </x-slot>
                                 <x-slot name="content">
-                                    <x-dropdown-link :href="route('profile.edit')">Profile</x-dropdown-link>
+                                    <x-dropdown-link :href="route('profile.edit')">Profil</x-dropdown-link>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <x-dropdown-link :href="route('logout')"
                                             onclick="event.preventDefault(); this.closest('form').submit();">
-                                            Logout
+                                            Keluar
                                         </x-dropdown-link>
                                     </form>
                                 </x-slot>

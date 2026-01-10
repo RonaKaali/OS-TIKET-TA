@@ -35,14 +35,14 @@
             <div class="flex items-end">
                 <button type="submit"
                     class="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    Filter
+                    Saring
                 </button>
             </div>
 
             <div class="flex items-end">
                 <a href="{{ route('agent.tickets.index') }}"
                     class="w-full bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 text-center">
-                    Reset
+                    Atur Ulang
                 </a>
             </div>
         </form>
@@ -81,8 +81,10 @@
                                 <div class="text-sm text-gray-500">{{ $ticket->department->name }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ $ticket->requester_name ?? 'N/A' }}</div>
-                                <div class="text-sm text-gray-500">{{ $ticket->requester_email }}</div>
+                                <div class="text-sm text-gray-900">
+                                    {{ $ticket->requester->name ?? $ticket->reporter_name ?? $ticket->reporter_email ?? 'N/A' }}
+                                </div>
+                                <div class="text-sm text-gray-500">{{ $ticket->reporter_email }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex flex-col space-y-1">

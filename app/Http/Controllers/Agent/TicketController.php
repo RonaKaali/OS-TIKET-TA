@@ -17,7 +17,7 @@ class TicketController extends Controller
 
     public function index(Request $r)
     {
-        $q = Ticket::query()->with(['status', 'priority', 'department', 'assignee']);
+        $q = Ticket::query()->with(['status', 'priority', 'department', 'assignee', 'requester']);
 
         if ($r->filled('status')) {
             $q->whereHas('status', fn($qq) => $qq->where('slug', $r->status));
@@ -49,7 +49,7 @@ class TicketController extends Controller
 
     public function show(Ticket $ticket)
     {
-        $ticket->load(['threads.attachments', 'status', 'priority', 'department', 'assignee']);
+        $ticket->load(['threads.attachments', 'status', 'priority', 'department', 'assignee', 'requester']);
 
         // Cegah agen melihat tiket yang bukan miliknya, kecuali admin/super admin
         if (!request()->user()->hasAnyRole(['Super Admin', 'Admin']) && $ticket->assigned_to !== request()->user()->id) {
