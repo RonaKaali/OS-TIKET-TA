@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Ticket, TicketThread, Status, Attachment, CannedResponse};
+use App\Services\FileEncryptionService;
+use App\Traits\LoggableActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
 
 class TicketController extends Controller
 {
+    use LoggableActivity;
     public function __construct()
     {
         $this->middleware(['auth', 'permission:admin.panel']);
@@ -44,6 +47,12 @@ class TicketController extends Controller
 
         $tickets = $q->latest()->paginate(20)->withQueryString();
 
+        // Log aktivitas READ (list)
+        $this->logRead('Ticket', null, [
+            'action' => 'list',
+            'filters' => $r->only(['status', 'dept', 'assigned', 'search']),
+        ]);
+
         return view('agent.tickets.index', compact('tickets'));
     }
 
@@ -66,6 +75,9 @@ class TicketController extends Controller
         // Ambil daftar canned responses untuk dipilih agent
         $cannedResponses = CannedResponse::latest()->get();
 
+        // Log aktivitas READ
+        $this->logRead('Ticket', $ticket, ['ticket_number' => $ticket->ticket_number]);
+
         return view('agent.tickets.show', compact('ticket', 'agents', 'cannedResponses'));
     }
 
@@ -83,22 +95,40 @@ class TicketController extends Controller
             'body' => $data['message'],
         ]);
 
+        $encryptionService = app(FileEncryptionService::class);
+        
         foreach ($r->file('attachments', []) as $f) {
             if (!$f)
                 continue;
-            $path = $f->store('attachments', 'public');
+            
+            // Enkripsi dan simpan file
+            $fileData = $encryptionService->storeEncrypted($f, 'attachments');
+            
             Attachment::create([
                 'ticket_thread_id' => $thread->id,
-                'filename' => $f->getClientOriginalName(),
-                'mime' => $f->getClientMimeType(),
-                'size' => $f->getSize(),
-                'path' => $path,
+                'filename' => $fileData['encrypted_filename'],
+                'original_filename' => $fileData['original_filename'],
+                'mime' => $fileData['mime'],
+                'size' => $fileData['size'], // Ukuran asli
+                'path' => $fileData['path'],
+                'is_encrypted' => true,
             ]);
         }
 
         // Kembalikan status ke "open" (menunggu pelapor)
+        $oldStatusId = $ticket->status_id;
         if ($openId = Status::where('slug', 'open')->value('id')) {
             $ticket->update(['status_id' => $openId]);
+        }
+
+        // Log aktivitas UPDATE (reply mengubah status)
+        if ($oldStatusId != $ticket->status_id) {
+            $this->logUpdate('Ticket', $ticket, [
+                'status_id' => $oldStatusId,
+            ], [
+                'action' => 'reply',
+                'status_changed' => true,
+            ]);
         }
 
         // Notifikasi ke pelapor (email + telegram jika user terdaftar)
@@ -132,12 +162,23 @@ class TicketController extends Controller
         $oldStatus = $ticket->status;
         $newStatus = Status::findOrFail($data['status_id']);
 
+        // Simpan data original untuk logging
+        $originalData = [
+            'status_id' => $ticket->status_id,
+        ];
+
         // Load relasi yang diperlukan
         $ticket->load(['status', 'priority', 'department']);
 
         $ticket->update([
             'status_id' => $newStatus->id,
             'closed_at' => $newStatus->is_closed ? now() : null,
+        ]);
+
+        // Log aktivitas UPDATE
+        $this->logUpdate('Ticket', $ticket, $originalData, [
+            'old_status' => $oldStatus->name ?? $oldStatus->slug,
+            'new_status' => $newStatus->name ?? $newStatus->slug,
         ]);
 
         // Reload ticket dengan status baru

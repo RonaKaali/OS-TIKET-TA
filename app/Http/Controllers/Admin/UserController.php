@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\{User, Organization};
+use App\Traits\LoggableActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -11,6 +12,7 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
+    use LoggableActivity;
     public function __construct()
     {
         $this->middleware(['auth', 'role:Super Admin']);
@@ -41,6 +43,9 @@ class UserController extends Controller
 
         $users = $q->with('organization')->latest()->paginate(20)->withQueryString();
         $roles = Role::all();
+
+        // Log aktivitas READ (list)
+        $this->logRead('User', null, ['action' => 'list', 'filters' => $r->only(['role', 'search'])]);
 
         return view('admin.users.index', compact('users', 'roles'));
     }
@@ -80,6 +85,9 @@ class UserController extends Controller
         // Assign role
         $user->assignRole($data['role']);
 
+        // Log aktivitas CREATE
+        $this->logCreate('User', $user, ['role' => $data['role']]);
+
         return redirect()->route('admin.users.index')->with('ok', 'User berhasil dibuat.');
     }
 
@@ -91,6 +99,10 @@ class UserController extends Controller
         $roles = Role::all();
         $organizations = Organization::orderBy('name')->get();
         $user->load('roles', 'organization');
+        
+        // Log aktivitas READ (view edit form)
+        $this->logRead('User', $user, ['action' => 'edit_form']);
+        
         return view('admin.users.edit', compact('user', 'roles', 'organizations'));
     }
 
@@ -108,6 +120,14 @@ class UserController extends Controller
             'role' => ['required', 'exists:roles,name'],
         ]);
 
+        // Simpan data original untuk logging
+        $originalData = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'telepon' => $user->telepon,
+            'id_organisasi' => $user->id_organisasi,
+        ];
+
         $updateData = [
             'name' => $data['name'],
             'email' => $data['email'],
@@ -123,7 +143,15 @@ class UserController extends Controller
         $user->update($updateData);
 
         // Sync role
+        $oldRole = $user->roles->first()?->name;
         $user->syncRoles([$data['role']]);
+
+        // Log aktivitas UPDATE
+        $this->logUpdate('User', $user, $originalData, [
+            'role_changed' => $oldRole !== $data['role'],
+            'old_role' => $oldRole,
+            'new_role' => $data['role'],
+        ]);
 
         return redirect()->route('admin.users.index')->with('ok', 'User berhasil diperbarui.');
     }
@@ -137,6 +165,9 @@ class UserController extends Controller
         if ($user->id === auth()->id()) {
             return back()->withErrors(['error' => 'Tidak dapat menghapus akun sendiri.']);
         }
+
+        // Log aktivitas DELETE (sebelum dihapus)
+        $this->logDelete('User', $user);
 
         $user->delete();
 

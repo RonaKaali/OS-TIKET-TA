@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Ticket, TicketThread, HelpTopic, SlaPlan, Status, Attachment};
+use App\Services\FileEncryptionService;
+use App\Traits\LoggableActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -11,6 +13,7 @@ use Illuminate\Validation\Rule;
 
 class TicketController extends Controller
 {
+    use LoggableActivity;
     public function create()
     {
         $topics = HelpTopic::with('department')->orderBy('name')->get();
@@ -90,6 +93,13 @@ class TicketController extends Controller
             \Log::error('Stack trace: ' . $e->getTraceAsString());
         }
 
+        // Log aktivitas CREATE
+        $this->logCreate('Ticket', $ticket, [
+            'ticket_number' => $ticket->ticket_number,
+            'department_id' => $ticket->department_id,
+            'priority_id' => $ticket->priority_id,
+        ]);
+
         return redirect()
             ->route('portal.ticket.show', $ticket->ticket_number)
             ->with('ok', 'Tiket berhasil dibuat.');
@@ -105,6 +115,8 @@ class TicketController extends Controller
 
         // Jika user login dan dia pemilik tiket, langsung allow
         if ($user && ($ticket->user_id === $user->id || $ticket->reporter_email === $user->email)) {
+            // Log aktivitas READ
+            $this->logRead('Ticket', $ticket, ['ticket_number' => $ticket->ticket_number]);
             return view('portal.ticket.show', compact('ticket'));
         }
 
@@ -205,16 +217,23 @@ class TicketController extends Controller
 
     private function storeAttachments(TicketThread $thread, array $files): void
     {
+        $encryptionService = app(FileEncryptionService::class);
+        
         foreach ($files as $f) {
             if (!$f)
                 continue;
-            $path = $f->store('attachments', 'public');
+            
+            // Enkripsi dan simpan file
+            $fileData = $encryptionService->storeEncrypted($f, 'attachments');
+            
             Attachment::create([
                 'ticket_thread_id' => $thread->id,
-                'filename' => $f->getClientOriginalName(),
-                'mime' => $f->getClientMimeType(),
-                'size' => $f->getSize(),
-                'path' => $path,
+                'filename' => $fileData['encrypted_filename'],
+                'original_filename' => $fileData['original_filename'],
+                'mime' => $fileData['mime'],
+                'size' => $fileData['size'], // Ukuran asli
+                'path' => $fileData['path'],
+                'is_encrypted' => true,
             ]);
         }
     }

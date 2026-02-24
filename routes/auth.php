@@ -4,11 +4,13 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\MfaVerificationController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\MfaController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -35,6 +37,19 @@ Route::middleware('guest')->group(function () {
         ->name('password.store');
 });
 
+// MFA Verification (harus bisa diakses setelah login tapi sebelum MFA verified)
+// Tidak menggunakan middleware 'guest' karena user sudah login
+Route::middleware('web')->group(function () {
+    Route::get('mfa/verify', [MfaVerificationController::class, 'create'])
+        ->name('mfa.verify');
+    Route::post('mfa/verify', [MfaVerificationController::class, 'store']);
+
+    // Halaman khusus untuk verifikasi menggunakan backup code
+    Route::get('mfa/verify-backup', [MfaVerificationController::class, 'createBackup'])
+        ->name('mfa.verify-backup');
+    Route::post('mfa/verify-backup', [MfaVerificationController::class, 'storeBackup']);
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
@@ -56,4 +71,14 @@ Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
+
+    // MFA Management
+    Route::get('mfa/setup', [MfaController::class, 'showSetup'])
+        ->name('mfa.setup');
+    Route::post('mfa/enable', [MfaController::class, 'enable'])
+        ->name('mfa.enable');
+    Route::get('mfa/backup-codes', [MfaController::class, 'showBackupCodes'])
+        ->name('mfa.backup-codes');
+    Route::post('mfa/disable', [MfaController::class, 'disable'])
+        ->name('mfa.disable');
 });

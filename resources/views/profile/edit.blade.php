@@ -18,6 +18,21 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <!-- Session Status -->
+            <x-auth-session-status class="mb-6" :status="session('status')" />
+            
+            @if(session('error'))
+                <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p class="text-red-800 text-sm">{{ session('error') }}</p>
+                </div>
+            @endif
+            
+            @if(session('info'))
+                <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-blue-800 text-sm">{{ session('info') }}</p>
+                </div>
+            @endif
+
             <div class="space-y-6">
                 <div class="p-4 sm:p-8 bg-white shadow-lg rounded-lg">
                     <div class="max-w-xl">
@@ -28,6 +43,12 @@
                 <div class="p-4 sm:p-8 bg-white shadow-lg rounded-lg">
                     <div class="max-w-xl">
                         @include('profile.partials.update-password-form')
+                    </div>
+                </div>
+
+                <div class="p-4 sm:p-8 bg-white shadow-lg rounded-lg">
+                    <div class="max-w-xl">
+                        @include('profile.partials.mfa-management-form')
                     </div>
                 </div>
 

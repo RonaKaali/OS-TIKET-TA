@@ -10,8 +10,10 @@
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.2",
         "laravel/tinker": "^2.10.1",
+        "pragmarx/google2fa": "^9.0",
         "predis/predis": "^3.2",
         "ramsey/uuid": "^4.9",
+        "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-permission": "^6.23"
     },
     "require-dev": {

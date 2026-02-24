@@ -63,9 +63,14 @@ return [
     | will be used by the PHP date and date-time functions. The timezone
     | is set to "UTC" by default as it is suitable for most use cases.
     |
+    | Timezone Indonesia:
+    | - Asia/Jakarta (WIB - UTC+7)
+    | - Asia/Makassar (WITA - UTC+8)
+    | - Asia/Jayapura (WIT - UTC+9)
+    |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
 
     /*
     |--------------------------------------------------------------------------

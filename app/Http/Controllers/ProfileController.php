@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\MfaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,13 +12,26 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        protected MfaService $mfaService
+    ) {}
+
     /**
      * Display the user's profile form.
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+        
+        // Cek status MFA
+        $mfaEnabled = $user->mfa_enabled ?? false;
+        if (!$mfaEnabled) {
+            $mfaEnabled = $this->mfaService->isMfaEnabled($user);
+        }
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'mfaEnabled' => $mfaEnabled,
         ]);
     }
 

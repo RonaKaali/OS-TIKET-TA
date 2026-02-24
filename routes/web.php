@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\{
 };
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\AttachmentController;
 
 Route::get('/', fn() => view('welcome'))->name('welcome');
 
@@ -89,6 +90,10 @@ Route::middleware('auth')->group(function () {
 
     // Session check untuk auto logout
     Route::get('/session/check', [\App\Http\Controllers\SessionController::class, 'check'])->name('session.check');
+    
+    // Download attachment (dengan dekripsi otomatis)
+    Route::get('/attachments/{attachment}/download', [AttachmentController::class, 'download'])
+        ->name('attachments.download');
 });
 
 # Telegram Webhook (untuk menerima update dari bot Telegram)

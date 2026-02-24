@@ -37,6 +37,15 @@ class User extends Authenticatable
         'id_chat_telegram',
         'telegram_chat_id', // alias untuk id_chat_telegram via mutator
         'remember_token',
+        // Zero Trust fields
+        'mfa_enabled',
+        'mfa_secret',
+        'mfa_enabled_at',
+        'device_trust_threshold',
+        'require_device_verification',
+        'ip_whitelist',
+        'allow_after_hours_access',
+        'last_security_event_at',
     ];
 
     /**
@@ -47,6 +56,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'mfa_secret', // Jangan expose MFA secret
     ];
 
     /**
@@ -59,6 +69,12 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'mfa_enabled' => 'boolean',
+            'mfa_enabled_at' => 'datetime',
+            'require_device_verification' => 'boolean',
+            'ip_whitelist' => 'array',
+            'allow_after_hours_access' => 'boolean',
+            'last_security_event_at' => 'datetime',
         ];
     }
 
@@ -157,5 +173,86 @@ class User extends Authenticatable
     public function ticketThreads(): HasMany
     {
         return $this->hasMany(\App\Models\TicketThread::class, 'user_id');
+    }
+
+    /**
+     * Device fingerprints yang terdaftar untuk user ini.
+     */
+    public function deviceFingerprints(): HasMany
+    {
+        return $this->hasMany(\App\Models\DeviceFingerprint::class, 'user_id');
+    }
+
+    /**
+     * Security events yang terkait dengan user ini.
+     */
+    public function securityEvents(): HasMany
+    {
+        return $this->hasMany(\App\Models\SecurityEvent::class, 'user_id');
+    }
+
+    /**
+     * Cek apakah MFA sudah diaktifkan untuk user ini.
+     */
+    public function hasMfaEnabled(): bool
+    {
+        return $this->mfa_enabled === true;
+    }
+
+    /**
+     * Cek apakah user memerlukan verifikasi device.
+     */
+    public function requiresDeviceVerification(): bool
+    {
+        return $this->require_device_verification === true;
+    }
+
+    /**
+     * Cek apakah IP address diizinkan untuk user ini.
+     */
+    public function isIpAllowed(string $ip): bool
+    {
+        $whitelist = $this->ip_whitelist ?? [];
+        
+        if (empty($whitelist)) {
+            return true; // Jika tidak ada whitelist, semua IP diizinkan
+        }
+
+        return in_array($ip, $whitelist);
+    }
+
+    /**
+     * Tambahkan IP ke whitelist.
+     */
+    public function addIpToWhitelist(string $ip): void
+    {
+        $whitelist = $this->ip_whitelist ?? [];
+        
+        if (!in_array($ip, $whitelist)) {
+            $whitelist[] = $ip;
+            $this->ip_whitelist = $whitelist;
+            $this->save();
+        }
+    }
+
+    /**
+     * Hapus IP dari whitelist.
+     */
+    public function removeIpFromWhitelist(string $ip): void
+    {
+        $whitelist = $this->ip_whitelist ?? [];
+        $whitelist = array_values(array_filter($whitelist, fn($item) => $item !== $ip));
+        
+        $this->ip_whitelist = $whitelist;
+        $this->save();
+    }
+
+    /**
+     * Update last security event timestamp.
+     */
+    public function updateLastSecurityEvent(): void
+    {
+        $this->last_security_event_at = now();
+        $this->save();
     }
 }

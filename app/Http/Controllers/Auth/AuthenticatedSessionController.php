@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\MfaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,10 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
+    public function __construct(
+        protected MfaService $mfaService
+    ) {}
+
     /**
      * Display the login view.
      */
@@ -30,15 +35,36 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        // Generate bearer token untuk keamanan tambahan (disimpan di session, tidak ditampilkan)
-        // Token akan digunakan untuk validasi request internal
-        $tokenResult = $user->createToken('web-session-token', ['*'], now()->addMinutes(3));
+        // Cek apakah user memiliki MFA enabled
+        // Cek dari database langsung untuk memastikan
+        $mfaEnabled = $user->mfa_enabled ?? false;
+        
+        // Juga cek via service (untuk kompatibilitas)
+        if (!$mfaEnabled) {
+            $mfaEnabled = $this->mfaService->isMfaEnabled($user);
+        }
 
-        // Simpan token ID di session untuk validasi (bukan plain text token)
-        $request->session()->put('auth_token_id', $tokenResult->accessToken->id);
+        // Log untuk debugging
+        \Log::info('Login MFA check', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'mfa_enabled_db' => $user->mfa_enabled ?? false,
+            'mfa_enabled_service' => $this->mfaService->isMfaEnabled($user),
+            'mfa_secret_exists' => !empty($user->mfa_secret),
+        ]);
 
-        // Set last activity time untuk auto logout
-        $request->session()->put('last_activity', now()->toDateTimeString());
+        if ($mfaEnabled) {
+            // Jika MFA enabled, redirect ke halaman verifikasi MFA
+            // Jangan set session lengkap dulu, tunggu MFA verified
+            \Log::info('MFA enabled for user, redirecting to MFA verification', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+            ]);
+            return redirect()->route('mfa.verify');
+        }
+
+        // Jika tidak ada MFA, lanjutkan dengan setup session normal
+        $this->completeLogin($request, $user);
 
         // Redirect sesuai permission
         if ($user->can('admin.panel')) {
@@ -68,5 +94,21 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Complete login setup (session, tokens, etc)
+     */
+    protected function completeLogin(Request $request, $user): void
+    {
+        // Generate bearer token untuk keamanan tambahan (disimpan di session, tidak ditampilkan)
+        // Token akan digunakan untuk validasi request internal
+        $tokenResult = $user->createToken('web-session-token', ['*'], now()->addMinutes(3));
+
+        // Simpan token ID di session untuk validasi (bukan plain text token)
+        $request->session()->put('auth_token_id', $tokenResult->accessToken->id);
+
+        // Set last activity time untuk auto logout
+        $request->session()->put('last_activity', now()->toDateTimeString());
     }
 }

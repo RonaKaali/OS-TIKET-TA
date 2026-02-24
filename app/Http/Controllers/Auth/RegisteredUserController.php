@@ -94,7 +94,9 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        // Redirect ke welcome page untuk pelaporan insiden
-        return redirect()->route('welcome')->with('status', 'Registrasi berhasil! Silakan gunakan fitur di bawah untuk melaporkan insiden siber.');
+        // Setelah registrasi, arahkan user untuk mengaktifkan 2FA terlebih dahulu
+        return redirect()
+            ->route('mfa.setup')
+            ->with('status', 'Registrasi berhasil! Demi keamanan akun, silakan aktifkan Two-Factor Authentication (2FA) terlebih dahulu.');
     }
 }
