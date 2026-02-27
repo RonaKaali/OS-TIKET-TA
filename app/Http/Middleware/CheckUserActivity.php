@@ -51,6 +51,9 @@ class CheckUserActivity
             $request->session()->put('last_activity', now()->toDateTimeString());
         }
 
-        return $next($request);
+        $response = $next($request);
+        $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+
+        return $response;
     }
 }
