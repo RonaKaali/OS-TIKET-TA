@@ -11,7 +11,17 @@ if (isset($_SERVER['VERCEL_URL'])) {
     $app->useStoragePath('/tmp/storage');
     
     // Ensure directories exist
-    if (!is_dir('/tmp/storage/framework/views')) {
-        mkdir('/tmp/storage/framework/views', 0755, true);
+    $paths = [
+        '/tmp/storage/framework/views',
+        '/tmp/storage/framework/cache',
+        '/tmp/storage/framework/sessions',
+        '/tmp/storage/logs'
+    ];
+    
+    foreach ($paths as $path) {
+        if (!is_dir($path)) {
+            mkdir($path, 0755, true);
+        }
     }
 }
+
