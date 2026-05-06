@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
         commands: __DIR__ . '/../routes/console.php',
@@ -21,21 +21,19 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register activity check middleware untuk auto logout
         $middleware->web(append: [
             \App\Http\Middleware\CheckUserActivity::class,
-            // Require MFA Verification (harus dijalankan setelah auth)
             \App\Http\Middleware\RequireMfaVerification::class,
-            // Zero Trust Verification Middleware (akan diaktifkan jika ZERO_TRUST_ENABLED=true)
             \App\Http\Middleware\ZeroTrustVerification::class,
         ]);
 
-        // Register Sanctum middleware untuk bearer token authentication
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
-    })->create()
-    ->tap(function ($app) {
-        if (isset($_SERVER['VERCEL_URL'])) {
-            $app->useStoragePath('/tmp/storage');
-        }
-    });
+    })->create();
 
+// Perbaikan untuk Vercel
+if (isset($_SERVER['VERCEL_URL'])) {
+    $app->useStoragePath('/tmp/storage');
+}
+
+return $app;
