@@ -7,7 +7,13 @@
 */
 
 if (isset($_SERVER['VERCEL_URL'])) {
+    // Clear potentially broken caches from local
+    if (file_exists('/var/task/user/bootstrap/cache/config.php')) {
+        @unlink('/var/task/user/bootstrap/cache/config.php');
+    }
+
     // Force storage to /tmp for Vercel
+
     $app->useStoragePath('/tmp/storage');
     
     // Ensure directories exist
