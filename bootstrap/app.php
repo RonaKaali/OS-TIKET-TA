@@ -34,6 +34,12 @@ $app = Application::configure(basePath: dirname(__DIR__))
 // Perbaikan untuk Vercel
 if (isset($_SERVER['VERCEL_URL'])) {
     $app->useStoragePath('/tmp/storage');
+    $app->useBootstrapPath('/tmp/bootstrap');
+    
+    // Ensure bootstrap cache dir exists
+    if (!is_dir('/tmp/bootstrap/cache')) {
+        mkdir('/tmp/bootstrap/cache', 0755, true);
+    }
 }
 
 return $app;
