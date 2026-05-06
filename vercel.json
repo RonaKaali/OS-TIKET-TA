@@ -2,7 +2,9 @@
     "version": 2,
     "framework": null,
     "functions": {
-        "api/index.php": { "runtime": "vercel-php@0.7.2" }
+        "api/index.php": {
+            "runtime": "vercel-php@0.7.1"
+        }
     },
     "routes": [
         {
@@ -25,8 +27,8 @@
     "env": {
         "APP_ENV": "production",
         "APP_DEBUG": "true",
-        "APP_URL": "https://os-tiket-ta.vercel.app",
-        "APP_KEY": "base64:Fw9F3mTjBcyJiuB9gVNGYq9LRuNAFb8fJNhy2/RkIVE=",
-        "DB_CONNECTION": "mysql"
+        "LOG_CHANNEL": "stderr",
+        "SESSION_DRIVER": "cookie",
+        "CACHE_STORE": "array"
     }
 }
