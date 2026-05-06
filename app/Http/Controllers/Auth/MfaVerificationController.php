@@ -85,6 +85,9 @@ class MfaVerificationController extends Controller
 
         // Verifikasi TOTP code (6 digit dari aplikasi authenticator)
         if (!$this->mfaService->verifyTotp($user, $request->code)) {
+            $logService = app(\App\Services\SecurityEventLogService::class);
+            $logService->logAuthentication('mfa_totp', $user->id, false, 'MFA verification failed');
+
             throw ValidationException::withMessages([
                 'code' => ['Kode verifikasi tidak valid. Pastikan Anda menggunakan kode terbaru dari aplikasi authenticator Anda.'],
             ]);
@@ -92,6 +95,13 @@ class MfaVerificationController extends Controller
 
         // Set MFA sebagai verified dalam session
         $this->mfaService->setMfaVerified($user, 'login');
+
+        // Jika ini step-up MFA (mis. high risk access), tandai juga action tersebut.
+        $stepUpAction = $request->session()->get('mfa_step_up_action');
+        if ($stepUpAction === 'high_risk') {
+            $this->mfaService->setMfaVerified($user, 'high_risk');
+            $request->session()->forget('mfa_step_up_action');
+        }
 
         // Complete login setup (session, tokens, etc)
         $this->completeLogin($request, $user);
@@ -138,6 +148,9 @@ class MfaVerificationController extends Controller
         $code = trim($request->code);
 
         if (!$this->mfaService->verifyBackupCode($user, $code)) {
+            $logService = app(\App\Services\SecurityEventLogService::class);
+            $logService->logAuthentication('mfa_backup_code', $user->id, false, 'MFA backup code verification failed');
+
             throw ValidationException::withMessages([
                 'code' => ['Backup code tidak valid atau sudah digunakan.'],
             ]);
@@ -145,6 +158,12 @@ class MfaVerificationController extends Controller
 
         // Set MFA sebagai verified dalam session
         $this->mfaService->setMfaVerified($user, 'login');
+
+        $stepUpAction = $request->session()->get('mfa_step_up_action');
+        if ($stepUpAction === 'high_risk') {
+            $this->mfaService->setMfaVerified($user, 'high_risk');
+            $request->session()->forget('mfa_step_up_action');
+        }
 
         // Complete login setup (session, tokens, dll)
         $this->completeLogin($request, $user);

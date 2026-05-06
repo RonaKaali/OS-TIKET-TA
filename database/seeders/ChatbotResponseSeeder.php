@@ -140,6 +140,29 @@ class ChatbotResponseSeeder extends Seeder
                 'is_active' => true,
             ],
 
+            // === AGENT SKILLS / SECURITY EXPERTISE ===
+            [
+                'keyword' => 'zero trust',
+                'response' => "🛡️ *Analisis Agent: Zero Trust Architecture*\n\nPortal ini menggunakan prinsip **Zero Trust**:\n1. **Verify Explicitly**: Selalu autentikasi dan otorisasi berdasarkan titik data yang tersedia.\n2. **Least Privilege Access**: Batasi akses pengguna hanya pada apa yang diperlukan.\n3. **Assume Breach**: Minimalkan dampak serangan dengan enkripsi dan segmentasi.\n\nSistem kami memverifikasi Sidik Jari Perangkat (Device Fingerprinting) dan GPS Anda setiap kali login.",
+                'match_type' => 'contains',
+                'priority' => 90,
+                'is_active' => true,
+            ],
+            [
+                'keyword' => 'cia triad',
+                'response' => "🔐 *Analisis Agent: CIA Triad Framework*\n\nKeamanan kami berfokus pada 3 pilar utama:\n- **Confidentiality**: Data laporan hanya bisa dibaca oleh Anda dan analis resmi (Enkripsi AES-256).\n- **Integrity**: Menjamin laporan tidak diubah selama transit atau penyimpanan (HMAC Verification).\n- **Availability**: Sistem redundant memastikan portal selalu siap menerima laporan insiden 24/7.",
+                'match_type' => 'contains',
+                'priority' => 90,
+                'is_active' => true,
+            ],
+            [
+                'keyword' => 'analisis',
+                'response' => "🔍 *Agent Security Analyst Mode*\n\nSaya siap melakukan analisis dasar terhadap indikasi serangan. \n\nSebutkan apa yang Anda alami (misal: 'situs saya berubah tampilan' atau 'ada login mencurigakan'), dan saya akan memberikan rekomendasi berdasarkan framework **STRIDE** atau **MITRE ATT&CK**.",
+                'match_type' => 'contains',
+                'priority' => 85,
+                'is_active' => true,
+            ],
+
             // === RESPONSE FALLBACK ===
             [
                 'keyword' => 'tidak tahu',

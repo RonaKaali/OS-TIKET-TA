@@ -1,39 +1,48 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
+<nav x-data="{ open: false }" class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 transition-colors">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <div class="flex">
+            <div class="flex items-center">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ Auth::user()->can('admin.panel') ? route('dashboard') : route('welcome') }}"
-                        class="flex items-center space-x-3">
-                        <div class="w-10 h-10 flex items-center justify-center shadow-lg">
+                        class="flex items-center space-x-3 group">
+                        <div class="w-10 h-10 flex items-center justify-center bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm dark:shadow-[0_0_15px_rgba(16,185,129,0.15)] transition-all group-hover:border-emerald-500/50">
                             <img src="{{ asset('images/logo-kalselprov.png') }}" alt="Logo Kalselprov"
-                                class="w-10 h-10 object-contain">
+                                class="w-7 h-7 object-contain">
                         </div>
                         <div>
-                            <div class="text-sm font-bold text-gray-900">CSIRT Kalselprov</div>
-                            <div class="text-xs text-gray-600">Sistem Tiket</div>
+                            <div class="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-wider transition-colors">CSIRT <span class="text-emerald-600 dark:text-emerald-500">KALSEL</span></div>
+                            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest transition-colors">Secure Portal</div>
                         </div>
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 @can('admin.panel')
-                    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                            {{ __('Dasbor') }}
+                    <div class="hidden space-x-4 sm:-my-px sm:ms-10 sm:flex">
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" 
+                            class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-1 rounded-md transition-all">
+                            {{ __('Dasbor Utama') }}
                         </x-nav-link>
                     </div>
                 @endcan
             </div>
 
             <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            <div class="hidden sm:flex sm:items-center sm:ms-6 space-x-4">
+                <div class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+                    <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Active session</span>
+                </div>
+                
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button
-                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                            class="inline-flex items-center px-3 py-2 border border-slate-200 dark:border-slate-700 text-sm leading-4 font-medium rounded-lg text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white focus:outline-none transition ease-in-out duration-150 shadow-sm transition-all">
+                            <div class="w-6 h-6 rounded bg-emerald-600 flex items-center justify-center text-white text-[10px] mr-2">
+                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                            </div>
                             <div>{{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
@@ -48,19 +57,24 @@
                     </x-slot>
 
                     <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profil') }}
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-
-                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                            {{ __('Keluar') }}
+                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl rounded-lg overflow-hidden transition-all">
+                            <x-dropdown-link :href="route('profile.edit')" class="text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white flex items-center transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                {{ __('Profil Keamanan') }}
                             </x-dropdown-link>
-                        </form>
+
+                            <!-- Authentication -->
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+
+                                <x-dropdown-link :href="route('logout')" onclick="event.preventDefault();
+                                                    this.closest('form').submit();"
+                                    class="text-red-400 hover:bg-red-900/20 hover:text-red-300 flex items-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                                    {{ __('Terminasi Sesi') }}
+                                </x-dropdown-link>
+                            </form>
+                        </div>
                     </x-slot>
                 </x-dropdown>
             </div>
@@ -68,7 +82,7 @@
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
                 <button @click="open = ! open"
-                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
+                    class="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 focus:outline-none transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex"
                             stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -82,25 +96,27 @@
     </div>
 
     <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 transition-colors">
         @can('admin.panel')
             <div class="pt-2 pb-3 space-y-1">
-                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                    {{ __('Dasbor') }}
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')"
+                    class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    {{ __('Dasbor Utama') }}
                 </x-responsive-nav-link>
             </div>
         @endcan
 
         <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
+        <div class="pt-4 pb-1 border-t border-slate-200 dark:border-slate-800 transition-colors">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-base text-slate-800 dark:text-slate-200 transition-colors">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-sm text-slate-500 dark:text-slate-400 transition-colors">{{ Auth::user()->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profil') }}
+                <x-responsive-nav-link :href="route('profile.edit')"
+                    class="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    {{ __('Profil Keamanan') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
@@ -108,8 +124,9 @@
                     @csrf
 
                     <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Keluar') }}
+                                        this.closest('form').submit();"
+                        class="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                        {{ __('Terminasi Sesi') }}
                     </x-responsive-nav-link>
                 </form>
             </div>

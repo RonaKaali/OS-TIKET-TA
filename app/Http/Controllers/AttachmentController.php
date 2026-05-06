@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Attachment;
 use App\Services\FileEncryptionService;
+use App\Services\SecurityEventLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -11,7 +12,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class AttachmentController extends Controller
 {
     public function __construct(
-        protected FileEncryptionService $encryptionService
+        protected FileEncryptionService $encryptionService,
+        protected SecurityEventLogService $securityLog
     ) {
         $this->middleware('auth');
     }
@@ -42,10 +44,34 @@ class AttachmentController extends Controller
         }
 
         if (!$hasAccess) {
+            $this->securityLog->logEvent([
+                'user_id' => $user?->id,
+                'event_type' => 'attachment_download_denied',
+                'severity' => 'medium',
+                'message' => 'Attachment download denied',
+                'context' => [
+                    'attachment_id' => $attachment->id,
+                    'ticket_id' => $ticket?->id,
+                    'path' => $attachment->path,
+                ],
+            ]);
             abort(403, 'Anda tidak memiliki akses ke file ini.');
         }
 
         try {
+            $this->securityLog->logEvent([
+                'user_id' => $user?->id,
+                'event_type' => 'attachment_download_attempt',
+                'severity' => 'low',
+                'message' => 'Attachment download attempt',
+                'context' => [
+                    'attachment_id' => $attachment->id,
+                    'ticket_id' => $ticket?->id,
+                    'is_encrypted' => (bool) $attachment->is_encrypted,
+                    'path' => $attachment->path,
+                ],
+            ]);
+
             // Jika file terenkripsi, dekripsi dulu
             if ($attachment->is_encrypted) {
                 $decryptedContent = $this->encryptionService->getDecrypted($attachment->path);
@@ -68,7 +94,15 @@ class AttachmentController extends Controller
             } else {
                 // File lama yang tidak terenkripsi (backward compatibility)
                 if (Storage::disk('public')->exists($attachment->path)) {
-                    return Storage::disk('public')->download($attachment->path, $attachment->filename);
+                    $stream = Storage::disk('public')->readStream($attachment->path);
+                    if (!is_resource($stream)) {
+                        abort(404, 'File tidak ditemukan.');
+                    }
+
+                    return response()->streamDownload(function () use ($stream) {
+                        fpassthru($stream);
+                        fclose($stream);
+                    }, $attachment->filename);
                 }
                 abort(404, 'File tidak ditemukan.');
             }
@@ -76,6 +110,17 @@ class AttachmentController extends Controller
             \Log::error('Failed to download attachment: ' . $e->getMessage(), [
                 'attachment_id' => $attachment->id,
                 'user_id' => $user->id,
+            ]);
+            $this->securityLog->logEvent([
+                'user_id' => $user?->id,
+                'event_type' => 'attachment_download_error',
+                'severity' => 'high',
+                'message' => 'Attachment download error',
+                'context' => [
+                    'attachment_id' => $attachment->id,
+                    'ticket_id' => $ticket?->id,
+                    'error' => $e->getMessage(),
+                ],
             ]);
             abort(500, 'Gagal mengunduh file: ' . $e->getMessage());
         }

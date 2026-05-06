@@ -86,6 +86,10 @@ class MfaService
             $logService = app(SecurityEventLogService::class);
             $logService->logAuthentication('mfa_totp', $user->id, true, 'TOTP verification successful');
         } else {
+            // Log failed verification
+            $logService = app(SecurityEventLogService::class);
+            $logService->logAuthentication('mfa_totp', $user->id, false, 'TOTP verification failed');
+
             // Log failed verification untuk debugging
             \Log::warning('MFA verification failed', [
                 'user_id' => $user->id,

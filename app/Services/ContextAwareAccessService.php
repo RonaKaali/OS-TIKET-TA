@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use App\Models\User;
+use GeoIp2\Database\Reader;
 
 class ContextAwareAccessService
 {
@@ -17,15 +18,20 @@ class ContextAwareAccessService
         // Gunakan timezone aplikasi untuk konsistensi
         $now = now();
 
+        // Ambil IP klien asli (menghormati proxy / ngrok jika ada)
+        $clientIp = $this->getClientIp($request);
+        $gps = $request->session()->get('zero_trust_gps');
+
         $context = [
-            'ip' => $request->ip(),
+            'ip' => $clientIp,
             'user_agent' => $request->userAgent(),
             'timestamp' => $now->toDateTimeString(),
-            'location' => $this->getLocationFromIp($request->ip()),
+            'location' => $this->getLocationFromIp($clientIp),
             'time_of_day' => $now->format('H:i'),
             'day_of_week' => $now->format('l'),
             'is_weekend' => $now->isWeekend(),
             'timezone' => config('app.timezone', 'UTC'),
+            'gps' => $gps,
         ];
 
         return $context;
@@ -161,6 +167,8 @@ class ContextAwareAccessService
             'ip' => $context['ip'],
             'user_agent' => $context['user_agent'],
             'time' => $context['time_of_day'],
+            'timestamp' => $context['timestamp'],
+            'location' => $context['location'],
         ];
 
         // Cek apakah ada perubahan signifikan
@@ -193,13 +201,76 @@ class ContextAwareAccessService
      */
     protected function getLocationFromIp(string $ip): array
     {
-        // Untuk production, gunakan service seperti MaxMind GeoIP2
-        // Ini adalah implementasi simplified
-        return [
+        $location = [
             'ip' => $ip,
-            'country' => null, // Akan diisi jika menggunakan GeoIP service
+            'country' => null,
+            'country_name' => null,
             'city' => null,
+            'latitude' => null,
+            'longitude' => null,
+            'timezone' => null,
+            'source' => 'none',
         ];
+
+        // Skip lookup untuk localhost / private range (biar cepat dan tidak noisy)
+        if (
+            $ip === '127.0.0.1' ||
+            $ip === '::1' ||
+            filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false
+        ) {
+            return $location;
+        }
+
+        if (!config('zero_trust.geo_location_enabled', false)) {
+            return $location;
+        }
+
+        $dbPath = (string) config('zero_trust.geoip_db_path', '');
+        if ($dbPath === '' || !is_file($dbPath)) {
+            \Log::warning('GeoIP database not found', [
+                'db_path' => $dbPath,
+            ]);
+            return $location;
+        }
+
+        try {
+            $reader = new Reader($dbPath);
+            $record = $reader->city($ip);
+
+            $location['country'] = $record->country->isoCode ?: null;
+            $location['country_name'] = $record->country->name ?: null;
+            $location['city'] = $record->city->name ?: null;
+            $location['latitude'] = $record->location->latitude;
+            $location['longitude'] = $record->location->longitude;
+            $location['timezone'] = $record->location->timeZone ?: null;
+            $location['source'] = 'maxmind_mmdb';
+
+            return $location;
+        } catch (\Throwable $e) {
+            \Log::warning('GeoIP lookup failed', [
+                'ip' => $ip,
+                'error' => $e->getMessage(),
+            ]);
+            return $location;
+        }
+    }
+
+    /**
+     * Dapatkan IP klien sebenarnya dengan mempertimbangkan header X-Forwarded-For.
+     */
+    protected function getClientIp(Request $request): string
+    {
+        $forwarded = $request->header('X-Forwarded-For');
+        if ($forwarded) {
+            // Ambil IP pertama (asal klien) dari daftar yang dipisah koma.
+            $parts = explode(',', $forwarded);
+            $ip = trim($parts[0]);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $ip;
+            }
+        }
+
+        return $request->ip();
     }
 
     /**
@@ -248,12 +319,89 @@ class ContextAwareAccessService
         $patterns = Cache::get("user_access_pattern:{$user->id}", []);
         if (!empty($patterns)) {
             $lastPattern = end($patterns);
+            
+            // 1. Basic IP Change Risk
             if ($lastPattern['ip'] !== $context['ip']) {
                 $riskScore += 15;
+            }
+
+            // 2. Impossible Travel Detection
+            // Jika lokasi tersedia untuk sesi sebelumnya dan sesi sekarang
+            $lastLocation = $lastPattern['location'] ?? null;
+            $currentLocation = $context['location'] ?? null;
+
+            if (
+                isset($lastLocation['latitude'], $lastLocation['longitude'], $currentLocation['latitude'], $currentLocation['longitude']) &&
+                isset($lastPattern['timestamp'])
+            ) {
+                $distanceKm = $this->calculateDistanceKm(
+                    (float) $lastLocation['latitude'],
+                    (float) $lastLocation['longitude'],
+                    (float) $currentLocation['latitude'],
+                    (float) $currentLocation['longitude']
+                );
+
+                $timeDiffSeconds = now()->diffInSeconds(\Carbon\Carbon::parse($lastPattern['timestamp']));
+                
+                // Jika jarak > 100km dan waktu < 1 jam (impossible travel simulation)
+                if ($distanceKm > 100 && $timeDiffSeconds < 3600) {
+                    $requiredSpeed = ($distanceKm / ($timeDiffSeconds / 3600)); // km/h
+                    
+                    if ($requiredSpeed > 800) { // Lebih cepat dari pesawat komersial
+                        $riskScore += 40;
+                        $this->logAnomaly($user, 'impossible_travel_detected', array_merge($context, [
+                            'prev_location' => $lastLocation,
+                            'distance_km' => $distanceKm,
+                            'time_diff_sec' => $timeDiffSeconds,
+                            'required_speed_kmh' => $requiredSpeed
+                        ]));
+                    }
+                }
+            }
+        }
+
+        // Risk dari perbedaan signifikan antara GeoIP dan GPS (jika GPS tersedia)
+        if (!empty($context['gps']) && isset($context['location']['latitude'], $context['location']['longitude'])) {
+            $gps = $context['gps'];
+            if (isset($gps['latitude'], $gps['longitude'])) {
+                $distanceKm = $this->calculateDistanceKm(
+                    (float) $gps['latitude'],
+                    (float) $gps['longitude'],
+                    (float) $context['location']['latitude'],
+                    (float) $context['location']['longitude']
+                );
+
+                if ($distanceKm > 1000) {
+                    $riskScore += 20;
+                    $this->logAnomaly($user, 'geoip_gps_mismatch_large', array_merge($context, [
+                        'distance_km' => $distanceKm,
+                    ]));
+                } elseif ($distanceKm > 300) {
+                    $riskScore += 10;
+                }
             }
         }
 
         return min(100, $riskScore);
+    }
+
+    /**
+     * Hitung jarak dua koordinat (km) dengan rumus haversine sederhana.
+     */
+    protected function calculateDistanceKm(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadius = 6371; // km
+
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+
+        $a = sin($dLat / 2) * sin($dLat / 2) +
+            cos(deg2rad($lat1)) * cos(deg2rad($lat2)) *
+            sin($dLon / 2) * sin($dLon / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        return $earthRadius * $c;
     }
 }
 

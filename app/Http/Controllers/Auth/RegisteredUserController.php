@@ -35,7 +35,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:pengguna,email'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'organization_id' => ['nullable', 'exists:organisasi,id'],
+            'organization_name' => ['nullable', 'string', 'max:255'],
             'telegram_username' => [
                 'nullable',
                 'string',
@@ -43,6 +43,13 @@ class RegisteredUserController extends Controller
                 'regex:/^[a-zA-Z0-9_]+$/', // Hanya alphanumeric dan underscore
             ],
         ]);
+
+        // Cari atau buat organisasi baru
+        $orgId = null;
+        if ($request->filled('organization_name')) {
+            $org = Organization::firstOrCreate(['name' => $request->organization_name]);
+            $orgId = $org->id;
+        }
 
         // Bersihkan @ dari awal telegram_username jika ada
         $telegramUsername = $request->telegram_username;
@@ -54,7 +61,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => $request->password, // Laravel akan auto hash karena ada cast 'hashed'
-            'id_organisasi' => $request->organization_id,
+            'id_organisasi' => $orgId,
             'nama_pengguna_telegram' => $telegramUsername ?: null,
         ]);
 

@@ -9,12 +9,22 @@ use Exception;
 
 class FileEncryptionService
 {
+    protected function assertStrongCipher(): void
+    {
+        $cipher = (string) config('app.cipher', '');
+        if (!str_starts_with($cipher, 'AES-256-')) {
+            throw new Exception("Konfigurasi cipher tidak sesuai. Diharapkan AES-256-*, saat ini: {$cipher}");
+        }
+    }
+
     /**
      * Enkripsi dan simpan file
      */
     public function storeEncrypted($file, string $directory = 'attachments'): array
     {
         try {
+            $this->assertStrongCipher();
+
             // Baca konten file
             $content = file_get_contents($file->getRealPath());
             
@@ -52,6 +62,8 @@ class FileEncryptionService
     public function getDecrypted(string $encryptedPath): ?string
     {
         try {
+            $this->assertStrongCipher();
+
             // Cek apakah file ada
             if (!Storage::disk('local')->exists($encryptedPath)) {
                 Log::warning('Encrypted file not found: ' . $encryptedPath);

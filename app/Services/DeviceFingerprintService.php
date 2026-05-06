@@ -14,9 +14,11 @@ class DeviceFingerprintService
      */
     public function generateFingerprint(Request $request): string
     {
+        $clientIp = $this->getClientIp($request);
+
         $components = [
             $request->userAgent(),
-            $request->ip(),
+            $clientIp,
             $request->header('Accept-Language'),
             $request->header('Accept-Encoding'),
             $request->header('Accept'),
@@ -37,6 +39,23 @@ class DeviceFingerprintService
         $fingerprintString = implode('|', array_filter($components));
         
         return hash('sha256', $fingerprintString);
+    }
+
+    /**
+     * Ambil IP klien sebenarnya (X-Forwarded-For jika ada, fallback ke request->ip()).
+     */
+    protected function getClientIp(Request $request): string
+    {
+        $forwarded = $request->header('X-Forwarded-For');
+        if ($forwarded) {
+            $parts = explode(',', $forwarded);
+            $ip = trim($parts[0]);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $ip;
+            }
+        }
+
+        return $request->ip();
     }
 
     /**

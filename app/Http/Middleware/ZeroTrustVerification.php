@@ -48,6 +48,12 @@ class ZeroTrustVerification
         $user = Auth::user();
 
         try {
+            $riskHigh = (int) config('zero_trust.risk_score_threshold_high', 70);
+            $riskCritical = (int) config('zero_trust.risk_score_threshold_critical', 85);
+
+            // IP klien yang sebenarnya (memperhitungkan proxy / ngrok)
+            $clientIp = $this->getClientIp($request);
+
             // 1. Device Fingerprinting
             if (config('zero_trust.device_fingerprinting', true)) {
                 $fingerprint = $this->deviceService->generateFingerprint($request);
@@ -61,12 +67,12 @@ class ZeroTrustVerification
                 if (!$this->deviceService->isDeviceRegistered($user, $fingerprint)) {
                     $this->deviceService->registerDevice($user, $fingerprint, [
                         'user_agent' => $request->userAgent(),
-                        'ip' => $request->ip(),
+                        'ip' => $clientIp,
                     ]);
 
                     $this->logService->logDeviceEvent($user->id, 'registered', [
                         'fingerprint' => $fingerprint,
-                        'ip' => $request->ip(),
+                        'ip' => $clientIp,
                         'user_agent' => $request->userAgent(),
                     ]);
                 } else {
@@ -78,9 +84,19 @@ class ZeroTrustVerification
                 if ($this->deviceService->requiresVerification($user, $fingerprint, $trustScore)) {
                     // Redirect ke device verification jika diperlukan
                     if (!$request->session()->get('device_verified_' . $fingerprint)) {
-                        return redirect()->route('device.verify')
-                            ->with('fingerprint', $fingerprint)
-                            ->with('trust_score', $trustScore);
+                        if (\Route::has('device.verify')) {
+                            return redirect()->route('device.verify')
+                                ->with('fingerprint', $fingerprint)
+                                ->with('trust_score', $trustScore);
+                        }
+
+                        // Jika route belum tersedia, jangan block request (fail open),
+                        // tapi tetap log anomaly agar dapat ditindaklanjuti.
+                        $this->logService->logAnomaly($user->id, 'device_verification_route_missing', [
+                            'fingerprint' => $fingerprint,
+                            'trust_score' => $trustScore,
+                            'path' => $request->path(),
+                        ]);
                     }
                 }
             }
@@ -95,15 +111,36 @@ class ZeroTrustVerification
                 $request->merge(['risk_score' => $riskScore]);
 
                 // Jika risk score tinggi, require additional verification
-                if ($riskScore > 70) {
+                if ($riskScore >= $riskHigh) {
                     $this->logService->logAnomaly($user->id, 'high_risk_access', $context);
 
-                    // Untuk akses dengan risk tinggi, bisa require MFA atau block
-                    if ($riskScore > 85) {
-                        return response()->json([
-                            'error' => 'Access denied due to high risk score',
-                            'risk_score' => $riskScore,
-                        ], 403);
+                    // Step-up MFA untuk akses berisiko tinggi (tanpa memutus session login normal).
+                    // Jika sudah pernah step-up dalam 10 menit terakhir, lanjutkan.
+                    $stepUpVerified = $request->session()->get('mfa_verified_high_risk');
+                    if (!$stepUpVerified) {
+                        $request->session()->put('mfa_step_up_action', 'high_risk');
+                        $request->session()->put('url.intended', $request->fullUrl());
+                        return redirect()->route('mfa.verify');
+                    }
+
+                    $verifiedAt = \Carbon\Carbon::parse($stepUpVerified);
+                    if (now()->diffInMinutes($verifiedAt) > 10) {
+                        $request->session()->forget('mfa_verified_high_risk');
+                        $request->session()->put('mfa_step_up_action', 'high_risk');
+                        $request->session()->put('url.intended', $request->fullUrl());
+                        return redirect()->route('mfa.verify');
+                    }
+
+                    // Untuk risiko sangat tinggi, blok akses.
+                    if ($riskScore >= $riskCritical) {
+                        $this->logService->logAuthorization($user->id, 'high_risk_access_block', false, $request->path());
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'error' => 'Access denied due to high risk score',
+                                'risk_score' => $riskScore,
+                            ], 403);
+                        }
+                        abort(403, 'Akses ditolak karena skor risiko tinggi.');
                     }
                 }
 
@@ -113,9 +150,13 @@ class ZeroTrustVerification
                     if (!$this->contextService->evaluateAccess($user, $context, $requiredPermission)) {
                         $this->logService->logAuthorization($user->id, $requiredPermission, false, $request->path());
 
-                        return response()->json([
-                            'error' => 'Access denied based on context',
-                        ], 403);
+                        if ($request->expectsJson()) {
+                            return response()->json([
+                                'error' => 'Access denied based on context',
+                            ], 403);
+                        }
+
+                        abort(403, 'Akses ditolak berdasarkan konteks keamanan.');
                     }
                 }
             }
@@ -124,6 +165,11 @@ class ZeroTrustVerification
             $this->validateSession($request, $user);
 
             // 4. Log access (untuk monitoring)
+            $accessContext = $request->get('access_context', []);
+            $riskScore = $request->get('risk_score');
+            $deviceFingerprint = $request->get('device_fingerprint');
+            $deviceTrustScore = $request->get('device_trust_score');
+
             $this->logService->logEvent([
                 'user_id' => $user->id,
                 'event_type' => 'access',
@@ -132,7 +178,14 @@ class ZeroTrustVerification
                 'context' => [
                     'method' => $request->method(),
                     'path' => $request->path(),
-                    'ip' => $request->ip(),
+                    'ip' => $clientIp,
+                    'location' => $accessContext['location'] ?? null,
+                    'gps' => $accessContext['gps'] ?? null,
+                    'risk_score' => $riskScore,
+                ],
+                'metadata' => [
+                    'device_fingerprint' => $deviceFingerprint,
+                    'device_trust_score' => $deviceTrustScore,
                 ],
             ]);
 
@@ -159,6 +212,8 @@ class ZeroTrustVerification
             'email/verify',
             'chatbot/message',
             'mfa/verify', // MFA verification page
+            'mfa/verify-backup', // MFA verification (backup code)
+            'device/verify', // Device verification page
             'up', // Health check
         ];
 
@@ -210,6 +265,23 @@ class ZeroTrustVerification
         }
 
         return null;
+    }
+
+    /**
+     * Ambil IP klien sebenarnya (X-Forwarded-For jika ada, fallback ke request->ip()).
+     */
+    protected function getClientIp(Request $request): string
+    {
+        $forwarded = $request->header('X-Forwarded-For');
+        if ($forwarded) {
+            $parts = explode(',', $forwarded);
+            $ip = trim($parts[0]);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $ip;
+            }
+        }
+
+        return $request->ip();
     }
 }
 

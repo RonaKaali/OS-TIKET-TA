@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\{
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\AttachmentController;
+use Illuminate\Http\Request;
 
 Route::get('/', fn() => view('welcome'))->name('welcome');
 
@@ -66,9 +67,8 @@ Route::middleware(['auth', 'permission:admin.panel'])->prefix('agent')->group(fu
 
 # Panel Admin (Hanya Super Admin)
 Route::middleware(['auth', 'role:Super Admin'])->prefix('admin')->as('admin.')->group(function () {
-    Route::get('/', function () {
-        return redirect()->route('admin.users.index');
-    })->name('index');
+    Route::get('/', [App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('index');
+    Route::get('/reports', [App\Http\Controllers\Admin\DashboardController::class, 'reports'])->name('reports');
 
     Route::resource('departments', DepartmentController::class)->except('show');
     Route::resource('help-topics', HelpTopicController::class)->except('show');
@@ -94,6 +94,27 @@ Route::middleware('auth')->group(function () {
     // Download attachment (dengan dekripsi otomatis)
     Route::get('/attachments/{attachment}/download', [AttachmentController::class, 'download'])
         ->name('attachments.download');
+
+    // Update GPS location untuk Zero Trust (opsional, berdasarkan izin browser)
+    Route::post('/zero-trust/gps', function (Request $request) {
+        $data = $request->validate([
+            'latitude' => ['required', 'numeric'],
+            'longitude' => ['required', 'numeric'],
+            'accuracy' => ['nullable', 'numeric'],
+        ]);
+
+        $gps = [
+            'latitude' => (float) $data['latitude'],
+            'longitude' => (float) $data['longitude'],
+            'accuracy' => isset($data['accuracy']) ? (float) $data['accuracy'] : null,
+            'updated_at' => now()->toIso8601String(),
+        ];
+
+        // Simpan di session untuk dipakai ZeroTrustVerification / ContextAwareAccessService
+        $request->session()->put('zero_trust_gps', $gps);
+
+        return response()->json(['status' => 'ok']);
+    })->name('zero_trust.gps.update');
 });
 
 # Telegram Webhook (untuk menerima update dari bot Telegram)

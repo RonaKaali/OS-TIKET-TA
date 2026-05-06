@@ -42,6 +42,9 @@ return [
 
     'context_aware' => env('ZERO_TRUST_CONTEXT_AWARE', true),
     'geo_location_enabled' => env('GEO_LOCATION_ENABLED', false),
+    // Path ke database MaxMind (GeoLite2/GeoIP2) mmdb, contoh:
+    // storage/app/geoip/GeoLite2-City.mmdb
+    'geoip_db_path' => env('GEOIP_DB_PATH', storage_path('app/geoip/GeoLite2-City.mmdb')),
     'allowed_countries' => explode(',', env('ALLOWED_COUNTRIES', 'ID')),
     'blocked_ips' => explode(',', env('BLOCKED_IPS', '')),
 
