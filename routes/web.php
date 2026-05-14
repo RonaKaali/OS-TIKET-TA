@@ -120,3 +120,20 @@ Route::middleware('auth')->group(function () {
 # Telegram Webhook (untuk menerima update dari bot Telegram)
 Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handle'])
     ->name('telegram.webhook');
+// Route sementara untuk migrasi database di Vercel
+Route::get('/deploy-db', function () {
+    try {
+        echo "Menjalankan migrasi...<br>";
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        echo "Migrasi sukses!<br>";
+        
+        echo "Membersihkan cache...<br>";
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        echo "Cache dibersihkan!<br>";
+        
+        return "Semua proses selesai!";
+    } catch (\Exception $e) {
+        return "Gagal: " . $e->getMessage();
+    }
+});
