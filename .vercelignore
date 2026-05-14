@@ -1,0 +1,12 @@
+.git
+node_modules
+vendor
+storage/*.log
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*.php
+public/storage
+.env
+os ticketing database.sql
+*.md
+tests
