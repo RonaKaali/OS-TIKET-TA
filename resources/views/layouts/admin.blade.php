@@ -16,6 +16,7 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <style>
         /* Global Admin Theme Overrides */
         main .bg-white { background-color: white !important; }
@@ -85,6 +86,7 @@
                             <div class="space-y-1">
                                 @php
                                     $adminLinks = [
+                                        ['route' => 'admin.security.dashboard', 'label' => 'Zero Trust Security', 'icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z'],
                                         ['route' => 'admin.departments.index', 'label' => 'Departemen', 'icon' => 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'],
                                         ['route' => 'admin.help-topics.index', 'label' => 'Topik Bantuan', 'icon' => 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                                         ['route' => 'admin.statuses.index', 'label' => 'Status', 'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
@@ -122,17 +124,17 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                                 </svg>
                             </button>
-                            <div class="ml-4 lg:ml-0 flex items-center space-x-2">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Admin Session Secured</span>
+                            <div class="ml-4 lg:ml-0 flex items-center px-4 py-2 bg-emerald-500/10 dark:bg-slate-800/50 border border-emerald-500/20 dark:border-slate-700 rounded-full transition-colors">
+                                <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                                <span class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest transition-colors">Zero Trust Verified</span>
                             </div>
                         </div>
                         <div class="flex items-center space-x-4">
                             <x-theme-toggle />
                             
-                            <div class="hidden md:flex items-center px-3 py-1 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-full transition-colors">
-                                <span class="text-[10px] font-bold text-slate-400 mr-2">CONTEXT:</span>
-                                <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Trusted Network</span>
+                            <div class="hidden md:flex items-center px-3 py-1 bg-emerald-50 dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 rounded-full transition-colors">
+                                <span class="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 mr-2 uppercase tracking-wider"><i class="fa-solid fa-shield-halved mr-1"></i> Keamanan:</span>
+                                <span class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase">Tingkat Tinggi</span>
                             </div>
                             
                             <div class="h-6 w-[1px] bg-slate-800 mx-2"></div>

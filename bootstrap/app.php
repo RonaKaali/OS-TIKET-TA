@@ -32,6 +32,17 @@ $app = Application::configure(basePath: dirname(__DIR__))
 // Fix untuk Vercel
 if (isset($_SERVER['VERCEL_URL'])) {
     $app->useStoragePath('/tmp/storage');
+    $paths = [
+        '/tmp/storage/framework/views',
+        '/tmp/storage/framework/cache',
+        '/tmp/storage/framework/sessions',
+        '/tmp/storage/logs'
+    ];
+    foreach ($paths as $path) {
+        if (!is_dir($path)) {
+            @mkdir($path, 0755, true);
+        }
+    }
 }
 
 return $app;

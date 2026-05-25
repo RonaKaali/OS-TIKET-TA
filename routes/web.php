@@ -17,7 +17,8 @@ use App\Http\Controllers\Admin\{
     CannedResponseController,
     OrganizationController,
     UserController,
-    ChatbotResponseController
+    ChatbotResponseController,
+    SecurityDashboardController
 };
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChatbotController;
@@ -80,6 +81,10 @@ Route::middleware(['auth', 'role:Super Admin'])->prefix('admin')->as('admin.')->
     Route::resource('organizations', OrganizationController::class)->except('show');
     Route::resource('users', UserController::class)->except('show');
     Route::resource('chatbot-responses', ChatbotResponseController::class);
+
+    // Zero Trust Security Dashboard
+    Route::get('/security-dashboard', [SecurityDashboardController::class, 'index'])->name('security.dashboard');
+    Route::get('/api/security-events/latest', [SecurityDashboardController::class, 'getLatestEvents'])->name('security.api.latest');
 });
 
 # Profile (untuk user yang sudah login)
