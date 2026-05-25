@@ -4,6 +4,22 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+// Fix untuk Vercel: Setup storage path SEBELUM app boot
+if (isset($_SERVER['VERCEL']) || isset($_SERVER['VERCEL_URL']) || getenv('VERCEL')) {
+    $tmpPaths = [
+        '/tmp/storage/framework/views',
+        '/tmp/storage/framework/cache',
+        '/tmp/storage/framework/sessions',
+        '/tmp/storage/logs',
+        '/tmp/storage/app',
+    ];
+    foreach ($tmpPaths as $path) {
+        if (!is_dir($path)) {
+            @mkdir($path, 0755, true);
+        }
+    }
+}
+
 $app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__ . '/../routes/web.php',
@@ -29,20 +45,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
         //
     })->create();
 
-// Fix untuk Vercel
-if (isset($_SERVER['VERCEL_URL'])) {
+// Set storage path setelah app dibuat
+if (isset($_SERVER['VERCEL']) || isset($_SERVER['VERCEL_URL']) || getenv('VERCEL')) {
     $app->useStoragePath('/tmp/storage');
-    $paths = [
-        '/tmp/storage/framework/views',
-        '/tmp/storage/framework/cache',
-        '/tmp/storage/framework/sessions',
-        '/tmp/storage/logs'
-    ];
-    foreach ($paths as $path) {
-        if (!is_dir($path)) {
-            @mkdir($path, 0755, true);
-        }
-    }
 }
 
 return $app;
