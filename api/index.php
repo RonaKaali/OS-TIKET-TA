@@ -58,8 +58,8 @@ if (!file_exists(__DIR__ . '/../.env')) {
     if ($env) @file_put_contents(__DIR__ . '/../.env', $env);
 }
 
-// Paksa response JSON jika terjadi error saat boot (menghindari error 'view not found')
-$_SERVER['HTTP_ACCEPT'] = 'application/json';
+// Jangan paksa JSON response - biarkan Laravel menentukan format yang tepat
+// (HTML untuk browser, JSON untuk API request)
 
 // Jalankan Laravel dan tangkap error mentah
 try {

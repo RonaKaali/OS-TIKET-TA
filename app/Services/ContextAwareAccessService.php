@@ -70,29 +70,21 @@ class ContextAwareAccessService
      */
     protected function checkTimeBasedAccess(User $user, array $context): bool
     {
-        // Admin dan Agent hanya bisa akses pada jam kerja (08:00 - 17:00)
+        // Log akses di luar jam kerja (08:00 - 17:00) sebagai warning, tapi JANGAN blokir.
+        // Blocking di sini menyebabkan admin terkunci dari sistem di luar jam kerja.
         if ($user->can('admin.panel')) {
-            // Parse hour dari time_of_day (format H:i)
             $timeOfDay = $context['time_of_day'] ?? null;
 
-            // Pastikan time_of_day adalah string
             if (!is_string($timeOfDay)) {
-                // Jika bukan string, gunakan waktu sekarang
                 $timeOfDay = now()->format('H:i');
             }
 
-            // Parse hour dari format H:i dengan validasi
             $parts = explode(':', $timeOfDay);
             $hour = isset($parts[0]) && is_numeric($parts[0]) ? (int) $parts[0] : (int) now()->format('H');
 
-            // Jika di luar jam kerja, cek apakah ada exception
             if ($hour < 8 || $hour >= 17) {
-                // Cek apakah user memiliki permission untuk akses di luar jam kerja
-                if (!$user->can('admin.after_hours_access')) {
-                    // Log sebagai anomaly
-                    $this->logAnomaly($user, 'after_hours_access_attempt', $context);
-                    return false;
-                }
+                // Hanya log warning, jangan blokir akses
+                $this->logAnomaly($user, 'after_hours_access', $context);
             }
         }
 
