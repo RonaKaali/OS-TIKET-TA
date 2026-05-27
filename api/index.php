@@ -11,6 +11,20 @@ foreach ([
     if (!is_dir($path)) @mkdir($path, 0755, true);
 }
 
+// Hapus cache yang mungkin dibuat saat build (karena path-nya berbeda di runtime)
+// (Catatan: unlink tidak bisa di Vercel karena read-only, jadi kita ubah path cache via env)
+$cachePath = '/tmp/storage/framework/cache';
+putenv("APP_SERVICES_CACHE={$cachePath}/services.php");
+putenv("APP_PACKAGES_CACHE={$cachePath}/packages.php");
+putenv("APP_CONFIG_CACHE={$cachePath}/config.php");
+putenv("APP_ROUTES_CACHE={$cachePath}/routes.php");
+putenv("APP_EVENTS_CACHE={$cachePath}/events.php");
+$_SERVER['APP_SERVICES_CACHE'] = "{$cachePath}/services.php";
+$_SERVER['APP_PACKAGES_CACHE'] = "{$cachePath}/packages.php";
+$_SERVER['APP_CONFIG_CACHE'] = "{$cachePath}/config.php";
+$_SERVER['APP_ROUTES_CACHE'] = "{$cachePath}/routes.php";
+$_SERVER['APP_EVENTS_CACHE'] = "{$cachePath}/events.php";
+
 // Buat .env dari environment variables Vercel jika tidak ada
 if (!file_exists(__DIR__ . '/../.env')) {
     $keys = [
@@ -67,6 +81,7 @@ try {
     while ($cur) {
         echo "[$i] " . get_class($cur) . ": " . $cur->getMessage() . "\n";
         echo "     at " . $cur->getFile() . ":" . $cur->getLine() . "\n";
+        echo "     Trace:\n" . $cur->getTraceAsString() . "\n\n";
         $cur = $cur->getPrevious(); $i++;
     }
 }
