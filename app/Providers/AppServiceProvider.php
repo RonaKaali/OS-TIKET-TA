@@ -22,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS in production (Vercel) to prevent mixed content errors
+        if (config('app.env') === 'production') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         // Register Telegram notification channel
         Notification::extend('telegram', function ($app) {
             return new TelegramChannel($app->make(TelegramService::class));
