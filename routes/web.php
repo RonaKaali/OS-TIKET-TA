@@ -94,6 +94,20 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // Zero Trust: Automatic Device Verification Route
+    Route::get('/device/verify', function(Request $request) {
+        $fingerprint = session('fingerprint');
+        if ($fingerprint) {
+            $request->session()->put('device_verified_' . $fingerprint, true);
+            app(\App\Services\SecurityEventLogService::class)->logDeviceEvent(
+                auth()->id(), 
+                'device_verified', 
+                ['fingerprint' => $fingerprint]
+            );
+        }
+        return redirect()->intended(route('agent.dashboard'));
+    })->name('device.verify');
+
     // Session check untuk auto logout
     Route::get('/session/check', [\App\Http\Controllers\SessionController::class, 'check'])->name('session.check');
     
