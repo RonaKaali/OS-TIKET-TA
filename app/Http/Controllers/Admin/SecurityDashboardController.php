@@ -19,7 +19,7 @@ class SecurityDashboardController extends Controller
             'total_events' => SecurityEvent::count(),
             'today_events' => SecurityEvent::whereDate('created_at', today())->count(),
             'high_risk_count' => SecurityEvent::whereIn('severity', ['high', 'critical'])->count(),
-            'avg_trust_score' => round(DB::table('device_fingerprints')->avg('trust_score') ?? 0, 1),
+            'avg_trust_score' => round((function() { try { return DB::table('device_fingerprints')->avg('trust_score') ?? 0; } catch (\Exception $e) { return 0; } })(), 1),
         ];
 
         return view('admin.security.dashboard', compact('stats'));

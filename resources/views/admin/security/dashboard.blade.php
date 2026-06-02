@@ -1,39 +1,47 @@
-@extends('layouts.admin')
+<x-admin-layout>
+    <div class="space-y-6" x-data="securityDashboard()" x-init="init()">
 
-@section('title', 'Zero Trust Security Dashboard')
+        <!-- Page Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+            <div>
+                <h2 class="text-2xl font-black text-slate-900 dark:text-white flex items-center tracking-tight transition-colors">
+                    <div class="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center mr-4">
+                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    </div>
+                    Ruang Zero Trust
+                </h2>
+                <p class="text-sm font-bold text-slate-500 dark:text-slate-400 mt-1 transition-colors">Pusat Kendali Keamanan & Pemantauan Ancaman</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{{ route('agent.dashboard') }}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-black rounded-lg border border-slate-600 flex items-center tracking-widest uppercase transition-all">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                    Kembali ke Pusat Komando
+                </a>
+            </div>
+        </div>
 
-@section('header')
-    <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-        {{ __('Zero Trust Security Dashboard') }}
-    </h2>
-@endsection
-
-@section('content')
-<div class="py-12" x-data="securityDashboard()" x-init="init()">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-        
-        <!-- Header Stats -->
+        <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-blue-500">
-                <div class="text-sm text-gray-500 dark:text-gray-400 uppercase font-bold">Total Security Events</div>
-                <div class="text-2xl font-bold dark:text-white">{{ $stats['total_events'] }}</div>
+            <div class="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 p-6 border-l-4 border-l-blue-500 transition-colors">
+                <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 transition-colors">Total Security Events</div>
+                <div class="text-3xl font-black text-slate-900 dark:text-white transition-colors">{{ $stats['total_events'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-cyan-500">
-                <div class="text-sm text-gray-500 dark:text-gray-400 uppercase font-bold">Events Today</div>
-                <div class="text-2xl font-bold dark:text-white">{{ $stats['today_events'] }}</div>
+            <div class="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 p-6 border-l-4 border-l-cyan-500 transition-colors">
+                <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 transition-colors">Events Hari Ini</div>
+                <div class="text-3xl font-black text-slate-900 dark:text-white transition-colors">{{ $stats['today_events'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-red-500">
-                <div class="text-sm text-gray-500 dark:text-gray-400 uppercase font-bold">Critical Anomalies</div>
-                <div class="text-2xl font-bold dark:text-white">{{ $stats['high_risk_count'] }}</div>
+            <div class="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 p-6 border-l-4 border-l-red-500 transition-colors">
+                <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 transition-colors">Anomali Kritis</div>
+                <div class="text-3xl font-black text-red-600 dark:text-red-400 transition-colors">{{ $stats['high_risk_count'] }}</div>
             </div>
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6 border-l-4 border-purple-500">
-                <div class="text-sm text-gray-500 dark:text-gray-400 uppercase font-bold">Avg Device Trust Score</div>
-                <div class="text-2xl font-bold dark:text-white">{{ $stats['avg_trust_score'] }}%</div>
+            <div class="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 p-6 border-l-4 border-l-purple-500 transition-colors">
+                <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 transition-colors">Avg Device Trust Score</div>
+                <div class="text-3xl font-black text-slate-900 dark:text-white transition-colors">{{ $stats['avg_trust_score'] }}%</div>
             </div>
         </div>
 
         <!-- Live Monitoring Section -->
-        <div class="bg-gray-900 overflow-hidden shadow-xl sm:rounded-lg border border-gray-700">
+        <div class="bg-slate-900 overflow-hidden shadow-xl rounded-2xl border border-slate-700">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-bold text-cyan-400 flex items-center">
@@ -88,7 +96,7 @@
                                     <div class="text-sm text-gray-400 mb-2" x-text="event.message"></div>
                                     
                                     <!-- Badges -->
-                                    <div class="flex flex-wrap gap-2">
+                                    <div class="flex flex-wrap gap-2 items-center">
                                         <span class="px-2 py-0.5 text-[10px] rounded bg-gray-900 border border-gray-700 text-gray-300 font-mono" x-text="event.ip_address"></span>
                                         <span class="px-2 py-0.5 text-[10px] rounded bg-gray-900 border border-gray-700 text-gray-300 font-mono" x-text="event.event_type"></span>
                                         
@@ -98,6 +106,7 @@
                                             </span>
                                         </template>
 
+                                        <template x-if="event.risk_score !== null">
                                             <div class="flex items-center gap-2 ml-auto">
                                                 <span class="text-[10px] text-gray-500 uppercase">Risk Score</span>
                                                 <div class="w-20 h-1.5 bg-gray-700 rounded-full overflow-hidden">
@@ -133,7 +142,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <style>
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
@@ -170,7 +178,7 @@
                     const data = await response.json();
                     
                     // Simple logic to only update if IDs are different or first load
-                    if (this.events.length === 0 || data[0].id !== this.events[0].id) {
+                    if (this.events.length === 0 || (data.length > 0 && data[0].id !== this.events[0].id)) {
                         this.events = data;
                     }
                 } catch (error) {
@@ -207,4 +215,4 @@
         }
     }
 </script>
-@endsection
+</x-admin-layout>
