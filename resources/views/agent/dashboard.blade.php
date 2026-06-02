@@ -9,6 +9,12 @@
                 <p class="text-sm font-bold text-slate-500 dark:text-slate-400 mt-1 transition-colors">Sistem Pemantauan Insiden Siber Terpadu</p>
             </div>
             <div class="flex items-center space-x-3">
+                @hasrole('Super Admin')
+                <a href="{{ route('admin.security.dashboard') }}" class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-black rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.5)] border border-emerald-400/50 flex items-center tracking-widest uppercase transition-all hover:scale-105 mr-4">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    Ruang Zero Trust
+                </a>
+                @endhasrole
                 <span class="flex h-3 w-3 relative">
                   <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>

@@ -98,7 +98,6 @@
                                             </span>
                                         </template>
 
-                                        <template x-if="event.risk_score !== null">
                                             <div class="flex items-center gap-2 ml-auto">
                                                 <span class="text-[10px] text-gray-500 uppercase">Risk Score</span>
                                                 <div class="w-20 h-1.5 bg-gray-700 rounded-full overflow-hidden">
@@ -110,6 +109,12 @@
                                                 </div>
                                                 <span class="text-[10px] font-bold" :class="event.risk_score > 70 ? 'text-red-500' : 'text-gray-400'" x-text="event.risk_score"></span>
                                             </div>
+                                        </template>
+
+                                        <template x-if="event.user_id">
+                                            <button @click="revokeAccess(event.user_id)" class="ml-2 px-2 py-0.5 text-[10px] font-bold rounded bg-red-900/50 border border-red-700 text-red-300 hover:bg-red-700 hover:text-white transition-colors cursor-pointer">
+                                                <i class="fas fa-ban mr-1"></i> Cabut Akses
+                                            </button>
                                         </template>
                                     </div>
                                 </div>
@@ -172,6 +177,31 @@
                     console.error('Failed to fetch security events:', error);
                 } finally {
                     this.loading = false;
+                }
+            },
+
+            async revokeAccess(userId) {
+                if (!confirm('Apakah Anda yakin ingin mematikan semua sesi pengguna ini (Force Logout)?')) return;
+
+                try {
+                    const response = await fetch(`/admin/api/security-events/revoke/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        alert('Berhasil! Akses pengguna telah dicabut.');
+                        this.fetchEvents();
+                    } else {
+                        alert('Gagal mencabut akses.');
+                    }
+                } catch (error) {
+                    console.error('Revoke access error:', error);
+                    alert('Terjadi kesalahan.');
                 }
             }
         }

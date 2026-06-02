@@ -37,6 +37,7 @@ class SecurityDashboardController extends Controller
             ->map(function ($event) {
                 return [
                     'id' => $event->id,
+                    'user_id' => $event->user_id,
                     'user_name' => $event->user ? $event->user->name : 'Guest/System',
                     'event_type' => $event->event_type,
                     'severity' => $event->severity,
@@ -50,5 +51,27 @@ class SecurityDashboardController extends Controller
             });
 
         return response()->json($events);
+    }
+
+    /**
+     * Revoke access for a user (Force Logout).
+     */
+    public function revokeAccess(Request $request, $userId)
+    {
+        // Temukan semua sesi user ini dan hapus
+        DB::table('sessions')->where('user_id', $userId)->delete();
+
+        // Tambahkan event keamanan
+        SecurityEvent::create([
+            'user_id' => $userId,
+            'event_type' => 'admin_force_logout',
+            'severity' => 'medium',
+            'ip_address' => $request->ip(),
+            'message' => 'Super Admin forcibly revoked access for this user.',
+            'risk_score' => 50,
+            'created_at' => now(),
+        ]);
+
+        return response()->json(['status' => 'success', 'message' => 'Access successfully revoked.']);
     }
 }
