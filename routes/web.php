@@ -105,7 +105,7 @@ Route::middleware('auth')->group(function () {
                 ['fingerprint' => $fingerprint]
             );
         }
-        return redirect()->intended(route('agent.dashboard'));
+        return redirect()->intended('/');
     })->name('device.verify');
 
     // Session check untuk auto logout

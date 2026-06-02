@@ -43,7 +43,11 @@ class SessionController extends Controller
 
             // Revoke semua token user
             if (method_exists($user, 'tokens')) {
-                $user->tokens()->delete();
+                try {
+                    $user->tokens()->delete();
+                } catch (\Exception $e) {
+                    // Abaikan error jika tabel personal_access_tokens tidak ada
+                }
             }
 
             Auth::logout();
