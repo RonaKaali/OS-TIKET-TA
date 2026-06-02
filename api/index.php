@@ -72,16 +72,15 @@ try {
     $root = $e;
     while ($root->getPrevious()) $root = $root->getPrevious();
 
-    echo "=== ROOT CAUSE (Penyebab Asli) ===\n";
-    echo get_class($root) . ": " . $root->getMessage() . "\n";
-    echo "File: " . $root->getFile() . ":" . $root->getLine() . "\n\n";
-
     echo "=== EXCEPTION CHAIN ===\n";
     $cur = $e; $i = 1;
-    while ($cur) {
+    while ($cur && $i <= 3) { // Hanya tampilkan 3 exception teratas agar tidak terlalu panjang
         echo "[$i] " . get_class($cur) . ": " . $cur->getMessage() . "\n";
         echo "     at " . $cur->getFile() . ":" . $cur->getLine() . "\n";
-        echo "     Trace:\n" . $cur->getTraceAsString() . "\n\n";
         $cur = $cur->getPrevious(); $i++;
     }
+
+    echo "\n\n=== ROOT CAUSE (PENYEBAB ASLI) ===\n";
+    echo get_class($root) . ": " . $root->getMessage() . "\n";
+    echo "File: " . $root->getFile() . ":" . $root->getLine() . "\n\n";
 }
