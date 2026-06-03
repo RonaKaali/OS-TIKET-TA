@@ -213,6 +213,10 @@ class ZeroTrustVerification
             'chatbot/message',
             'mfa/verify', // MFA verification page
             'mfa/verify-backup', // MFA verification (backup code)
+            'mfa/setup',
+            'mfa/enable',
+            'mfa/backup-codes',
+            'mfa/disable',
             'device/verify', // Device verification page
             'up', // Health check
         ];
