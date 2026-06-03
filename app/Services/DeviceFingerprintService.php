@@ -134,6 +134,13 @@ class DeviceFingerprintService
      */
     public function calculateTrustScore(User $user, string $fingerprint, Request $request): int
     {
+        // Jika user belum memiliki device terdaftar sama sekali (login/registrasi pertama),
+        // otomatis berikan trust score maksimal (100) sebagai baseline.
+        $devices = Cache::get("user_devices:{$user->id}", []);
+        if (empty($devices)) {
+            return 100;
+        }
+
         $score = 50; // Base score
         $metadata = Cache::get("device_metadata:{$user->id}:{$fingerprint}", []);
         
