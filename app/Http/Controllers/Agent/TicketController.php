@@ -70,7 +70,7 @@ class TicketController extends Controller
             $q->where('permissions.name', 'admin.panel');
         })->orWhereHas('roles', function ($q) {
             $q->whereIn('roles.name', ['Super Admin', 'Admin', 'Agent', 'Support Agent']);
-        })->with('roles')->distinct()->get();
+        })->with('roles')->get()->unique('id');
 
         // Ambil daftar canned responses untuk dipilih agent
         $cannedResponses = CannedResponse::latest()->get();
