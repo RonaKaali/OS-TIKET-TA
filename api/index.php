@@ -11,8 +11,7 @@ foreach ([
     if (!is_dir($path)) @mkdir($path, 0755, true);
 }
 
-// Hapus cache yang mungkin dibuat saat build (karena path-nya berbeda di runtime)
-// (Catatan: unlink tidak bisa di Vercel karena read-only, jadi kita ubah path cache via env)
+// Redirect cache path ke /tmp (karena Vercel filesystem read-only di luar /tmp)
 $cachePath = '/tmp/storage/framework/cache';
 putenv("APP_SERVICES_CACHE={$cachePath}/services.php");
 putenv("APP_PACKAGES_CACHE={$cachePath}/packages.php");
@@ -25,6 +24,60 @@ $_SERVER['APP_CONFIG_CACHE'] = "{$cachePath}/config.php";
 $_SERVER['APP_ROUTES_CACHE'] = "{$cachePath}/routes.php";
 $_SERVER['APP_EVENTS_CACHE'] = "{$cachePath}/events.php";
 
+// =========================================================================
+// FORCE OVERRIDE: Selalu paksa env vars dari Vercel menimpa .env yang ada
+// Ini diperlukan karena .env di-commit dengan setting MySQL lokal,
+// sedangkan Vercel menggunakan Supabase PostgreSQL.
+// =========================================================================
+$criticalKeys = [
+    // Database - WAJIB dari Vercel env vars
+    'DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD', 'DB_URL',
+    // App settings
+    'APP_KEY', 'APP_URL', 'APP_ENV', 'APP_DEBUG',
+    // Cache & Queue - paksa ke 'array'/'sync' agar tidak butuh DB saat boot
+    'CACHE_STORE', 'QUEUE_CONNECTION',
+    // Session
+    'SESSION_DRIVER', 'SESSION_LIFETIME',
+    // Mail
+    'MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_PASSWORD',
+    'MAIL_ENCRYPTION', 'MAIL_FROM_ADDRESS', 'MAIL_FROM_NAME',
+    // Telegram
+    'TELEGRAM_BOT_TOKEN',
+    // Zero Trust
+    'ZERO_TRUST_ENABLED', 'ZERO_TRUST_DEVICE_FINGERPRINTING', 'ZERO_TRUST_MFA_ENABLED', 'ZERO_TRUST_CONTEXT_AWARE',
+];
+
+foreach ($criticalKeys as $key) {
+    $value = getenv($key);
+    if ($value !== false && $value !== '') {
+        // Override di $_ENV, $_SERVER, dan putenv agar Laravel membacanya
+        $_ENV[$key] = $value;
+        $_SERVER[$key] = $value;
+        putenv("{$key}={$value}");
+    }
+}
+
+// Jika CACHE_STORE belum di-set dari Vercel, paksa ke 'array' (tidak butuh DB)
+if (empty(getenv('CACHE_STORE')) || getenv('CACHE_STORE') === 'database') {
+    $cs = getenv('CACHE_STORE');
+    // Hanya paksa ke array jika Vercel belum set CACHE_STORE yang valid
+    if ($cs === false || $cs === '' || $cs === 'database') {
+        putenv('CACHE_STORE=array');
+        $_ENV['CACHE_STORE'] = 'array';
+        $_SERVER['CACHE_STORE'] = 'array';
+    }
+}
+
+// Jika QUEUE_CONNECTION belum di-set, paksa ke 'sync' (tidak butuh DB)
+if (empty(getenv('QUEUE_CONNECTION')) || getenv('QUEUE_CONNECTION') === 'database') {
+    $qc = getenv('QUEUE_CONNECTION');
+    if ($qc === false || $qc === '' || $qc === 'database') {
+        putenv('QUEUE_CONNECTION=sync');
+        $_ENV['QUEUE_CONNECTION'] = 'sync';
+        $_SERVER['QUEUE_CONNECTION'] = 'sync';
+    }
+}
+
 // Buat .env dari environment variables Vercel jika tidak ada
 if (!file_exists(__DIR__ . '/../.env')) {
     $keys = [
@@ -32,7 +85,7 @@ if (!file_exists(__DIR__ . '/../.env')) {
         'APP_LOCALE','APP_FALLBACK_LOCALE','APP_FAKER_LOCALE',
         'APP_MAINTENANCE_DRIVER','APP_TIMEZONE','BCRYPT_ROUNDS',
         'LOG_CHANNEL','LOG_STACK','LOG_LEVEL',
-        'DB_CONNECTION','DB_HOST','DB_PORT','DB_DATABASE','DB_USERNAME','DB_PASSWORD',
+        'DB_CONNECTION','DB_HOST','DB_PORT','DB_DATABASE','DB_USERNAME','DB_PASSWORD','DB_URL',
         'SESSION_DRIVER','SESSION_LIFETIME','SESSION_ENCRYPT','SESSION_PATH',
         'BROADCAST_CONNECTION','FILESYSTEM_DISK','QUEUE_CONNECTION','CACHE_STORE',
         'MAIL_MAILER','MAIL_HOST','MAIL_PORT','MAIL_USERNAME','MAIL_PASSWORD',
@@ -58,9 +111,6 @@ if (!file_exists(__DIR__ . '/../.env')) {
     if ($env) @file_put_contents(__DIR__ . '/../.env', $env);
 }
 
-// Jangan paksa JSON response - biarkan Laravel menentukan format yang tepat
-// (HTML untuk browser, JSON untuk API request)
-
 // Jalankan Laravel dan tangkap error mentah
 try {
     require __DIR__ . '/../public/index.php';
@@ -74,7 +124,7 @@ try {
 
     echo "=== EXCEPTION CHAIN ===\n";
     $cur = $e; $i = 1;
-    while ($cur && $i <= 3) { // Hanya tampilkan 3 exception teratas agar tidak terlalu panjang
+    while ($cur && $i <= 3) {
         echo "[$i] " . get_class($cur) . ": " . $cur->getMessage() . "\n";
         echo "     at " . $cur->getFile() . ":" . $cur->getLine() . "\n";
         $cur = $cur->getPrevious(); $i++;
