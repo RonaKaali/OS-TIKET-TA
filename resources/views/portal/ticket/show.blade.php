@@ -63,6 +63,21 @@
         </nav>
 
         <div class="max-w-4xl mx-auto space-y-8 relative z-10">
+            @if(session('ok') === 'Tiket berhasil dibuat.')
+                <!-- Success Message for New Ticket -->
+                <div class="glass-card rounded-2xl p-6 border border-emerald-500/50 bg-emerald-500/10 flex flex-col sm:flex-row items-center sm:items-start gap-5 shadow-[0_0_30px_rgba(16,185,129,0.15)] animate-fade-in-down">
+                    <div class="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 shadow-inner">
+                        <svg class="w-7 h-7 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <div class="text-center sm:text-left">
+                        <h3 class="text-xl font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">LAPORAN BERHASIL</h3>
+                        <p class="text-sm font-bold text-emerald-700 dark:text-emerald-300 mt-2 leading-relaxed">
+                            TIM CSIRT KALSEL SEDANG MEMPROSES LAPORAN ANDA. KAMI AKAN TERUS HUBUNGI MELALUI EMAIL.
+                        </p>
+                    </div>
+                </div>
+            @endif
+
             <!-- Ticket Header Card -->
             <div class="glass-card rounded-3xl p-8 shadow-2xl">
                 <div class="flex flex-col sm:flex-row justify-between items-start gap-6 mb-8">
