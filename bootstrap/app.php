@@ -42,7 +42,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->reportable(function (\Throwable $e) {
+            error_log('REAL ERROR: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+        });
     })->create();
 
 // Set storage path setelah app dibuat
