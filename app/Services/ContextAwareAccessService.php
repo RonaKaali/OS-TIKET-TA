@@ -226,6 +226,11 @@ class ContextAwareAccessService
         }
 
         try {
+            if (!class_exists(\GeoIp2\Database\Reader::class)) {
+                \Log::warning('GeoIP package not found or Reader class missing.');
+                return $location;
+            }
+
             $reader = new Reader($dbPath);
             $record = $reader->city($ip);
 
@@ -396,4 +401,3 @@ class ContextAwareAccessService
         return $earthRadius * $c;
     }
 }
-

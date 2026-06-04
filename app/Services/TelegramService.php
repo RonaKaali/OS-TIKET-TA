@@ -135,6 +135,7 @@ class TelegramService
 
         try {
             $response = Http::post("{$this->apiUrl}/sendMessage", [
+            $response = Http::timeout(5)->post("{$this->apiUrl}/sendMessage", [
                 'chat_id' => $chatId,
                 'text' => $message,
                 'parse_mode' => 'HTML',
@@ -171,12 +172,18 @@ class TelegramService
             // Coba dapatkan chat_id dari update terakhir
             // Metode ini memerlukan bot sudah pernah berinteraksi dengan user
             $response = Http::get("{$this->apiUrl}/getUpdates", [
+            $response = Http::timeout(5)->get("{$this->apiUrl}/getUpdates", [
                 'offset' => 0,
                 'limit' => 100, // Ambil 100 update terakhir
             ]);
 
             if ($response->successful()) {
                 $updates = $response->json('result', []);
+
+                if (!is_array($updates)) {
+                    return null;
+                }
+
                 Log::info("Mendapatkan " . count($updates) . " update(s) dari Telegram API");
 
                 // Cari dari update terbaru ke terlama
@@ -241,4 +248,3 @@ class TelegramService
         return $message;
     }
 }
-

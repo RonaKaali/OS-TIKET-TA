@@ -68,10 +68,19 @@ class SecurityEventLogService
             $event['message']
         );
 
-        Log::channel('security')->info($logMessage, [
-            'context' => json_decode($event['context'], true),
-            'metadata' => json_decode($event['metadata'], true),
-        ]);
+        try {
+            // Cobalah menulis ke channel khusus security
+            Log::channel('security')->info($logMessage, [
+                'context' => json_decode($event['context'], true),
+                'metadata' => json_decode($event['metadata'], true),
+            ]);
+        } catch (\Exception $e) {
+            // Jika di Vercel/Serverless penulisan file dilarang, 
+            // fallback ke log utama (stderr/error_log) agar tetap muncul di dashboard Vercel
+            Log::warning("[SECURITY_FALLBACK] " . $logMessage, [
+                'original_error' => $e->getMessage()
+            ]);
+        }
     }
 
     /**
@@ -361,4 +370,3 @@ class SecurityEventLogService
         };
     }
 }
-
