@@ -161,30 +161,33 @@ class MfaService
         }
 
         if (!MfaSchema::columnsExist()) {
-            return 'Kolom MFA belum ada di database. Buka /deploy-db lalu refresh halaman ini.';
+            try {
+                MfaSchema::ensureColumns();
+            } catch (\Throwable $e) {
+                \Log::error('MFA ensureColumns failed', ['message' => $e->getMessage()]);
+                return 'Gagal menyiapkan kolom MFA di database.';
+            }
+        }
+
+        if (!MfaSchema::columnsExist()) {
+            return 'Kolom MFA belum tersedia. Buka /deploy-db sekali, lalu coba lagi.';
         }
 
         try {
-            $user->forceFill([
-                'mfa_secret' => encrypt($secret),
-                'mfa_enabled' => true,
-                'mfa_enabled_at' => now(),
-            ]);
+            $encryptedSecret = encrypt($secret);
 
-            if (!$user->save()) {
+            if (!MfaSchema::persistMfaForUser($user->id, $encryptedSecret)) {
                 return 'Gagal menyimpan pengaturan MFA ke database.';
             }
 
             $user->refresh();
 
-            if (!$this->userHasPersistedMfa($user)) {
-                \Log::error('MFA enable: data tidak tersimpan setelah save', [
+            if (!MfaSchema::userHasMfa($user->id)) {
+                \Log::error('MFA enable: data tidak tersimpan setelah update', [
                     'user_id' => $user->id,
-                    'mfa_enabled' => $user->getAttributes()['mfa_enabled'] ?? null,
-                    'has_secret' => !empty($user->getAttributes()['mfa_secret'] ?? null),
                 ]);
 
-                return 'MFA gagal tersimpan. Pastikan migrasi database sudah dijalankan (/deploy-db).';
+                return 'MFA gagal tersimpan. Coba buka /deploy-db lalu aktifkan ulang.';
             }
         } catch (\Throwable $e) {
             \Log::error('Failed to save MFA to database', [
@@ -192,11 +195,7 @@ class MfaService
                 'message' => $e->getMessage(),
             ]);
 
-            if (str_contains(strtolower($e->getMessage()), 'mfa_')) {
-                return 'Kolom MFA belum ada di database. Buka /deploy-db untuk menjalankan migrasi terlebih dahulu.';
-            }
-
-            return 'Gagal menyimpan MFA ke database. Silakan coba lagi.';
+            return 'Gagal menyimpan MFA: ' . $e->getMessage();
         }
 
         $this->forgetTempSecret($user);
@@ -232,13 +231,7 @@ class MfaService
         Cache::forget("mfa_secret:{$user->id}");
         Cache::forget("mfa_backup_codes:{$user->id}");
 
-        User::whereKey($user->id)->update([
-            'mfa_secret' => null,
-            'mfa_enabled' => false,
-            'mfa_enabled_at' => null,
-            'mfa_backup_codes' => null,
-        ]);
-
+        MfaSchema::clearMfaForUser($user->id);
         $user->refresh();
     }
 
@@ -253,8 +246,7 @@ class MfaService
 
         $user->refresh();
 
-        return filter_var($user->mfa_enabled, FILTER_VALIDATE_BOOLEAN)
-            && !empty($user->mfa_secret);
+        return MfaSchema::userHasMfa($user->id);
     }
 
     /**
@@ -294,22 +286,8 @@ class MfaService
 
         $hashedCodes = array_map(fn ($code) => Hash::make($code), $codes);
 
-        if (!Schema::hasColumn('pengguna', 'mfa_backup_codes')) {
-            Cache::put("mfa_backup_codes:{$user->id}", $hashedCodes, now()->addYears(10));
-            return $codes;
-        }
-
-        try {
-            User::whereKey($user->id)->update([
-                'mfa_backup_codes' => $hashedCodes,
-            ]);
-            $user->refresh();
-        } catch (\Throwable $e) {
-            \Log::error('Failed to save MFA backup codes to database', [
-                'user_id' => $user->id,
-                'message' => $e->getMessage(),
-            ]);
-        }
+        MfaSchema::saveBackupCodes($user->id, $hashedCodes);
+        Cache::put("mfa_backup_codes:{$user->id}", $hashedCodes, now()->addYears(10));
 
         return $codes;
     }
@@ -319,8 +297,7 @@ class MfaService
      */
     public function verifyBackupCode(User $user, string $code): bool
     {
-        $user->refresh();
-        $backupCodes = $user->mfa_backup_codes ?? [];
+        $backupCodes = MfaSchema::getBackupCodes($user->id);
 
         if (empty($backupCodes)) {
             $backupCodes = Cache::get("mfa_backup_codes:{$user->id}", []);
@@ -329,12 +306,7 @@ class MfaService
         foreach ($backupCodes as $index => $hashedCode) {
             if (Hash::check($code, $hashedCode)) {
                 unset($backupCodes[$index]);
-                $remaining = array_values($backupCodes);
-
-                User::whereKey($user->id)->update([
-                    'mfa_backup_codes' => $remaining,
-                ]);
-                $user->refresh();
+                MfaSchema::saveBackupCodes($user->id, array_values($backupCodes));
 
                 return true;
             }

@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\Schema;
 
 class MfaSchema
 {
-    /**
-     * Pastikan kolom MFA ada di tabel pengguna (PostgreSQL / MySQL).
-     */
     public static function ensureColumns(): array
     {
         $lines = [];
@@ -17,14 +14,14 @@ class MfaSchema
 
         if ($driver === 'pgsql') {
             $statements = [
-                'ALTER TABLE pengguna ADD COLUMN IF NOT EXISTS mfa_enabled BOOLEAN NOT NULL DEFAULT false',
-                'ALTER TABLE pengguna ADD COLUMN IF NOT EXISTS mfa_secret TEXT NULL',
-                'ALTER TABLE pengguna ADD COLUMN IF NOT EXISTS mfa_enabled_at TIMESTAMP NULL',
-                'ALTER TABLE pengguna ADD COLUMN IF NOT EXISTS mfa_backup_codes JSONB NULL',
+                'ALTER TABLE public.pengguna ADD COLUMN IF NOT EXISTS mfa_enabled BOOLEAN NOT NULL DEFAULT false',
+                'ALTER TABLE public.pengguna ADD COLUMN IF NOT EXISTS mfa_secret TEXT NULL',
+                'ALTER TABLE public.pengguna ADD COLUMN IF NOT EXISTS mfa_enabled_at TIMESTAMP NULL',
+                'ALTER TABLE public.pengguna ADD COLUMN IF NOT EXISTS mfa_backup_codes JSONB NULL',
             ];
 
             foreach ($statements as $sql) {
-                DB::statement($sql);
+                DB::unprepared($sql);
                 $lines[] = 'OK: ' . $sql;
             }
         } else {
@@ -45,12 +42,13 @@ class MfaSchema
             $lines[] = 'OK: kolom MFA dicek/ditambahkan via Schema builder';
         }
 
+        // Reset koneksi pooler Supabase agar schema baru langsung dikenali
+        DB::disconnect();
+        DB::reconnect();
+
         return $lines;
     }
 
-    /**
-     * Cek kolom MFA benar-benar ada (query langsung ke DB, bukan cache schema).
-     */
     public static function columnsExist(): bool
     {
         try {
@@ -60,7 +58,7 @@ class MfaSchema
                 $result = DB::selectOne("
                     SELECT COUNT(*) AS total
                     FROM information_schema.columns
-                    WHERE table_schema = current_schema()
+                    WHERE table_schema = 'public'
                       AND table_name = 'pengguna'
                       AND column_name IN ('mfa_enabled', 'mfa_secret', 'mfa_enabled_at')
                 ");
@@ -74,5 +72,83 @@ class MfaSchema
         } catch (\Throwable) {
             return false;
         }
+    }
+
+    /**
+     * Simpan MFA langsung via query builder (hindari cache schema Eloquent/pooler).
+     */
+    public static function persistMfaForUser(int $userId, string $encryptedSecret): bool
+    {
+        if (!self::columnsExist()) {
+            self::ensureColumns();
+        }
+
+        DB::disconnect();
+        DB::reconnect();
+
+        $updated = DB::table('pengguna')->where('id', $userId)->update([
+            'mfa_secret' => $encryptedSecret,
+            'mfa_enabled' => DB::connection()->getDriverName() === 'pgsql' ? true : 1,
+            'mfa_enabled_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $updated > 0;
+    }
+
+    public static function userHasMfa(int $userId): bool
+    {
+        $row = DB::table('pengguna')
+            ->where('id', $userId)
+            ->first(['mfa_enabled', 'mfa_secret']);
+
+        if (!$row) {
+            return false;
+        }
+
+        return filter_var($row->mfa_enabled ?? false, FILTER_VALIDATE_BOOLEAN)
+            && !empty($row->mfa_secret);
+    }
+
+    public static function clearMfaForUser(int $userId): void
+    {
+        DB::table('pengguna')->where('id', $userId)->update([
+            'mfa_secret' => null,
+            'mfa_enabled' => DB::connection()->getDriverName() === 'pgsql' ? false : 0,
+            'mfa_enabled_at' => null,
+            'mfa_backup_codes' => null,
+            'updated_at' => now(),
+        ]);
+    }
+
+    public static function saveBackupCodes(int $userId, array $hashedCodes): void
+    {
+        if (!self::columnsExist()) {
+            self::ensureColumns();
+        }
+
+        if (!Schema::hasColumn('pengguna', 'mfa_backup_codes')) {
+            return;
+        }
+
+        DB::table('pengguna')->where('id', $userId)->update([
+            'mfa_backup_codes' => json_encode(array_values($hashedCodes)),
+            'updated_at' => now(),
+        ]);
+    }
+
+    public static function getBackupCodes(int $userId): array
+    {
+        if (!Schema::hasColumn('pengguna', 'mfa_backup_codes')) {
+            return [];
+        }
+
+        $raw = DB::table('pengguna')->where('id', $userId)->value('mfa_backup_codes');
+
+        if (empty($raw)) {
+            return [];
+        }
+
+        return is_array($raw) ? $raw : (json_decode($raw, true) ?: []);
     }
 }
