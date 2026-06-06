@@ -9,12 +9,19 @@ use Exception;
 
 class FileEncryptionService
 {
+    protected $disk;
+
     protected function assertStrongCipher(): void
     {
         $cipher = (string) config('app.cipher', '');
         if (!str_starts_with($cipher, 'AES-256-')) {
             throw new Exception("Konfigurasi cipher tidak sesuai. Diharapkan AES-256-*, saat ini: {$cipher}");
         }
+    }
+
+    public function __construct()
+    {
+        $this->disk = config('filesystems.default', 'local');
     }
 
     /**
@@ -39,7 +46,11 @@ class FileEncryptionService
             
             // Simpan file terenkripsi
             $path = $directory . '/' . $encryptedFilename;
-            Storage::disk('local')->put($path, $encryptedContent);
+            $saved = Storage::disk($this->disk)->put($path, $encryptedContent);
+            
+            if (!$saved) {
+                throw new Exception("Gagal menulis file ke disk. Pastikan folder storage memiliki izin tulis.");
+            }
             
             return [
                 'path' => $path,
@@ -65,13 +76,13 @@ class FileEncryptionService
             $this->assertStrongCipher();
 
             // Cek apakah file ada
-            if (!Storage::disk('local')->exists($encryptedPath)) {
+            if (!Storage::disk($this->disk)->exists($encryptedPath)) {
                 Log::warning('Encrypted file not found: ' . $encryptedPath);
                 return null;
             }
 
             // Baca file terenkripsi
-            $encryptedContent = Storage::disk('local')->get($encryptedPath);
+            $encryptedContent = Storage::disk($this->disk)->get($encryptedPath);
             
             // Dekripsi konten
             $decryptedContent = Crypt::decrypt($encryptedContent);
@@ -91,8 +102,8 @@ class FileEncryptionService
     public function deleteEncrypted(string $encryptedPath): bool
     {
         try {
-            if (Storage::disk('local')->exists($encryptedPath)) {
-                return Storage::disk('local')->delete($encryptedPath);
+            if (Storage::disk($this->disk)->exists($encryptedPath)) {
+                return Storage::disk($this->disk)->delete($encryptedPath);
             }
             return false;
         } catch (Exception $e) {
@@ -115,10 +126,9 @@ class FileEncryptionService
     public function getFileSize(string $encryptedPath): int
     {
         try {
-            return Storage::disk('local')->size($encryptedPath);
+            return Storage::disk($this->disk)->size($encryptedPath);
         } catch (Exception $e) {
             return 0;
         }
     }
 }
-

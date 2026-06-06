@@ -21,12 +21,19 @@ class ContextAwareAccessService
         // Ambil IP klien asli (menghormati proxy / ngrok jika ada)
         $clientIp = $this->getClientIp($request);
         $gps = $request->session()->get('zero_trust_gps');
+        
+        // Cache location lookup dalam request attributes untuk menghindari lookup berulang dalam satu siklus request
+        $location = $request->attributes->get('_geoip_location');
+        if (!$location) {
+            $location = $this->getLocationFromIp($clientIp);
+            $request->attributes->set('_geoip_location', $location);
+        }
 
         $context = [
             'ip' => $clientIp,
             'user_agent' => $request->userAgent(),
             'timestamp' => $now->toDateTimeString(),
-            'location' => $this->getLocationFromIp($clientIp),
+            'location' => $location,
             'time_of_day' => $now->format('H:i'),
             'day_of_week' => $now->format('l'),
             'is_weekend' => $now->isWeekend(),

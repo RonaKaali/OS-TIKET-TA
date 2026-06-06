@@ -19,7 +19,7 @@ class CheckUserActivity
         if (Auth::check()) {
             $user = Auth::user();
             $lastActivity = $request->session()->get('last_activity');
-            $inactiveTimeout = 3; // 3 menit dalam menit
+            $inactiveTimeout = config('auth.session_timeout', 3); // Mengambil dari config, default 3 menit
 
             // Jika ada last_activity, cek apakah sudah melewati timeout
             if ($lastActivity) {
@@ -43,7 +43,7 @@ class CheckUserActivity
                         $request->session()->regenerateToken();
 
                         return redirect()->route('login')
-                            ->with('status', 'Session Anda telah berakhir karena tidak ada aktivitas selama 3 menit. Silakan login kembali.');
+                            ->with('status', "Session Anda telah berakhir karena tidak ada aktivitas selama {$inactiveTimeout} menit. Silakan login kembali.");
                     }
                 } catch (\Exception $e) {
                     // Jika parsing gagal, reset last_activity
