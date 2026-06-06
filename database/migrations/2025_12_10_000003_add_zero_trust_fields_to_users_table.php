@@ -5,39 +5,49 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('pengguna', function (Blueprint $table) {
-            // MFA fields
-            $table->boolean('mfa_enabled')->default(false)->after('remember_token');
-            $table->text('mfa_secret')->nullable()->after('mfa_enabled'); // Encrypted TOTP secret
-            $table->timestamp('mfa_enabled_at')->nullable()->after('mfa_secret');
-            
-            // Device trust fields
-            $table->integer('device_trust_threshold')->default(70)->after('mfa_enabled_at'); // User-specific threshold
-            $table->boolean('require_device_verification')->default(false)->after('device_trust_threshold');
-            
-            // Security settings
-            $table->json('ip_whitelist')->nullable()->after('require_device_verification'); // Allowed IPs for this user
-            $table->boolean('allow_after_hours_access')->default(false)->after('ip_whitelist');
-            $table->timestamp('last_security_event_at')->nullable()->after('allow_after_hours_access');
-            
-            // Index untuk query
-            $table->index('mfa_enabled');
+            if (!Schema::hasColumn('pengguna', 'mfa_enabled')) {
+                $table->boolean('mfa_enabled')->default(false);
+            }
+            if (!Schema::hasColumn('pengguna', 'mfa_secret')) {
+                $table->text('mfa_secret')->nullable();
+            }
+            if (!Schema::hasColumn('pengguna', 'mfa_enabled_at')) {
+                $table->timestamp('mfa_enabled_at')->nullable();
+            }
+            if (!Schema::hasColumn('pengguna', 'device_trust_threshold')) {
+                $table->integer('device_trust_threshold')->default(70);
+            }
+            if (!Schema::hasColumn('pengguna', 'require_device_verification')) {
+                $table->boolean('require_device_verification')->default(false);
+            }
+            if (!Schema::hasColumn('pengguna', 'ip_whitelist')) {
+                $table->json('ip_whitelist')->nullable();
+            }
+            if (!Schema::hasColumn('pengguna', 'allow_after_hours_access')) {
+                $table->boolean('allow_after_hours_access')->default(false);
+            }
+            if (!Schema::hasColumn('pengguna', 'last_security_event_at')) {
+                $table->timestamp('last_security_event_at')->nullable();
+            }
         });
+
+        // Index terpisah agar tidak gagal jika sudah ada
+        try {
+            Schema::table('pengguna', function (Blueprint $table) {
+                $table->index('mfa_enabled');
+            });
+        } catch (\Throwable) {
+            // Index sudah ada, abaikan
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('pengguna', function (Blueprint $table) {
-            $table->dropIndex(['mfa_enabled']);
-            $table->dropColumn([
+            $columns = [
                 'mfa_enabled',
                 'mfa_secret',
                 'mfa_enabled_at',
@@ -46,8 +56,13 @@ return new class extends Migration {
                 'ip_whitelist',
                 'allow_after_hours_access',
                 'last_security_event_at',
-            ]);
+            ];
+
+            foreach ($columns as $column) {
+                if (Schema::hasColumn('pengguna', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
         });
     }
 };
-

@@ -142,18 +142,30 @@ Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramWebhookControlle
     ->name('telegram.webhook');
 // Route sementara untuk migrasi database di Vercel
 Route::get('/deploy-db', function () {
+    $lines = [];
+
     try {
-        echo "Menjalankan migrasi...<br>";
+        $lines[] = 'Menjalankan migrasi...';
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        echo "Migrasi sukses!<br>";
-        
-        echo "Membersihkan cache...<br>";
+        $lines[] = trim(\Illuminate\Support\Facades\Artisan::output()) ?: 'Migrasi selesai.';
+        $lines[] = 'Membersihkan cache...';
         \Illuminate\Support\Facades\Artisan::call('config:clear');
         \Illuminate\Support\Facades\Artisan::call('route:clear');
-        echo "Cache dibersihkan!<br>";
-        
-        return "Semua proses selesai!";
-    } catch (\Exception $e) {
-        return "Gagal: " . $e->getMessage();
+
+        $mfaReady = \Illuminate\Support\Facades\Schema::hasColumn('pengguna', 'mfa_enabled')
+            && \Illuminate\Support\Facades\Schema::hasColumn('pengguna', 'mfa_secret')
+            && \Illuminate\Support\Facades\Schema::hasColumn('pengguna', 'mfa_enabled_at');
+
+        $lines[] = $mfaReady
+            ? 'Kolom MFA siap digunakan.'
+            : 'PERINGATAN: Kolom MFA belum terdeteksi. Cek koneksi database atau log error di atas.';
+
+        return response('<pre>' . implode("\n", $lines) . '</pre>', 200)
+            ->header('Content-Type', 'text/html; charset=utf-8');
+    } catch (\Throwable $e) {
+        $lines[] = 'GAGAL: ' . $e->getMessage();
+
+        return response('<pre>' . implode("\n", $lines) . '</pre>', 500)
+            ->header('Content-Type', 'text/html; charset=utf-8');
     }
 });
