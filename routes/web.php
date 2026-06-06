@@ -145,20 +145,24 @@ Route::get('/deploy-db', function () {
     $lines = [];
 
     try {
-        $lines[] = 'Menjalankan migrasi...';
+        $lines[] = 'Menjalankan migrasi Laravel...';
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $lines[] = trim(\Illuminate\Support\Facades\Artisan::output()) ?: 'Migrasi selesai.';
+
+        $lines[] = 'Memastikan kolom MFA (SQL langsung)...';
+        foreach (\App\Support\MfaSchema::ensureColumns() as $line) {
+            $lines[] = $line;
+        }
+
         $lines[] = 'Membersihkan cache...';
         \Illuminate\Support\Facades\Artisan::call('config:clear');
         \Illuminate\Support\Facades\Artisan::call('route:clear');
 
-        $mfaReady = \Illuminate\Support\Facades\Schema::hasColumn('pengguna', 'mfa_enabled')
-            && \Illuminate\Support\Facades\Schema::hasColumn('pengguna', 'mfa_secret')
-            && \Illuminate\Support\Facades\Schema::hasColumn('pengguna', 'mfa_enabled_at');
+        $mfaReady = \App\Support\MfaSchema::columnsExist();
 
         $lines[] = $mfaReady
-            ? 'Kolom MFA siap digunakan.'
-            : 'PERINGATAN: Kolom MFA belum terdeteksi. Cek koneksi database atau log error di atas.';
+            ? 'SELESAI — Kolom MFA siap. Silakan buka /mfa/setup dan aktifkan 2FA ulang.'
+            : 'PERINGATAN — Kolom MFA masih belum terdeteksi. Cek koneksi Supabase.';
 
         return response('<pre>' . implode("\n", $lines) . '</pre>', 200)
             ->header('Content-Type', 'text/html; charset=utf-8');

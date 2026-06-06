@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use App\Models\User;
+use App\Support\MfaSchema;
 
 class MfaService
 {
@@ -159,8 +160,8 @@ class MfaService
             }
         }
 
-        if (!$this->mfaColumnsExist()) {
-            return 'Kolom MFA belum ada di database. Buka /deploy-db untuk menjalankan migrasi terlebih dahulu.';
+        if (!MfaSchema::columnsExist()) {
+            return 'Kolom MFA belum ada di database. Buka /deploy-db lalu refresh halaman ini.';
         }
 
         try {
@@ -208,9 +209,7 @@ class MfaService
      */
     protected function mfaColumnsExist(): bool
     {
-        return Schema::hasColumn('pengguna', 'mfa_enabled')
-            && Schema::hasColumn('pengguna', 'mfa_secret')
-            && Schema::hasColumn('pengguna', 'mfa_enabled_at');
+        return MfaSchema::columnsExist();
     }
 
     /**
