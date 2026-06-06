@@ -86,6 +86,12 @@
                 <form method="POST" action="{{ route('portal.ticket.store') }}" enctype="multipart/form-data" class="space-y-8">
                     @csrf
 
+                    @if($errors->has('error'))
+                        <div class="rounded-xl border border-rose-500/30 bg-rose-500/10 px-5 py-4 text-rose-600 dark:text-rose-400 text-sm">
+                            {{ $errors->first('error') }}
+                        </div>
+                    @endif
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <!-- Subject -->
                         <div class="md:col-span-2">

@@ -46,8 +46,8 @@ class Ticket extends Model
                 $t->uuid = (string) Str::uuid();
             }
             if (empty($t->ticket_number)) {
-                $prefix = env('TICKET_NUMBER_PREFIX', 'CSIRT');
-                $length = (int) env('TICKET_NUMBER_LENGTH', 8);
+                $prefix = config('ticket.number_prefix', 'CSIRT');
+                $length = max(4, (int) config('ticket.number_length', 8));
 
                 // Generate random alphanumeric string
                 $maxAttempts = 10;

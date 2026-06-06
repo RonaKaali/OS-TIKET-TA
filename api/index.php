@@ -68,6 +68,15 @@ if (empty(getenv('CACHE_STORE')) || getenv('CACHE_STORE') === 'database') {
     }
 }
 
+// Session: database driver butuh tabel sessions (belum ada di project).
+// Paksa cookie agar session persisten di serverless Vercel tanpa DB tambahan.
+$sessionDriver = getenv('SESSION_DRIVER');
+if ($sessionDriver === false || $sessionDriver === '' || $sessionDriver === 'file' || $sessionDriver === 'database') {
+    putenv('SESSION_DRIVER=cookie');
+    $_ENV['SESSION_DRIVER'] = 'cookie';
+    $_SERVER['SESSION_DRIVER'] = 'cookie';
+}
+
 // Jika QUEUE_CONNECTION belum di-set, paksa ke 'sync' (tidak butuh DB)
 if (empty(getenv('QUEUE_CONNECTION')) || getenv('QUEUE_CONNECTION') === 'database') {
     $qc = getenv('QUEUE_CONNECTION');

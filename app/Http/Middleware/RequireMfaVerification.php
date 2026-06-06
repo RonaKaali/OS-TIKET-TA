@@ -26,6 +26,11 @@ class RequireMfaVerification
             return $next($request);
         }
 
+        // Portal pelaporan: jangan paksa MFA ulang agar alur buat tiket tidak terputus
+        if ($request->is('portal/ticket') || $request->is('portal/ticket/*')) {
+            return $next($request);
+        }
+
         $user = Auth::user();
 
         // Refresh user untuk mendapatkan data terbaru

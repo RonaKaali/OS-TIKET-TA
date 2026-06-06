@@ -22,59 +22,100 @@ class TicketController extends Controller
 
     public function store(Request $r)
     {
-        $user = $r->user();
-
-        $data = $r->validate([
-            'subject' => ['required', 'string', 'max:255'],
-            'help_topic_id' => ['required', Rule::exists('topik_bantuan', 'id')],
-            'priority_id' => ['nullable', Rule::exists('prioritas', 'id')],
-            'message' => ['required', 'string', 'max:20000'],
-            'attachments.*' => ['file', 'max:10240'], // 10MB
-        ]);
-
-        $topic = HelpTopic::with('department')->findOrFail($data['help_topic_id']);
-        $status = Status::where('slug', 'open')->firstOrFail();
-        $slaId = SlaPlan::value('id');
-        $grace = SlaPlan::whereKey($slaId)->value('grace_hours') ?? 48;
-
-        $ticket = Ticket::create([
-            'subject' => $data['subject'],
-            'reporter_email' => $user->email,
-            'reporter_name' => $user->name,
-            'user_id' => $user->id, // Link ke user account
-            'department_id' => $topic->department_id,
-            'help_topic_id' => $topic->id,
-            'priority_id' => $data['priority_id'] ?? null,
-            'status_id' => $status->id,
-            'sla_plan_id' => $slaId,
-            'due_at' => now()->addHours($grace),
-            'custom_fields' => $this->extractCustomFields($topic, $r),
-        ]);
-
-        $thread = TicketThread::create([
-            'ticket_id' => $ticket->id,
-            'type' => 'message',
-            'user_id' => $user->id, // Link ke user account
-            'body' => $data['message'],
-        ]);
-
-        $this->storeAttachments($thread, $r->file('attachments', []));
-
-        // Load relasi yang diperlukan untuk email notifikasi
-        $ticket->load(['status', 'priority', 'department']);
-
-        // Notifikasi ke pelapor (email + telegram)
         try {
-            // Gunakan $user->notify() agar semua channel (mail + telegram) terkirim
-            $user->notify(new \App\Notifications\NewTicketSubmitted($ticket, $thread));
+            $user = $r->user();
 
-            \Log::info('Notifikasi berhasil dikirim ke pelapor: ' . $user->email . ' (email' . (!empty($user->telegram_username) ? ' + telegram' : '') . ')');
+            $data = $r->validate([
+                'subject' => ['required', 'string', 'max:255'],
+                'help_topic_id' => ['required', Rule::exists('topik_bantuan', 'id')],
+                'priority_id' => ['nullable', Rule::exists('prioritas', 'id')],
+                'message' => ['required', 'string', 'max:20000'],
+                'attachments.*' => ['file', 'max:10240'], // 10MB
+            ]);
+
+            $topic = HelpTopic::with('department')->findOrFail($data['help_topic_id']);
+            $status = Status::where('slug', 'open')->first()
+                ?? Status::where('is_closed', false)->first()
+                ?? Status::query()->firstOrFail();
+            $slaId = SlaPlan::value('id');
+            $grace = SlaPlan::whereKey($slaId)->value('grace_hours') ?? 48;
+
+            $ticket = Ticket::create([
+                'subject' => $data['subject'],
+                'reporter_email' => $user->email,
+                'reporter_name' => $user->name,
+                'user_id' => $user->id,
+                'department_id' => $topic->department_id,
+                'help_topic_id' => $topic->id,
+                'priority_id' => $data['priority_id'] ?: null,
+                'status_id' => $status->id,
+                'sla_plan_id' => $slaId,
+                'due_at' => now()->addHours($grace),
+                'custom_fields' => $this->extractCustomFields($topic, $r),
+            ]);
+
+            if (empty($ticket->ticket_number)) {
+                throw new \RuntimeException('Nomor tiket gagal dibuat. Silakan coba lagi.');
+            }
+
+            $thread = TicketThread::create([
+                'ticket_id' => $ticket->id,
+                'type' => 'message',
+                'user_id' => $user->id,
+                'body' => $data['message'],
+            ]);
+
+            try {
+                $this->storeAttachments($thread, $r->file('attachments', []));
+            } catch (\Throwable $e) {
+                \Log::error('Gagal menyimpan lampiran tiket: ' . $e->getMessage());
+            }
+
+            $ticket->refresh();
+            $ticket->load(['threads.attachments', 'threads.user', 'status', 'priority', 'department']);
+
+            $this->dispatchTicketNotifications($user, $ticket, $thread);
+
+            try {
+                $this->logCreate('Ticket', $ticket, [
+                    'ticket_number' => $ticket->ticket_number,
+                    'department_id' => $ticket->department_id,
+                    'priority_id' => $ticket->priority_id,
+                ]);
+            } catch (\Throwable $e) {
+                \Log::error('Gagal mencatat aktivitas pembuatan tiket: ' . $e->getMessage());
+            }
+
+            // Tampilkan langsung (hindari redirect yang gagal di serverless Vercel)
+            session()->now('ok', 'Tiket berhasil dibuat.');
+
+            return view('portal.ticket.show', compact('ticket'));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            \Log::error('Portal ticket store failed', [
+                'message' => $e->getMessage(),
+                'user_id' => $r->user()?->id,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Gagal membuat laporan. Silakan coba lagi atau hubungi administrator.']);
+        }
+    }
+
+    /**
+     * Kirim notifikasi pembuatan tiket (gagal diam-diam, tidak memblokir response).
+     */
+    private function dispatchTicketNotifications($user, Ticket $ticket, TicketThread $thread): void
+    {
+        try {
+            $user->notify(new \App\Notifications\NewTicketSubmitted($ticket, $thread));
         } catch (\Throwable $e) {
             \Log::error('Gagal mengirim notifikasi ke pelapor: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
         }
 
-        // Notifikasi ke agent/admin yang memiliki akses admin.panel
         try {
             $agents = \App\Models\User::whereHas('permissions', function ($q) {
                 $q->where('permissions.name', 'admin.panel');
@@ -83,38 +124,17 @@ class TicketController extends Controller
             })->get();
 
             if ($agents->isNotEmpty()) {
-                \Notification::send($agents, new \App\Notifications\NewTicketCreated($ticket, $thread));
-                \Log::info('Email notifikasi berhasil dikirim ke ' . $agents->count() . ' admin/agent: ' . $agents->pluck('email')->implode(', '));
-            } else {
-                \Log::warning('Tidak ada admin/agent yang ditemukan untuk menerima notifikasi laporan baru');
+                Notification::send($agents, new \App\Notifications\NewTicketCreated($ticket, $thread));
             }
         } catch (\Throwable $e) {
-            \Log::error('Gagal mengirim email ke agent: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            \Log::error('Gagal mengirim notifikasi ke agent: ' . $e->getMessage());
         }
-
-        try {
-            $this->logCreate('Ticket', $ticket, [
-                'ticket_number' => $ticket->ticket_number,
-                'department_id' => $ticket->department_id,
-                'priority_id' => $ticket->priority_id,
-            ]);
-        } catch (\Throwable $e) {
-            \Log::error('Gagal mencatat aktivitas pembuatan tiket: ' . $e->getMessage());
-        }
-
-        $ticket->refresh();
-
-        return redirect()
-            ->route('portal.ticket.show', $ticket->ticket_number)
-            ->with('ok', 'Tiket berhasil dibuat.')
-            ->with('just_created_ticket', $ticket->ticket_number);
     }
 
     public function show(string $number)
     {
         $ticket = Ticket::where('ticket_number', $number)
-            ->with(['threads.attachments', 'status', 'priority', 'department'])
+            ->with(['threads.attachments', 'threads.user', 'status', 'priority', 'department'])
             ->firstOrFail();
 
         $user = request()->user();

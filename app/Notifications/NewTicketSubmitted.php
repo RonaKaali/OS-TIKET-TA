@@ -42,7 +42,7 @@ class NewTicketSubmitted extends Notification
             ->line('**Subjek:** ' . $this->ticket->subject)
             ->line('**Status:** ' . ($this->ticket->status->name ?? 'Terbuka'))
             ->line('**Departemen:** ' . ($this->ticket->department->name ?? 'N/A'))
-            ->line('**Prioritas:** ' . ($this->ticket->priority->name ?? 'Normal'))
+            ->line('**Prioritas:** ' . ($this->ticket->priority?->name ?? 'Normal'))
             ->line('**Dibuat:** ' . $this->ticket->created_at->format('d/m/Y H:i'));
 
         if ($this->ticket->due_at) {
@@ -85,7 +85,7 @@ class NewTicketSubmitted extends Notification
         $message .= "• <b>Subjek:</b> {$this->ticket->subject}\n";
         $message .= "• <b>Status:</b> " . ($this->ticket->status->name ?? 'Terbuka') . "\n";
         $message .= "• <b>Departemen:</b> " . ($this->ticket->department->name ?? 'N/A') . "\n";
-        $message .= "• <b>Prioritas:</b> " . ($this->ticket->priority->name ?? 'Normal') . "\n";
+        $message .= "• <b>Prioritas:</b> " . ($this->ticket->priority?->name ?? 'Normal') . "\n";
         $message .= "• <b>Dibuat:</b> " . $this->ticket->created_at->format('d/m/Y H:i') . "\n";
 
         if ($this->ticket->due_at) {
