@@ -101,17 +101,14 @@ class MfaController extends Controller
 
         // Enable MFA (service sudah handle update database)
         if ($this->mfaService->enableMfa($user, $secret, $request->code)) {
-            // Refresh user untuk mendapatkan data terbaru
             $user->refresh();
+            Auth::setUser($user);
 
-            // Generate backup codes untuk langsung ditampilkan ke user
             $backupCodes = $this->mfaService->generateBackupCodes($user);
 
-            // Flash status ke session agar bisa ditampilkan di view
-            session()->flash('status', 'MFA berhasil diaktifkan! Simpan backup codes Anda dengan aman.');
+            session()->now('status', 'MFA berhasil diaktifkan! Simpan backup codes Anda dengan aman.');
+            session()->now('backup_codes', $backupCodes);
 
-            // Langsung tampilkan halaman backup codes (tanpa redirect tambahan,
-            // supaya kode selalu muncul setelah aktivasi 2FA)
             return view('mfa.backup-codes', [
                 'backupCodes' => $backupCodes,
             ]);

@@ -34,15 +34,9 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
+        $user->refresh();
 
-        // Cek apakah user memiliki MFA enabled
-        // Cek dari database langsung untuk memastikan
-        $mfaEnabled = $user->mfa_enabled ?? false;
-        
-        // Juga cek via service (untuk kompatibilitas)
-        if (!$mfaEnabled) {
-            $mfaEnabled = $this->mfaService->isMfaEnabled($user);
-        }
+        $mfaEnabled = $user->hasMfaEnabled();
 
         // Log untuk debugging
         \Log::info('Login MFA check', [

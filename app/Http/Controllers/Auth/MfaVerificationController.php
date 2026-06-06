@@ -32,13 +32,8 @@ class MfaVerificationController extends Controller
         // Refresh user untuk mendapatkan data terbaru dari database
         $user->refresh();
 
-        // Cek MFA enabled dari database langsung
-        $mfaEnabled = $user->mfa_enabled ?? false;
-        
-        // Juga cek via service
-        if (!$mfaEnabled) {
-            $mfaEnabled = $this->mfaService->isMfaEnabled($user);
-        }
+        // Cek MFA enabled dari database
+        $mfaEnabled = $user->hasMfaEnabled();
 
         // Log untuk debugging
         \Log::info('MFA verify page accessed', [

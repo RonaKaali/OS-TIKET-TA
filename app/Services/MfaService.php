@@ -143,7 +143,7 @@ class MfaService
     }
 
     /**
-     * Aktifkan MFA untuk user
+     * Aktifkan MFA untuk user — database wajib berhasil (cache tidak persisten di Vercel).
      */
     public function enableMfa(User $user, string $secret, string $verificationCode): bool
     {
@@ -151,38 +151,45 @@ class MfaService
             return false;
         }
 
-        // Verifikasi code terlebih dahulu dengan window 2 (lebih toleran)
         if (!$this->google2fa->verifyKey($secret, $verificationCode, 2)) {
             \Log::warning('MFA enable verification failed', [
+                'user_id' => $user->id,
                 'secret_length' => strlen($secret),
                 'code_length' => strlen($verificationCode),
             ]);
             return false;
         }
 
-        // Simpan secret ke cache
-        Cache::put("mfa_secret:{$user->id}", $secret, now()->addYears(10));
-        
-        // Simpan secret ke database jika model tersedia (encrypted)
-        if (method_exists($user, 'update')) {
-            try {
-                // Encrypt secret sebelum disimpan (gunakan Laravel encryption)
-                $encryptedSecret = encrypt($secret);
-                $user->mfa_secret = $encryptedSecret;
-                $user->mfa_enabled = true;
-                $user->mfa_enabled_at = now();
-                $user->save();
-            } catch (\Exception $e) {
-                \Log::error('Failed to save MFA secret to database: ' . $e->getMessage());
-                // Continue dengan cache saja jika database save gagal
+        try {
+            $encryptedSecret = encrypt($secret);
+
+            $updated = User::whereKey($user->id)->update([
+                'mfa_secret' => $encryptedSecret,
+                'mfa_enabled' => true,
+                'mfa_enabled_at' => now(),
+            ]);
+
+            if (!$updated) {
+                \Log::error('MFA enable: tidak ada baris yang diupdate', ['user_id' => $user->id]);
+                return false;
             }
+
+            $user->refresh();
+
+            if (!$user->mfa_enabled || empty($user->mfa_secret)) {
+                \Log::error('MFA enable: data tidak tersimpan setelah update', ['user_id' => $user->id]);
+                return false;
+            }
+        } catch (\Throwable $e) {
+            \Log::error('Failed to save MFA to database', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+            ]);
+            return false;
         }
-        
+
         $this->forgetTempSecret($user);
-        
-        // Generate backup codes
-        $backupCodes = $this->generateBackupCodes($user);
-        
+
         return true;
     }
 
@@ -194,22 +201,19 @@ class MfaService
         $this->forgetTempSecret($user);
         Cache::forget("mfa_secret:{$user->id}");
         Cache::forget("mfa_backup_codes:{$user->id}");
-        
-        // Update database jika model tersedia
-        if (method_exists($user, 'update')) {
-            try {
-                $user->mfa_secret = null;
-                $user->mfa_enabled = false;
-                $user->mfa_enabled_at = null;
-                $user->save();
-            } catch (\Exception $e) {
-                \Log::error('Failed to update MFA in database: ' . $e->getMessage());
-            }
-        }
+
+        User::whereKey($user->id)->update([
+            'mfa_secret' => null,
+            'mfa_enabled' => false,
+            'mfa_enabled_at' => null,
+            'mfa_backup_codes' => null,
+        ]);
+
+        $user->refresh();
     }
 
     /**
-     * Cek apakah MFA aktif untuk user
+     * Cek apakah MFA aktif — database sebagai sumber kebenaran utama.
      */
     public function isMfaEnabled(User $user): bool
     {
@@ -217,96 +221,89 @@ class MfaService
             return false;
         }
 
-        // Cek cache dulu (lebih cepat)
-        if (Cache::has("mfa_secret:{$user->id}")) {
-            return true;
-        }
+        $user->refresh();
 
-        // Jika tidak ada di cache, cek database
-        if (method_exists($user, 'mfa_enabled')) {
-            // Refresh user untuk mendapatkan data terbaru
-            $user->refresh();
-            
-            if ($user->mfa_enabled && $user->mfa_secret) {
-                // Jika MFA enabled di database, load secret ke cache
-                try {
-                    $secret = decrypt($user->mfa_secret);
-                    Cache::put("mfa_secret:{$user->id}", $secret, now()->addYears(10));
-                    return true;
-                } catch (\Exception $e) {
-                    \Log::error('Failed to decrypt MFA secret from database: ' . $e->getMessage());
-                }
-            }
-        }
-
-        return false;
+        return $user->mfa_enabled === true && !empty($user->mfa_secret);
     }
 
     /**
-     * Dapatkan secret user
+     * Dapatkan secret user dari database.
      */
     protected function getUserSecret(User $user): ?string
     {
-        // Cek cache dulu
-        $secret = Cache::get("mfa_secret:{$user->id}");
-        
-        if ($secret) {
-            return $secret;
+        $user->refresh();
+
+        if (empty($user->mfa_secret)) {
+            return null;
         }
-        
-        // Jika tidak ada di cache, cek database
-        if (method_exists($user, 'mfa_secret') && $user->mfa_secret) {
-            try {
-                // Decrypt secret dari database
-                $secret = decrypt($user->mfa_secret);
-                // Simpan ke cache untuk akses cepat
-                Cache::put("mfa_secret:{$user->id}", $secret, now()->addYears(10));
-                return $secret;
-            } catch (\Exception $e) {
-                \Log::error('Failed to decrypt MFA secret from database: ' . $e->getMessage());
-            }
+
+        try {
+            return decrypt($user->mfa_secret);
+        } catch (\Exception $e) {
+            \Log::error('Failed to decrypt MFA secret from database', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+            ]);
         }
-        
+
         return null;
     }
 
     /**
-     * Generate backup codes
+     * Generate backup codes dan simpan ke database.
      */
     public function generateBackupCodes(User $user, int $count = 10): array
     {
         $codes = [];
-        
+
         for ($i = 0; $i < $count; $i++) {
             $code = strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
             $codes[] = $code;
         }
-        
-        // Hash codes sebelum disimpan
-        $hashedCodes = array_map(fn($code) => Hash::make($code), $codes);
-        
-        Cache::put("mfa_backup_codes:{$user->id}", $hashedCodes, now()->addYears(10));
-        
+
+        $hashedCodes = array_map(fn ($code) => Hash::make($code), $codes);
+
+        try {
+            User::whereKey($user->id)->update([
+                'mfa_backup_codes' => $hashedCodes,
+            ]);
+            $user->refresh();
+        } catch (\Throwable $e) {
+            \Log::error('Failed to save MFA backup codes to database', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
         return $codes;
     }
 
     /**
-     * Verifikasi backup code
+     * Verifikasi backup code dari database.
      */
     public function verifyBackupCode(User $user, string $code): bool
     {
-        $backupCodes = Cache::get("mfa_backup_codes:{$user->id}", []);
-        
+        $user->refresh();
+        $backupCodes = $user->mfa_backup_codes ?? [];
+
+        if (empty($backupCodes)) {
+            $backupCodes = Cache::get("mfa_backup_codes:{$user->id}", []);
+        }
+
         foreach ($backupCodes as $index => $hashedCode) {
             if (Hash::check($code, $hashedCode)) {
-                // Hapus code yang sudah digunakan
                 unset($backupCodes[$index]);
-                Cache::put("mfa_backup_codes:{$user->id}", array_values($backupCodes), now()->addYears(10));
-                
+                $remaining = array_values($backupCodes);
+
+                User::whereKey($user->id)->update([
+                    'mfa_backup_codes' => $remaining,
+                ]);
+                $user->refresh();
+
                 return true;
             }
         }
-        
+
         return false;
     }
 

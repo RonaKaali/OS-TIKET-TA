@@ -41,6 +41,7 @@ class User extends Authenticatable
         'mfa_enabled',
         'mfa_secret',
         'mfa_enabled_at',
+        'mfa_backup_codes',
         'device_trust_threshold',
         'require_device_verification',
         'ip_whitelist',
@@ -57,6 +58,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'mfa_secret', // Jangan expose MFA secret
+        'mfa_backup_codes',
     ];
 
     /**
@@ -71,6 +73,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'mfa_enabled' => 'boolean',
             'mfa_enabled_at' => 'datetime',
+            'mfa_backup_codes' => 'array',
             'require_device_verification' => 'boolean',
             'ip_whitelist' => 'array',
             'allow_after_hours_access' => 'boolean',
@@ -196,7 +199,7 @@ class User extends Authenticatable
      */
     public function hasMfaEnabled(): bool
     {
-        return $this->mfa_enabled === true;
+        return $this->mfa_enabled === true && !empty($this->mfa_secret);
     }
 
     /**

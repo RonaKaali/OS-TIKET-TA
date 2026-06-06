@@ -22,12 +22,9 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $user = $request->user();
-        
-        // Cek status MFA
-        $mfaEnabled = $user->mfa_enabled ?? false;
-        if (!$mfaEnabled) {
-            $mfaEnabled = $this->mfaService->isMfaEnabled($user);
-        }
+        $user->refresh();
+
+        $mfaEnabled = $user->hasMfaEnabled();
 
         return view('profile.edit', [
             'user' => $user,
