@@ -218,6 +218,7 @@ class ZeroTrustVerification
             'mfa/backup-codes',
             'mfa/disable',
             'device/verify', // Device verification page
+            'portal/ticket', // Portal pelaporan & detail tiket
             'up', // Health check
         ];
 

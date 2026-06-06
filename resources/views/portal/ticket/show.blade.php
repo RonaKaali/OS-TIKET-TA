@@ -91,7 +91,7 @@
                     <div class="flex flex-col items-end gap-3">
                         <span class="px-5 py-2 text-sm font-bold rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 shadow-sm transition-all">
                             <span class="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse"></span>
-                            {{ $ticket->status->name }}
+                            {{ $ticket->status?->name ?? 'Open' }}
                         </span>
                     </div>
                 </div>
@@ -99,11 +99,11 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-8 border-t border-slate-800/50">
                     <div class="space-y-1">
                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Departemen</span>
-                        <span class="text-slate-800 dark:text-slate-200 font-medium transition-colors">{{ $ticket->department->name }}</span>
+                        <span class="text-slate-800 dark:text-slate-200 font-medium transition-colors">{{ $ticket->department?->name ?? '-' }}</span>
                     </div>
                     <div class="space-y-1">
                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Prioritas</span>
-                        <span class="text-slate-800 dark:text-slate-200 font-medium transition-colors">{{ $ticket->priority->name ?? 'N/A' }}</span>
+                        <span class="text-slate-800 dark:text-slate-200 font-medium transition-colors">{{ $ticket->priority?->name ?? 'Normal' }}</span>
                     </div>
                     <div class="space-y-1">
                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block">Laporan Dibuat</span>
@@ -131,7 +131,7 @@
                                         </div>
                                         <div>
                                             <span class="text-sm font-bold text-slate-800 dark:text-white transition-colors">
-                                                {{ $thread->type === 'message' ? 'Anda (Pelapor)' : ($thread->user->name ?? 'Agen Keamanan') }}
+                                                {{ $thread->type === 'message' ? 'Anda (Pelapor)' : ($thread->user?->name ?? 'Agen Keamanan') }}
                                             </span>
                                             <span class="text-[10px] text-slate-500 ml-2 uppercase tracking-tighter">{{ $thread->created_at->format('d/m/Y H:i') }}</span>
                                         </div>
@@ -162,7 +162,7 @@
             </div>
 
             <!-- Reply Form -->
-            @if($ticket->status->slug !== 'closed')
+            @if(($ticket->status?->slug ?? 'open') !== 'closed')
                 <div class="glass-card rounded-3xl p-8 border border-emerald-500/20 shadow-lg dark:shadow-[0_0_50px_rgba(16,185,129,0.05)] transition-all">
                     <h2 class="text-xl font-black text-slate-800 dark:text-white mb-6 uppercase tracking-tight transition-colors">Kirim Balasan</h2>
                     <form method="POST" action="{{ route('portal.ticket.reply', $ticket->ticket_number) }}"

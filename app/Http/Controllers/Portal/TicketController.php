@@ -93,16 +93,22 @@ class TicketController extends Controller
             \Log::error('Stack trace: ' . $e->getTraceAsString());
         }
 
-        // Log aktivitas CREATE
-        $this->logCreate('Ticket', $ticket, [
-            'ticket_number' => $ticket->ticket_number,
-            'department_id' => $ticket->department_id,
-            'priority_id' => $ticket->priority_id,
-        ]);
+        try {
+            $this->logCreate('Ticket', $ticket, [
+                'ticket_number' => $ticket->ticket_number,
+                'department_id' => $ticket->department_id,
+                'priority_id' => $ticket->priority_id,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Gagal mencatat aktivitas pembuatan tiket: ' . $e->getMessage());
+        }
+
+        $ticket->refresh();
 
         return redirect()
             ->route('portal.ticket.show', $ticket->ticket_number)
-            ->with('ok', 'Tiket berhasil dibuat.');
+            ->with('ok', 'Tiket berhasil dibuat.')
+            ->with('just_created_ticket', $ticket->ticket_number);
     }
 
     public function show(string $number)
@@ -113,10 +119,19 @@ class TicketController extends Controller
 
         $user = request()->user();
 
+        // Akses langsung setelah tiket baru dibuat (menangani session tidak persisten di serverless)
+        if (session('just_created_ticket') === $ticket->ticket_number) {
+            return view('portal.ticket.show', compact('ticket'));
+        }
+
         // Jika user login dan dia pemilik tiket, langsung allow
         if ($user && ($ticket->user_id === $user->id || $ticket->reporter_email === $user->email)) {
-            // Log aktivitas READ
-            $this->logRead('Ticket', $ticket, ['ticket_number' => $ticket->ticket_number]);
+            try {
+                $this->logRead('Ticket', $ticket, ['ticket_number' => $ticket->ticket_number]);
+            } catch (\Throwable $e) {
+                \Log::error('Gagal mencatat aktivitas baca tiket: ' . $e->getMessage());
+            }
+
             return view('portal.ticket.show', compact('ticket'));
         }
 

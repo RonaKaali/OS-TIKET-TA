@@ -37,7 +37,7 @@
                         </div>
                         <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors">
                             <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest transition-colors">Tingkat Bahaya:</span>
-                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors">{{ $ticket->priority->name ?? 'N/A' }}</span>
+                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors">{{ $ticket->priority?->name ?? 'Normal' }}</span>
                         </div>
                     </div>
                     <div class="space-y-4">

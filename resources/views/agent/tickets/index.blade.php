@@ -104,7 +104,7 @@
                                 </div>
                             </td>
                             <td class="px-6 py-5 whitespace-nowrap">
-                                <span class="text-xs font-bold text-slate-400">{{ $ticket->priority->name ?? 'N/A' }}</span>
+                                <span class="text-xs font-bold text-slate-400">{{ $ticket->priority?->name ?? 'Normal' }}</span>
                             </td>
                             <td class="px-6 py-5 whitespace-nowrap">
                                 <div class="text-xs font-bold text-slate-500">{{ $ticket->created_at->format('d/m/Y') }}</div>
