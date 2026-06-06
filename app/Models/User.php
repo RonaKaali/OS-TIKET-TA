@@ -199,7 +199,8 @@ class User extends Authenticatable
      */
     public function hasMfaEnabled(): bool
     {
-        return $this->mfa_enabled === true && !empty($this->mfa_secret);
+        return filter_var($this->mfa_enabled, FILTER_VALIDATE_BOOLEAN)
+            && !empty($this->mfa_secret);
     }
 
     /**

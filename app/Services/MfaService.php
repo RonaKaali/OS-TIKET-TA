@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use App\Models\User;
 
 class MfaService
@@ -143,54 +144,84 @@ class MfaService
     }
 
     /**
-     * Aktifkan MFA untuk user — database wajib berhasil (cache tidak persisten di Vercel).
+     * Aktifkan MFA untuk user — database wajib berhasil.
+     * Mengembalikan null jika sukses, atau pesan error jika gagal.
      */
-    public function enableMfa(User $user, string $secret, string $verificationCode): bool
+    public function enableMfa(User $user, string $secret, ?string $verificationCode = null, bool $codeAlreadyVerified = false): ?string
     {
         if (!$this->isAvailable()) {
-            return false;
+            return 'Google2FA tidak tersedia di server.';
         }
 
-        if (!$this->google2fa->verifyKey($secret, $verificationCode, 2)) {
-            \Log::warning('MFA enable verification failed', [
-                'user_id' => $user->id,
-                'secret_length' => strlen($secret),
-                'code_length' => strlen($verificationCode),
-            ]);
-            return false;
+        if (!$codeAlreadyVerified) {
+            if (!$verificationCode || !$this->google2fa->verifyKey($secret, trim($verificationCode), 2)) {
+                return 'Kode verifikasi tidak valid.';
+            }
+        }
+
+        if (!$this->mfaColumnsExist()) {
+            return 'Kolom MFA belum ada di database. Buka /deploy-db untuk menjalankan migrasi terlebih dahulu.';
         }
 
         try {
-            $encryptedSecret = encrypt($secret);
-
-            $updated = User::whereKey($user->id)->update([
-                'mfa_secret' => $encryptedSecret,
+            $user->forceFill([
+                'mfa_secret' => encrypt($secret),
                 'mfa_enabled' => true,
                 'mfa_enabled_at' => now(),
             ]);
 
-            if (!$updated) {
-                \Log::error('MFA enable: tidak ada baris yang diupdate', ['user_id' => $user->id]);
-                return false;
+            if (!$user->save()) {
+                return 'Gagal menyimpan pengaturan MFA ke database.';
             }
 
             $user->refresh();
 
-            if (!$user->mfa_enabled || empty($user->mfa_secret)) {
-                \Log::error('MFA enable: data tidak tersimpan setelah update', ['user_id' => $user->id]);
-                return false;
+            if (!$this->userHasPersistedMfa($user)) {
+                \Log::error('MFA enable: data tidak tersimpan setelah save', [
+                    'user_id' => $user->id,
+                    'mfa_enabled' => $user->getAttributes()['mfa_enabled'] ?? null,
+                    'has_secret' => !empty($user->getAttributes()['mfa_secret'] ?? null),
+                ]);
+
+                return 'MFA gagal tersimpan. Pastikan migrasi database sudah dijalankan (/deploy-db).';
             }
         } catch (\Throwable $e) {
             \Log::error('Failed to save MFA to database', [
                 'user_id' => $user->id,
                 'message' => $e->getMessage(),
             ]);
-            return false;
+
+            if (str_contains(strtolower($e->getMessage()), 'mfa_')) {
+                return 'Kolom MFA belum ada di database. Buka /deploy-db untuk menjalankan migrasi terlebih dahulu.';
+            }
+
+            return 'Gagal menyimpan MFA ke database. Silakan coba lagi.';
         }
 
         $this->forgetTempSecret($user);
 
-        return true;
+        return null;
+    }
+
+    /**
+     * Cek apakah kolom MFA sudah ada di tabel pengguna.
+     */
+    protected function mfaColumnsExist(): bool
+    {
+        return Schema::hasColumn('pengguna', 'mfa_enabled')
+            && Schema::hasColumn('pengguna', 'mfa_secret')
+            && Schema::hasColumn('pengguna', 'mfa_enabled_at');
+    }
+
+    /**
+     * Cek MFA tersimpan di database (toleran tipe boolean PostgreSQL/MySQL).
+     */
+    protected function userHasPersistedMfa(User $user): bool
+    {
+        $attrs = $user->getAttributes();
+
+        return filter_var($attrs['mfa_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN)
+            && !empty($attrs['mfa_secret']);
     }
 
     /**
@@ -223,7 +254,8 @@ class MfaService
 
         $user->refresh();
 
-        return $user->mfa_enabled === true && !empty($user->mfa_secret);
+        return filter_var($user->mfa_enabled, FILTER_VALIDATE_BOOLEAN)
+            && !empty($user->mfa_secret);
     }
 
     /**
@@ -262,6 +294,11 @@ class MfaService
         }
 
         $hashedCodes = array_map(fn ($code) => Hash::make($code), $codes);
+
+        if (!Schema::hasColumn('pengguna', 'mfa_backup_codes')) {
+            Cache::put("mfa_backup_codes:{$user->id}", $hashedCodes, now()->addYears(10));
+            return $codes;
+        }
 
         try {
             User::whereKey($user->id)->update([
