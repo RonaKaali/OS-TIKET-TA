@@ -86,12 +86,21 @@ class MfaSchema
         DB::disconnect();
         DB::reconnect();
 
-        $updated = DB::table('pengguna')->where('id', $userId)->update([
-            'mfa_secret' => $encryptedSecret,
-            'mfa_enabled' => DB::connection()->getDriverName() === 'pgsql' ? true : 1,
-            'mfa_enabled_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $now = now();
+
+        if (Schema::getConnection()->getDriverName() === 'pgsql') {
+            $updated = DB::update(
+                'UPDATE public.pengguna SET mfa_secret = ?, mfa_enabled = true, mfa_enabled_at = ?, updated_at = ? WHERE id = ?',
+                [$encryptedSecret, $now, $now, $userId]
+            );
+        } else {
+            $updated = DB::table('pengguna')->where('id', $userId)->update([
+                'mfa_secret' => $encryptedSecret,
+                'mfa_enabled' => 1,
+                'mfa_enabled_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
 
         return $updated > 0;
     }
@@ -112,12 +121,23 @@ class MfaSchema
 
     public static function clearMfaForUser(int $userId): void
     {
+        $now = now();
+
+        if (Schema::getConnection()->getDriverName() === 'pgsql') {
+            DB::update(
+                'UPDATE public.pengguna SET mfa_secret = NULL, mfa_enabled = false, mfa_enabled_at = NULL, mfa_backup_codes = NULL, updated_at = ? WHERE id = ?',
+                [$now, $userId]
+            );
+
+            return;
+        }
+
         DB::table('pengguna')->where('id', $userId)->update([
             'mfa_secret' => null,
-            'mfa_enabled' => DB::connection()->getDriverName() === 'pgsql' ? false : 0,
+            'mfa_enabled' => 0,
             'mfa_enabled_at' => null,
             'mfa_backup_codes' => null,
-            'updated_at' => now(),
+            'updated_at' => $now,
         ]);
     }
 
