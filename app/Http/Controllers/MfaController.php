@@ -32,9 +32,8 @@ class MfaController extends Controller
     {
         $user = Auth::user();
 
-        // Generate secret baru jika belum ada
-        $secret = cache()->get("mfa_secret_temp:{$user->id}");
-        
+        $secret = $this->mfaService->getTempSecret($user);
+
         if (!$secret) {
             $secret = $this->mfaService->generateSecret($user);
         }
@@ -58,8 +57,8 @@ class MfaController extends Controller
         ]);
 
         $user = Auth::user();
-        $secret = cache()->get("mfa_secret_temp:{$user->id}");
-        
+        $secret = $this->mfaService->getTempSecret($user, $request->input('secret_token'));
+
         if (!$secret) {
             return back()->withErrors(['code' => 'Secret tidak ditemukan. Silakan setup ulang.']);
         }
@@ -70,11 +69,15 @@ class MfaController extends Controller
         
         // Pastikan code adalah 6 digit numeric
         if (!preg_match('/^\d{6}$/', $code)) {
+            $this->mfaService->storeTempSecret($user, $secret);
+
             return back()->withErrors(['code' => 'Kode harus berupa 6 digit angka.']);
         }
         
         // Verify dengan secret temporary menggunakan Google2FA langsung
         if (!$this->google2fa) {
+            $this->mfaService->storeTempSecret($user, $secret);
+
             return back()->withErrors(['code' => 'Google2FA package tidak tersedia.']);
         }
         
@@ -90,6 +93,8 @@ class MfaController extends Controller
                 'secret_length' => strlen($secret),
                 'secret_preview' => substr($secret, 0, 4) . '...',
             ]);
+
+            $this->mfaService->storeTempSecret($user, $secret);
             
             return back()->withErrors(['code' => 'Kode verifikasi tidak valid. Pastikan: 1) Waktu di smartphone sudah benar (sinkronisasi waktu), 2) Menggunakan kode terbaru (berubah setiap 30 detik), 3) Secret key sudah benar di aplikasi authenticator.']);
         }
@@ -111,6 +116,8 @@ class MfaController extends Controller
                 'backupCodes' => $backupCodes,
             ]);
         }
+
+        $this->mfaService->storeTempSecret($user, $secret);
 
         return back()->withErrors(['code' => 'Gagal mengaktifkan MFA. Silakan coba lagi.']);
     }

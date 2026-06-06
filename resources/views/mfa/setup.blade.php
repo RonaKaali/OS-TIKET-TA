@@ -110,6 +110,7 @@
 
                         <form method="POST" action="{{ route('mfa.enable') }}" class="space-y-4">
                             @csrf
+                            <input type="hidden" name="secret_token" value="{{ encrypt($secret) }}">
 
                             <div>
                                 <label for="code" class="block text-sm font-semibold text-gray-700 mb-2">

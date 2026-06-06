@@ -36,11 +36,51 @@ class MfaService
         }
 
         $secret = $this->google2fa->generateSecretKey();
-        
-        // Simpan secret sementara di cache (belum diaktifkan)
-        Cache::put("mfa_secret_temp:{$user->id}", $secret, now()->addMinutes(10));
-        
+        $this->storeTempSecret($user, $secret);
+
         return $secret;
+    }
+
+    /**
+     * Simpan secret sementara untuk proses setup MFA.
+     * Session + form token dipakai agar tetap jalan di serverless (Vercel) yang cache-nya tidak persisten.
+     */
+    public function storeTempSecret(User $user, string $secret): void
+    {
+        Cache::put("mfa_secret_temp:{$user->id}", $secret, now()->addMinutes(10));
+        session()->put("mfa_secret_temp:{$user->id}", $secret);
+    }
+
+    /**
+     * Ambil secret sementara dari form token, session, atau cache.
+     */
+    public function getTempSecret(User $user, ?string $encryptedSecret = null): ?string
+    {
+        if ($encryptedSecret) {
+            try {
+                return decrypt($encryptedSecret);
+            } catch (\Exception $e) {
+                \Log::warning('Failed to decrypt MFA temp secret from form', [
+                    'user_id' => $user->id,
+                ]);
+            }
+        }
+
+        $secret = session("mfa_secret_temp:{$user->id}");
+        if ($secret) {
+            return $secret;
+        }
+
+        return Cache::get("mfa_secret_temp:{$user->id}");
+    }
+
+    /**
+     * Hapus secret sementara setelah setup selesai atau dibatalkan.
+     */
+    public function forgetTempSecret(User $user): void
+    {
+        Cache::forget("mfa_secret_temp:{$user->id}");
+        session()->forget("mfa_secret_temp:{$user->id}");
     }
 
     /**
@@ -138,8 +178,7 @@ class MfaService
             }
         }
         
-        // Hapus temporary secret
-        Cache::forget("mfa_secret_temp:{$user->id}");
+        $this->forgetTempSecret($user);
         
         // Generate backup codes
         $backupCodes = $this->generateBackupCodes($user);
@@ -152,6 +191,7 @@ class MfaService
      */
     public function disableMfa(User $user): void
     {
+        $this->forgetTempSecret($user);
         Cache::forget("mfa_secret:{$user->id}");
         Cache::forget("mfa_backup_codes:{$user->id}");
         
