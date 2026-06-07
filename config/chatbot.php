@@ -5,8 +5,8 @@ return [
     'name' => 'Asisten CSIRT',
 
     'quick_topics' => [
-        ['label' => 'Cara lapor', 'message' => 'cara buat laporan'],
-        ['label' => 'Cek status', 'message' => 'status laporan'],
+        ['label' => 'Cara lapor', 'message' => 'cara lapor insiden'],
+        ['label' => 'Cek status', 'message' => 'cek status laporan'],
         ['label' => 'Phishing', 'message' => 'kena phishing'],
         ['label' => 'Malware', 'message' => 'komputer kena virus'],
         ['label' => 'Akun diretas', 'message' => 'akun saya diretas'],

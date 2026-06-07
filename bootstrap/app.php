@@ -39,6 +39,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\ZeroTrustVerification::class,
         ]);
 
+        $middleware->validateCsrfTokens(except: [
+            'chatbot/message',
+        ]);
+
         $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {

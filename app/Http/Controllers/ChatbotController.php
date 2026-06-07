@@ -27,15 +27,28 @@ class ChatbotController extends Controller
             'message' => ['required', 'string', 'max:1000'],
         ]);
 
-        $userMessage = $request->input('message');
-        $result = $this->chatbotService->respond($userMessage);
+        try {
+            $userMessage = trim((string) $request->input('message'));
+            $result = $this->chatbotService->respond($userMessage);
 
-        return response()->json([
-            'success' => true,
-            'response' => $result['response'],
-            'suggestions' => $result['suggestions'] ?? [],
-            'actions' => $result['actions'] ?? [],
-        ]);
+            return response()->json([
+                'success' => true,
+                'response' => $result['response'] ?? '',
+                'suggestions' => $result['suggestions'] ?? [],
+                'actions' => $result['actions'] ?? [],
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('Chatbot message failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'response' => "🤖 **Asisten CSIRT**\n\nMaaf, layanan sementara bermasalah. Silakan coba lagi atau hubungi **csirt@kalselprov.go.id**.\n\n**Bantuan cepat:**\n- Ketik *cara lapor* untuk panduan melapor\n- Ketik *status laporan* untuk lacak tiket\n- Ketik *phishing* atau *malware* untuk solusi insiden",
+                'suggestions' => ['Cara lapor insiden', 'Cek status laporan', 'Phishing', 'Kontak CSIRT'],
+                'actions' => [],
+            ]);
+        }
     }
 }
 

@@ -57,25 +57,29 @@ class ChatbotService
 
     public function findResponse(string $message): ?ChatbotResponse
     {
-        $normalizedMessage = Str::lower(trim($message));
+        try {
+            $normalizedMessage = Str::lower(trim($message));
 
-        $responses = ChatbotResponse::active()
-            ->ordered()
-            ->get();
+            $responses = ChatbotResponse::active()
+                ->ordered()
+                ->get();
 
-        foreach ($responses as $response) {
-            $keyword = Str::lower(trim($response->keyword));
+            foreach ($responses as $response) {
+                $keyword = Str::lower(trim($response->keyword));
 
-            $isMatch = match ($response->match_type) {
-                'exact' => $normalizedMessage === $keyword,
-                'starts_with' => Str::startsWith($normalizedMessage, $keyword),
-                'contains' => Str::contains($normalizedMessage, $keyword),
-                default => Str::contains($normalizedMessage, $keyword),
-            };
+                $isMatch = match ($response->match_type) {
+                    'exact' => $normalizedMessage === $keyword,
+                    'starts_with' => Str::startsWith($normalizedMessage, $keyword),
+                    'contains' => Str::contains($normalizedMessage, $keyword),
+                    default => Str::contains($normalizedMessage, $keyword),
+                };
 
-            if ($isMatch) {
-                return $response;
+                if ($isMatch) {
+                    return $response;
+                }
             }
+        } catch (\Throwable $e) {
+            \Log::warning('Chatbot DB lookup skipped: ' . $e->getMessage());
         }
 
         return null;
@@ -119,29 +123,33 @@ class ChatbotService
 
     protected function defaultActions(): array
     {
-        $actions = [];
+        try {
+            $actions = [];
 
-        if (Auth::check()) {
+            if (Auth::check()) {
+                $actions[] = [
+                    'label' => 'Buat Laporan Baru',
+                    'url' => route('portal.ticket.create'),
+                    'style' => 'primary',
+                ];
+            } else {
+                $actions[] = [
+                    'label' => 'Login untuk Melapor',
+                    'url' => route('login'),
+                    'style' => 'primary',
+                ];
+            }
+
             $actions[] = [
-                'label' => 'Buat Laporan Baru',
-                'url' => route('portal.ticket.create'),
-                'style' => 'primary',
+                'label' => 'Lacak Status Laporan',
+                'url' => route('portal.ticket.status.form'),
+                'style' => 'secondary',
             ];
-        } else {
-            $actions[] = [
-                'label' => 'Login untuk Melapor',
-                'url' => route('login'),
-                'style' => 'primary',
-            ];
+
+            return $actions;
+        } catch (\Throwable) {
+            return [];
         }
-
-        $actions[] = [
-            'label' => 'Lacak Status Laporan',
-            'url' => route('portal.ticket.status.form'),
-            'style' => 'secondary',
-        ];
-
-        return $actions;
     }
 
     protected function suggestionsFor(string $message): array
@@ -158,7 +166,20 @@ class ChatbotService
             return ['Cara lapor', 'Jenis insiden', 'Phishing', 'Kontak CSIRT'];
         }
 
-        return config('chatbot.default_suggestions', []);
+        return $this->configSuggestions();
+    }
+
+    protected function configSuggestions(): array
+    {
+        $items = config('chatbot.default_suggestions', [
+            'Cara lapor insiden',
+            'Cek status laporan',
+            'Phishing',
+            'Malware',
+            'Kontak CSIRT',
+        ]);
+
+        return is_array($items) ? $items : [];
     }
 
     /**
@@ -179,12 +200,12 @@ class ChatbotService
                 'suggestions' => ['Cara lapor insiden', 'Phishing', 'Malware', 'Akun diretas', 'Kontak CSIRT'],
             ],
             [
-                'triggers' => ['cara buat laporan', 'cara lapor', 'cara buat tiket', 'buat laporan', 'melaporkan', 'lapor insiden'],
+                'triggers' => ['cara buat laporan', 'cara lapor', 'cara lapor insiden', 'cara buat tiket', 'buat laporan', 'melaporkan', 'lapor insiden'],
                 'text' => "📝 **Cara Melaporkan Insiden Siber**\n\n**Langkah singkat:**\n1. **Login** ke akun pelapor Anda\n2. Buka menu **Buat Laporan Baru**\n3. Pilih **kategori insiden** (Phishing, Malware, Deface, dll.)\n4. Tulis **judul** yang jelas (contoh: \"Email phishing palsu bank\")\n5. Isi **deskripsi kronologi**: kapan, apa yang terjadi, dampaknya\n6. **Lampirkan bukti** (screenshot, email, log) jika ada\n7. Klik **Kirim Laporan**\n\n**Tips agar cepat ditangani:**\n- Jangan hapus bukti sebelum dilaporkan\n- Cantumkan URL/link mencurigakan jika ada\n- Sebutkan apakah ada data pribadi terpapar\n\nTim CSIRT akan menindaklanjuti sesuai prioritas insiden.",
                 'suggestions' => ['Jenis insiden', 'Lampiran bukti', 'Cek status laporan', 'Phishing'],
             ],
             [
-                'triggers' => ['status laporan', 'cek status', 'lacak laporan', 'nomor tiket', 'progress laporan'],
+                'triggers' => ['status laporan', 'cek status laporan', 'cek status', 'lacak laporan', 'nomor tiket', 'progress laporan'],
                 'text' => "🔍 **Cara Cek Status Laporan**\n\n1. Buka menu **Lacak Laporan** / Cek Status\n2. Masukkan **nomor tiket** yang Anda terima saat submit\n3. Verifikasi identitas jika diminta\n4. Lihat update status:\n   - **Open** — laporan diterima\n   - **In Progress** — sedang ditangani analis\n   - **Resolved** — penanganan selesai\n   - **Closed** — kasus ditutup\n\nJika lupa nomor tiket, login ke akun Anda dan buka riwayat laporan.",
                 'suggestions' => ['Cara lapor insiden', 'Kontak CSIRT', 'Phishing'],
             ],

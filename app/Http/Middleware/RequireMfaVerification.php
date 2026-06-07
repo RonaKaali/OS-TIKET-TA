@@ -26,8 +26,8 @@ class RequireMfaVerification
             return $next($request);
         }
 
-        // Portal pelaporan: jangan paksa MFA ulang agar alur buat tiket tidak terputus
-        if ($request->is('portal/ticket') || $request->is('portal/ticket/*')) {
+        // Portal pelaporan & chatbot AJAX: jangan paksa MFA ulang
+        if ($request->is('portal/ticket') || $request->is('portal/ticket/*') || $request->is('chatbot/message')) {
             return $next($request);
         }
 

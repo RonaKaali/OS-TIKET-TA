@@ -70,7 +70,7 @@ class AIAnalystService
 
         return [
             'text' => "🤖 Saya belum yakin maksud pertanyaan Anda, tapi saya siap bantu.\n\n**Coba jelaskan:**\n- Apa yang terjadi? (email aneh, virus, website berubah, dll.)\n- Kapan kejadiannya?\n- Sistem/akun apa yang terdampak?\n\n**Atau pilih topik populer:**\n- Phishing / penipuan email\n- Malware / virus\n- Akun diretas\n- Cara buat laporan\n- Cek status laporan\n\nSemakin spesifik, semakin tepat solusi yang saya berikan.",
-            'suggestions' => config('chatbot.default_suggestions', []),
+            'suggestions' => ['Cara lapor insiden', 'Cek status laporan', 'Phishing', 'Malware', 'Kontak CSIRT'],
             'actions' => [],
         ];
     }

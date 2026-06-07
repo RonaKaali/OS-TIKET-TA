@@ -187,7 +187,7 @@ window.chatbotData = function chatbotData() {
         isOpen: false,
         message: '',
         isLoading: false,
-        suggestions: @js(config('chatbot.default_suggestions', [])),
+        suggestions: ['Cara lapor insiden', 'Cek status laporan', 'Phishing', 'Malware', 'Kontak CSIRT'],
 
         get chatbotUrl() {
             return document.getElementById('chatbot-widget')?.dataset.chatbotUrl || '';
@@ -217,27 +217,41 @@ window.chatbotData = function chatbotData() {
             this.isLoading = true;
 
             try {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
                 const response = await fetch(this.chatbotUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
                     },
+                    credentials: 'same-origin',
                     body: JSON.stringify({ message: userMessage }),
                 });
 
-                const data = await response.json();
+                let data = null;
+                try {
+                    data = await response.json();
+                } catch (parseError) {
+                    throw new Error('Respons server tidak valid');
+                }
 
-                if (data.success) {
+                if (response.ok && data && data.success && data.response) {
                     this.addMessage(data.response, 'bot', data.actions || []);
                     if (Array.isArray(data.suggestions) && data.suggestions.length) {
                         this.suggestions = data.suggestions;
                     }
-                } else {
-                    this.addMessage('Maaf, terjadi kesalahan. Silakan coba lagi.', 'bot');
+                    return;
                 }
+
+                const serverMsg = data?.message || data?.response;
+                if (serverMsg && typeof serverMsg === 'string') {
+                    this.addMessage(serverMsg, 'bot');
+                    return;
+                }
+
+                this.addMessage('Maaf, terjadi kesalahan. Silakan coba lagi.', 'bot');
             } catch (error) {
                 console.error('Chatbot error:', error);
                 this.addMessage('Koneksi gagal. Periksa internet Anda dan coba lagi.', 'bot');
