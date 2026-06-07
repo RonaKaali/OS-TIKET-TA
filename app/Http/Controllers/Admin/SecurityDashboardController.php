@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SecurityEvent;
+use App\Models\User;
+use App\Services\AccessRevocationService;
 use App\Services\GpsLocationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +14,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class SecurityDashboardController extends Controller
 {
     public function __construct(
-        protected GpsLocationService $gpsService
+        protected GpsLocationService $gpsService,
+        protected AccessRevocationService $revocationService
     ) {}
     /**
      * Display the Zero Trust Security Dashboard.
@@ -191,20 +194,38 @@ class SecurityDashboardController extends Controller
      */
     public function revokeAccess(Request $request, $userId)
     {
-        // Temukan semua sesi user ini dan hapus
-        DB::table('sessions')->where('user_id', $userId)->delete();
+        $user = User::findOrFail($userId);
 
-        // Tambahkan event keamanan
+        if ((int) $userId === (int) $request->user()?->id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Anda tidak dapat mencabut akses akun Anda sendiri.',
+            ], 422);
+        }
+
+        $this->revocationService->revoke($user, $request->user()?->id);
+
         SecurityEvent::create([
-            'user_id' => $userId,
+            'user_id' => $user->id,
             'event_type' => 'admin_force_logout',
             'severity' => 'medium',
             'ip_address' => $request->ip(),
-            'message' => 'Super Admin forcibly revoked access for this user.',
+            'message' => sprintf(
+                'Super Admin mencabut akses paksa untuk %s (%s). User akan logout di semua perangkat pada request berikutnya.',
+                $user->name,
+                $user->email
+            ),
+            'context' => [
+                'revoked_by' => $request->user()?->id,
+                'revoked_at' => now()->toIso8601String(),
+            ],
             'risk_score' => 50,
             'created_at' => now(),
         ]);
 
-        return response()->json(['status' => 'success', 'message' => 'Access successfully revoked.']);
+        return response()->json([
+            'status' => 'success',
+            'message' => "Akses {$user->name} telah dicabut. User akan logout otomatis di semua perangkat.",
+        ]);
     }
 }

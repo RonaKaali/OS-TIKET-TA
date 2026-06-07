@@ -48,17 +48,32 @@
                 credentials: 'same-origin'
             });
 
-            if (response.status === 401 || !response.ok) {
-                // Session expired, redirect ke login
-                handleSessionExpired();
+            if (response.status === 401) {
+                let message = null;
+                try {
+                    const data = await response.json();
+                    if (data.revoked) {
+                        message = data.message || 'Akses Anda telah dicabut oleh administrator.';
+                    } else if (data.expired) {
+                        message = 'Session Anda telah berakhir karena tidak ada aktivitas.';
+                    }
+                } catch (e) {
+                    // ignore parse error
+                }
+                handleSessionExpired(message);
+                return;
+            }
+
+            if (!response.ok) {
                 return;
             }
 
             const data = await response.json();
             
             if (!data.authenticated || data.expired) {
-                // Session expired
-                handleSessionExpired();
+                handleSessionExpired(data.expired
+                    ? 'Session Anda telah berakhir karena tidak ada aktivitas.'
+                    : null);
                 return;
             }
 
@@ -77,7 +92,7 @@
     /**
      * Handle session expired - redirect ke login
      */
-    function handleSessionExpired() {
+    function handleSessionExpired(customMessage) {
         // Hentikan interval checking
         if (checkInterval) {
             clearInterval(checkInterval);
@@ -89,8 +104,7 @@
             return;
         }
 
-        // Tampilkan alert dan redirect ke halaman login
-        alert('Session Anda telah berakhir karena tidak ada aktivitas selama 3 menit. Anda akan diarahkan ke halaman login.');
+        alert(customMessage || 'Session Anda telah berakhir. Anda akan diarahkan ke halaman login.');
         window.location.href = '/login';
     }
 

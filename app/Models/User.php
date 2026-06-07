@@ -47,6 +47,7 @@ class User extends Authenticatable
         'ip_whitelist',
         'allow_after_hours_access',
         'last_security_event_at',
+        'access_revoked_at',
     ];
 
     /**
@@ -78,6 +79,7 @@ class User extends Authenticatable
             'ip_whitelist' => 'array',
             'allow_after_hours_access' => 'boolean',
             'last_security_event_at' => 'datetime',
+            'access_revoked_at' => 'datetime',
         ];
     }
 

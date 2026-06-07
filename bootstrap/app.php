@@ -34,6 +34,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            \App\Http\Middleware\EnforceAccessRevocation::class,
             \App\Http\Middleware\CheckUserActivity::class,
             \App\Http\Middleware\RequireMfaVerification::class,
             \App\Http\Middleware\ZeroTrustVerification::class,

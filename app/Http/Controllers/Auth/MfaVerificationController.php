@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\AccessRevocationService;
 use App\Services\MfaService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,8 @@ use Illuminate\Validation\ValidationException;
 class MfaVerificationController extends Controller
 {
     public function __construct(
-        protected MfaService $mfaService
+        protected MfaService $mfaService,
+        protected AccessRevocationService $revocationService
     ) {}
 
     /**
@@ -190,6 +192,9 @@ class MfaVerificationController extends Controller
 
         // Set last activity time untuk auto logout
         $request->session()->put('last_activity', now()->toDateTimeString());
+
+        $this->revocationService->clearRevocationFlag($user);
+        $this->revocationService->stampSession($request);
     }
 }
 

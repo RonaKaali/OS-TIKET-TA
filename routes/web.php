@@ -144,19 +144,25 @@ Route::get('/deploy-db', function () {
             $lines[] = $line;
         }
 
+        $lines[] = 'Memastikan kolom Cabut Akses (SQL langsung)...';
+        foreach (\App\Support\AccessRevocationSchema::ensureColumns() as $line) {
+            $lines[] = $line;
+        }
+
         $lines[] = 'Membersihkan cache...';
         \Illuminate\Support\Facades\Artisan::call('config:clear');
         \Illuminate\Support\Facades\Artisan::call('route:clear');
 
         $mfaReady = \App\Support\MfaSchema::columnsExist();
         $gpsReady = \App\Support\GpsSchema::columnsExist();
+        $revokeReady = \App\Support\AccessRevocationSchema::columnsExist();
 
-        if ($mfaReady && $gpsReady) {
-            $lines[] = 'SELESAI — Kolom MFA & GPS siap.';
+        if ($mfaReady && $gpsReady && $revokeReady) {
+            $lines[] = 'SELESAI — Kolom MFA, GPS & Cabut Akses siap.';
         } elseif ($mfaReady) {
-            $lines[] = 'SELESAI sebagian — Kolom MFA siap, kolom GPS belum terdeteksi.';
+            $lines[] = 'SELESAI sebagian — Periksa kolom GPS / access_revoked_at di atas.';
         } else {
-            $lines[] = 'PERINGATAN — Kolom MFA/GPS belum lengkap. Cek koneksi Supabase.';
+            $lines[] = 'PERINGATAN — Kolom database belum lengkap. Cek koneksi Supabase.';
         }
 
         return response('<pre>' . implode("\n", $lines) . '</pre>', 200)

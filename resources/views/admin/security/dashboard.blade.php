@@ -152,8 +152,8 @@
                                                 <i class="fab fa-chrome mr-1"></i> <span x-text="event.metadata.browser"></span>
                                             </span>
                                         </template>
-                                        <template x-if="event.user_id">
-                                            <button @click="revokeAccess(event.user_id)" class="ml-auto px-2 py-0.5 text-[10px] font-bold rounded bg-red-900/50 border border-red-700 text-red-300 hover:bg-red-700 hover:text-white transition-colors cursor-pointer">
+                                        <template x-if="event.user_id && event.user_id !== {{ auth()->id() }}">
+                                            <button @click="revokeAccess(event.user_id)" class="ml-auto px-2 py-0.5 text-[10px] font-bold rounded bg-red-900/50 border border-red-700 text-red-300 hover:bg-red-700 hover:text-white transition-colors cursor-pointer" title="Logout paksa user di semua perangkat">
                                                 <i class="fas fa-ban mr-1"></i> Cabut Akses
                                             </button>
                                         </template>
@@ -266,7 +266,7 @@
             },
 
             async revokeAccess(userId) {
-                if (!confirm('Apakah Anda yakin ingin mematikan semua sesi pengguna ini (Force Logout)?')) return;
+                if (!confirm('Cabut akses pengguna ini?\n\nUser akan LOGOUT OTOMATIS di semua perangkat (HP, laptop, dll.) pada aktivitas berikutnya.\n\nUser masih bisa login kembali setelah itu.')) return;
 
                 try {
                     const response = await fetch(`/admin/api/security-events/revoke/${userId}`, {
@@ -279,10 +279,10 @@
                     const result = await response.json();
                     
                     if (result.status === 'success') {
-                        alert('Berhasil! Akses pengguna telah dicabut.');
+                        alert(result.message || 'Berhasil! User akan logout di semua perangkat pada request berikutnya.');
                         this.fetchEvents();
                     } else {
-                        alert('Gagal mencabut akses.');
+                        alert(result.message || 'Gagal mencabut akses.');
                     }
                 } catch (error) {
                     console.error('Revoke access error:', error);

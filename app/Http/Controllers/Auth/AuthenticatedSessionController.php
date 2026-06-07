@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Services\AccessRevocationService;
 use App\Services\MfaService;
 use App\Services\SecurityEventLogService;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +16,8 @@ class AuthenticatedSessionController extends Controller
 {
     public function __construct(
         protected MfaService $mfaService,
-        protected SecurityEventLogService $securityLog
+        protected SecurityEventLogService $securityLog,
+        protected AccessRevocationService $revocationService
     ) {}
 
     /**
@@ -114,5 +116,8 @@ class AuthenticatedSessionController extends Controller
 
         // Set last activity time untuk auto logout
         $request->session()->put('last_activity', now()->toDateTimeString());
+
+        $this->revocationService->clearRevocationFlag($user);
+        $this->revocationService->stampSession($request);
     }
 }
