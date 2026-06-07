@@ -20,7 +20,7 @@ class ContextAwareAccessService
 
         // Ambil IP klien asli (menghormati proxy / ngrok jika ada)
         $clientIp = $this->getClientIp($request);
-        $gps = $request->session()->get('zero_trust_gps');
+        $gps = app(GpsLocationService::class)->resolve($request, $user->id);
         
         // Cache location lookup dalam request attributes untuk menghindari lookup berulang dalam satu siklus request
         $location = $request->attributes->get('_geoip_location');

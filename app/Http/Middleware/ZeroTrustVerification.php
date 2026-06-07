@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 use App\Services\DeviceFingerprintService;
 use App\Services\ContextAwareAccessService;
+use App\Services\GpsLocationService;
 use App\Services\SecurityEventLogService;
 
 class ZeroTrustVerification
@@ -15,15 +16,18 @@ class ZeroTrustVerification
     protected DeviceFingerprintService $deviceService;
     protected ContextAwareAccessService $contextService;
     protected SecurityEventLogService $logService;
+    protected GpsLocationService $gpsService;
 
     public function __construct(
         DeviceFingerprintService $deviceService,
         ContextAwareAccessService $contextService,
-        SecurityEventLogService $logService
+        SecurityEventLogService $logService,
+        GpsLocationService $gpsService
     ) {
         $this->deviceService = $deviceService;
         $this->contextService = $contextService;
         $this->logService = $logService;
+        $this->gpsService = $gpsService;
     }
 
     /**
@@ -173,6 +177,10 @@ class ZeroTrustVerification
             $riskScore = $request->get('risk_score');
             $deviceFingerprint = $request->get('device_fingerprint');
             $deviceTrustScore = $request->get('device_trust_score');
+            $gps = $this->gpsService->resolve(
+                $request,
+                $user->id
+            ) ?? ($accessContext['gps'] ?? null);
 
             $this->logService->logEvent([
                 'user_id' => $user->id,
@@ -186,7 +194,7 @@ class ZeroTrustVerification
                     'path' => $request->path(),
                     'ip' => $clientIp,
                     'location' => $accessContext['location'] ?? null,
-                    'gps' => $accessContext['gps'] ?? session('zero_trust_gps'),
+                    'gps' => $gps,
                     'risk_score' => $riskScore,
                 ],
                 'metadata' => [

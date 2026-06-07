@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SecurityEvent;
+use App\Services\GpsLocationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class SecurityDashboardController extends Controller
 {
+    public function __construct(
+        protected GpsLocationService $gpsService
+    ) {}
     /**
      * Display the Zero Trust Security Dashboard.
      */
@@ -43,6 +47,9 @@ class SecurityDashboardController extends Controller
                 $deviceFingerprint = $event->device_fingerprint ?? ($metadata['device_fingerprint'] ?? null);
                 $deviceTrustScore = $metadata['device_trust_score'] ?? null;
                 $gps = $context['gps'] ?? null;
+                if (empty($gps) && $event->user_id) {
+                    $gps = $this->gpsService->getStoredForUser($event->user_id);
+                }
 
                 return [
                     'id' => $event->id,

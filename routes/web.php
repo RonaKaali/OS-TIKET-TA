@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\{
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\AttachmentController;
+use App\Http\Controllers\ZeroTrustGpsController;
 use Illuminate\Http\Request;
 
 Route::get('/', fn() => view('welcome'))->name('welcome');
@@ -116,25 +117,8 @@ Route::middleware('auth')->group(function () {
         ->name('attachments.download');
 
     // Update GPS location untuk Zero Trust (opsional, berdasarkan izin browser)
-    Route::post('/zero-trust/gps', function (Request $request) {
-        $data = $request->validate([
-            'latitude' => ['required', 'numeric'],
-            'longitude' => ['required', 'numeric'],
-            'accuracy' => ['nullable', 'numeric'],
-        ]);
-
-        $gps = [
-            'latitude' => (float) $data['latitude'],
-            'longitude' => (float) $data['longitude'],
-            'accuracy' => isset($data['accuracy']) ? (float) $data['accuracy'] : null,
-            'updated_at' => now()->toIso8601String(),
-        ];
-
-        // Simpan di session untuk dipakai ZeroTrustVerification / ContextAwareAccessService
-        $request->session()->put('zero_trust_gps', $gps);
-
-        return response()->json(['status' => 'ok']);
-    })->name('zero_trust.gps.update');
+    Route::post('/zero-trust/gps', [ZeroTrustGpsController::class, 'store'])
+        ->name('zero_trust.gps.update');
 });
 
 # Telegram Webhook (untuk menerima update dari bot Telegram)
@@ -154,15 +138,25 @@ Route::get('/deploy-db', function () {
             $lines[] = $line;
         }
 
+        $lines[] = 'Memastikan kolom GPS (SQL langsung)...';
+        foreach (\App\Support\GpsSchema::ensureColumns() as $line) {
+            $lines[] = $line;
+        }
+
         $lines[] = 'Membersihkan cache...';
         \Illuminate\Support\Facades\Artisan::call('config:clear');
         \Illuminate\Support\Facades\Artisan::call('route:clear');
 
         $mfaReady = \App\Support\MfaSchema::columnsExist();
+        $gpsReady = \App\Support\GpsSchema::columnsExist();
 
-        $lines[] = $mfaReady
-            ? 'SELESAI — Kolom MFA siap. Silakan buka /mfa/setup dan aktifkan 2FA ulang.'
-            : 'PERINGATAN — Kolom MFA masih belum terdeteksi. Cek koneksi Supabase.';
+        if ($mfaReady && $gpsReady) {
+            $lines[] = 'SELESAI — Kolom MFA & GPS siap.';
+        } elseif ($mfaReady) {
+            $lines[] = 'SELESAI sebagian — Kolom MFA siap, kolom GPS belum terdeteksi.';
+        } else {
+            $lines[] = 'PERINGATAN — Kolom MFA/GPS belum lengkap. Cek koneksi Supabase.';
+        }
 
         return response('<pre>' . implode("\n", $lines) . '</pre>', 200)
             ->header('Content-Type', 'text/html; charset=utf-8');

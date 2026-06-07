@@ -201,7 +201,9 @@ class SecurityEventLogService
      */
     public function logAuthentication(string $type, ?int $userId, bool $success, string $message = ''): void
     {
-        $gps = request()->session()->get('zero_trust_gps');
+        $gps = $userId
+            ? app(GpsLocationService::class)->resolve(request(), $userId)
+            : null;
 
         $this->logEvent([
             'user_id' => $userId,
@@ -242,12 +244,16 @@ class SecurityEventLogService
      */
     public function logDeviceEvent(?int $userId, string $eventType, array $deviceInfo): void
     {
+        $gps = $userId
+            ? app(GpsLocationService::class)->resolve(request(), $userId)
+            : null;
+
         $this->logEvent([
             'user_id' => $userId,
             'event_type' => "device_{$eventType}",
             'severity' => 'medium',
             'message' => "Device {$eventType}",
-            'context' => $deviceInfo,
+            'context' => array_merge($deviceInfo, ['gps' => $gps]),
         ]);
     }
 
