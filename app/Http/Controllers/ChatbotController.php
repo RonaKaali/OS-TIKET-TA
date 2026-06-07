@@ -28,11 +28,13 @@ class ChatbotController extends Controller
         ]);
 
         $userMessage = $request->input('message');
-        $response = $this->chatbotService->getResponse($userMessage);
+        $result = $this->chatbotService->respond($userMessage);
 
         return response()->json([
             'success' => true,
-            'response' => $response,
+            'response' => $result['response'],
+            'suggestions' => $result['suggestions'] ?? [],
+            'actions' => $result['actions'] ?? [],
         ]);
     }
 }
