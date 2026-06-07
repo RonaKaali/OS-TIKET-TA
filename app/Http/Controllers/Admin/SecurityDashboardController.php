@@ -35,22 +35,69 @@ class SecurityDashboardController extends Controller
             ->limit(20)
             ->get()
             ->map(function ($event) {
+                $context = is_array($event->context) ? $event->context : [];
+                $metadata = is_array($event->metadata) ? $event->metadata : [];
+
+                $riskScore = $event->risk_score ?? ($context['risk_score'] ?? null);
+                $deviceFingerprint = $event->device_fingerprint ?? ($metadata['device_fingerprint'] ?? null);
+                $deviceTrustScore = $metadata['device_trust_score'] ?? null;
+                $gps = $context['gps'] ?? null;
+
                 return [
                     'id' => $event->id,
                     'user_id' => $event->user_id,
                     'user_name' => $event->user ? $event->user->name : 'Guest/System',
+                    'user_email' => $event->user?->email,
                     'event_type' => $event->event_type,
                     'severity' => $event->severity,
+                    'severity_label' => $this->severityLabel($event->severity),
                     'ip_address' => $event->ip_address,
                     'message' => $event->message,
-                    'risk_score' => $event->risk_score,
-                    'metadata' => $event->metadata,
+                    'method' => $context['method'] ?? null,
+                    'path' => $context['path'] ?? null,
+                    'risk_score' => is_numeric($riskScore) ? (int) $riskScore : null,
+                    'device_fingerprint' => $deviceFingerprint,
+                    'device_fingerprint_short' => $deviceFingerprint
+                        ? substr($deviceFingerprint, 0, 12) . '...'
+                        : null,
+                    'device_trust_score' => is_numeric($deviceTrustScore) ? (int) $deviceTrustScore : null,
+                    'gps' => $gps,
+                    'gps_label' => $this->formatGps($gps),
+                    'location' => $context['location'] ?? null,
+                    'context' => $context,
+                    'metadata' => $metadata,
                     'time_diff' => $event->created_at->diffForHumans(),
-                    'created_at' => $event->created_at->format('H:i:s'),
+                    'created_at' => $event->created_at->format('d/m/Y H:i:s'),
                 ];
             });
 
         return response()->json($events);
+    }
+
+    protected function severityLabel(?string $severity): string
+    {
+        return match (strtolower((string) $severity)) {
+            'low' => 'RENDAH',
+            'medium' => 'SEDANG',
+            'high' => 'TINGGI',
+            'critical' => 'KRITIS',
+            default => strtoupper((string) $severity),
+        };
+    }
+
+    protected function formatGps(?array $gps): ?string
+    {
+        if (empty($gps) || !isset($gps['latitude'], $gps['longitude'])) {
+            return null;
+        }
+
+        $lat = round((float) $gps['latitude'], 6);
+        $lng = round((float) $gps['longitude'], 6);
+        $accuracy = isset($gps['accuracy']) ? round((float) $gps['accuracy']) . 'm' : null;
+
+        return $accuracy
+            ? "{$lat}, {$lng} (±{$accuracy})"
+            : "{$lat}, {$lng}";
     }
 
     /**

@@ -175,12 +175,14 @@ class ZeroTrustVerification
                 'event_type' => 'access',
                 'severity' => 'low',
                 'message' => "Access to {$request->path()}",
+                'risk_score' => is_numeric($riskScore) ? (int) $riskScore : null,
+                'device_fingerprint' => $deviceFingerprint,
                 'context' => [
                     'method' => $request->method(),
                     'path' => $request->path(),
                     'ip' => $clientIp,
                     'location' => $accessContext['location'] ?? null,
-                    'gps' => $accessContext['gps'] ?? null,
+                    'gps' => $accessContext['gps'] ?? session('zero_trust_gps'),
                     'risk_score' => $riskScore,
                 ],
                 'metadata' => [

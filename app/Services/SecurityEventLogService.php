@@ -121,25 +121,37 @@ class SecurityEventLogService
      */
     protected function saveToDatabase(array $event): void
     {
-        // Gunakan model jika tersedia
-        if (class_exists(\App\Models\SecurityEvent::class)) {
-            try {
-                \App\Models\SecurityEvent::create([
-                    'user_id' => $event['user_id'] ?? null,
-                    'event_type' => $event['event_type'] ?? 'unknown',
-                    'severity' => $event['severity'] ?? 'low',
-                    'ip_address' => $event['ip_address'] ?? null,
-                    'user_agent' => $event['user_agent'] ?? null,
-                    'device_fingerprint' => $event['device_fingerprint'] ?? null,
-                    'context' => json_decode($event['context'] ?? '{}', true),
-                    'message' => $event['message'] ?? '',
-                    'metadata' => json_decode($event['metadata'] ?? '{}', true),
-                    'risk_score' => $event['risk_score'] ?? null,
-                    'created_at' => $event['created_at'] ?? now(),
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Failed to save security event to database: ' . $e->getMessage());
-            }
+        if (!class_exists(\App\Models\SecurityEvent::class)) {
+            return;
+        }
+
+        try {
+            $context = json_decode($event['context'] ?? '{}', true) ?: [];
+            $metadata = json_decode($event['metadata'] ?? '{}', true) ?: [];
+
+            $riskScore = $event['risk_score']
+                ?? $context['risk_score']
+                ?? null;
+
+            $deviceFingerprint = $event['device_fingerprint']
+                ?? $metadata['device_fingerprint']
+                ?? null;
+
+            \App\Models\SecurityEvent::create([
+                'user_id' => $event['user_id'] ?? null,
+                'event_type' => $event['event_type'] ?? 'unknown',
+                'severity' => $event['severity'] ?? 'low',
+                'ip_address' => $event['ip_address'] ?? null,
+                'user_agent' => $event['user_agent'] ?? null,
+                'device_fingerprint' => $deviceFingerprint,
+                'context' => $context,
+                'message' => $event['message'] ?? '',
+                'metadata' => $metadata,
+                'risk_score' => is_numeric($riskScore) ? (int) $riskScore : null,
+                'created_at' => $event['created_at'] ?? now(),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to save security event to database: ' . $e->getMessage());
         }
     }
 

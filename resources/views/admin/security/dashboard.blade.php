@@ -89,42 +89,84 @@
 
                                 <!-- Content -->
                                 <div class="flex-grow min-w-0">
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="text-sm font-bold text-gray-200" x-text="event.user_name"></span>
-                                        <span class="text-xs text-gray-500" x-text="event.time_diff"></span>
+                                    <div class="flex items-center justify-between mb-1 gap-2">
+                                        <div class="min-w-0">
+                                            <span class="text-sm font-bold text-gray-200" x-text="event.user_name"></span>
+                                            <template x-if="event.user_email">
+                                                <span class="text-[10px] text-gray-500 ml-2" x-text="`(${event.user_email})`"></span>
+                                            </template>
+                                        </div>
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            <span class="px-2 py-0.5 text-[10px] rounded bg-gray-900 border border-gray-700 text-cyan-300 font-black uppercase tracking-wider" x-text="event.severity_label"></span>
+                                            <span class="text-xs text-gray-500" x-text="event.time_diff"></span>
+                                        </div>
                                     </div>
                                     <div class="text-sm text-gray-400 mb-2" x-text="event.message"></div>
                                     
                                     <!-- Badges -->
-                                    <div class="flex flex-wrap gap-2 items-center">
+                                    <div class="flex flex-wrap gap-2 items-center mb-3">
                                         <span class="px-2 py-0.5 text-[10px] rounded bg-gray-900 border border-gray-700 text-gray-300 font-mono" x-text="event.ip_address"></span>
                                         <span class="px-2 py-0.5 text-[10px] rounded bg-gray-900 border border-gray-700 text-gray-300 font-mono" x-text="event.event_type"></span>
-                                        
+                                        <template x-if="event.method && event.path">
+                                            <span class="px-2 py-0.5 text-[10px] rounded bg-purple-900/30 border border-purple-800 text-purple-300 font-mono">
+                                                <span x-text="event.method"></span> <span x-text="event.path"></span>
+                                            </span>
+                                        </template>
                                         <template x-if="event.metadata && event.metadata.browser">
                                             <span class="px-2 py-0.5 text-[10px] rounded bg-blue-900/30 border border-blue-800 text-blue-300">
                                                 <i class="fab fa-chrome mr-1"></i> <span x-text="event.metadata.browser"></span>
                                             </span>
                                         </template>
-
-                                        <template x-if="event.risk_score !== null">
-                                            <div class="flex items-center gap-2 ml-auto">
-                                                <span class="text-[10px] text-gray-500 uppercase">Risk Score</span>
-                                                <div class="w-20 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                                                    <div 
-                                                        class="h-full transition-all duration-1000" 
-                                                        :class="event.risk_score > 70 ? 'bg-red-500' : (event.risk_score > 30 ? 'bg-yellow-500' : 'bg-green-500')"
-                                                        :style="`width: ${event.risk_score}%`"
-                                                    ></div>
-                                                </div>
-                                                <span class="text-[10px] font-bold" :class="event.risk_score > 70 ? 'text-red-500' : 'text-gray-400'" x-text="event.risk_score"></span>
-                                            </div>
-                                        </template>
-
                                         <template x-if="event.user_id">
-                                            <button @click="revokeAccess(event.user_id)" class="ml-2 px-2 py-0.5 text-[10px] font-bold rounded bg-red-900/50 border border-red-700 text-red-300 hover:bg-red-700 hover:text-white transition-colors cursor-pointer">
+                                            <button @click="revokeAccess(event.user_id)" class="ml-auto px-2 py-0.5 text-[10px] font-bold rounded bg-red-900/50 border border-red-700 text-red-300 hover:bg-red-700 hover:text-white transition-colors cursor-pointer">
                                                 <i class="fas fa-ban mr-1"></i> Cabut Akses
                                             </button>
                                         </template>
+                                    </div>
+
+                                    <!-- Zero Trust Details -->
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px]">
+                                        <div class="rounded-lg bg-gray-900/80 border border-gray-700 px-3 py-2">
+                                            <div class="text-gray-500 uppercase tracking-widest font-black mb-1">Risk Score</div>
+                                            <template x-if="event.risk_score !== null">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                                        <div
+                                                            class="h-full transition-all duration-1000"
+                                                            :class="event.risk_score > 70 ? 'bg-red-500' : (event.risk_score > 30 ? 'bg-yellow-500' : 'bg-green-500')"
+                                                            :style="`width: ${event.risk_score}%`"
+                                                        ></div>
+                                                    </div>
+                                                    <span class="font-bold text-gray-200" x-text="event.risk_score"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="event.risk_score === null">
+                                                <span class="text-gray-500">Tidak tersedia</span>
+                                            </template>
+                                        </div>
+
+                                        <div class="rounded-lg bg-gray-900/80 border border-gray-700 px-3 py-2">
+                                            <div class="text-gray-500 uppercase tracking-widest font-black mb-1">GPS</div>
+                                            <template x-if="event.gps_label">
+                                                <div class="font-mono text-emerald-300 break-all" x-text="event.gps_label"></div>
+                                            </template>
+                                            <template x-if="!event.gps_label">
+                                                <span class="text-gray-500">Tidak tersedia</span>
+                                            </template>
+                                        </div>
+
+                                        <div class="rounded-lg bg-gray-900/80 border border-gray-700 px-3 py-2">
+                                            <div class="text-gray-500 uppercase tracking-widest font-black mb-1">Device</div>
+                                            <template x-if="event.device_fingerprint">
+                                                <div class="font-mono text-cyan-300 break-all" :title="event.device_fingerprint" x-text="event.device_fingerprint_short"></div>
+                                                <template x-if="event.device_trust_score !== null">
+                                                    <div class="text-gray-400 mt-1">Trust: <span class="text-white font-bold" x-text="`${event.device_trust_score}%`"></span></div>
+                                                </template>
+                                            </template>
+                                            <template x-if="!event.device_fingerprint">
+                                                <span class="text-gray-500">Tidak tersedia</span>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
