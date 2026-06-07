@@ -12,11 +12,46 @@
                 </h2>
                 <p class="text-sm font-bold text-slate-500 dark:text-slate-400 mt-1 transition-colors">Pusat Kendali Keamanan & Pemantauan Ancaman</p>
             </div>
-            <div class="flex items-center space-x-3">
+            <div class="flex flex-wrap items-center gap-3">
                 <a href="{{ route('agent.dashboard') }}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-black rounded-lg border border-slate-600 flex items-center tracking-widest uppercase transition-all">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     Kembali ke Pusat Komando
                 </a>
+            </div>
+        </div>
+
+        <!-- Export Logs -->
+        <div class="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 p-6 transition-colors">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        Unduh Log Keamanan
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Export event Zero Trust ke file CSV (Excel). Event polling sistem dikecualikan.</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{{ route('admin.security.api.export', ['period' => 'day']) }}"
+                       class="inline-flex items-center px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        Hari Ini
+                    </a>
+                    <a href="{{ route('admin.security.api.export', ['period' => 'week']) }}"
+                       class="inline-flex items-center px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-black rounded-xl uppercase tracking-widest transition-all shadow-lg shadow-cyan-500/20">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        7 Hari
+                    </a>
+                    <a href="{{ route('admin.security.api.export', ['period' => 'month']) }}"
+                       class="inline-flex items-center px-4 py-2.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-black rounded-xl uppercase tracking-widest transition-all shadow-lg shadow-violet-500/20">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        Bulan Ini
+                    </a>
+                </div>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-4 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                <span><span class="text-emerald-600 dark:text-emerald-400">Hari ini</span> — sejak 00:00 hari ini</span>
+                <span><span class="text-cyan-600 dark:text-cyan-400">7 hari</span> — 7 hari terakhir termasuk hari ini</span>
+                <span><span class="text-violet-600 dark:text-violet-400">Bulan ini</span> — sejak tanggal 1 bulan berjalan</span>
             </div>
         </div>
 

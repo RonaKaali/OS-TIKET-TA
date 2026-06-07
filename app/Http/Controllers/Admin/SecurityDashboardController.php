@@ -7,6 +7,7 @@ use App\Models\SecurityEvent;
 use App\Services\GpsLocationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SecurityDashboardController extends Controller
 {
@@ -39,47 +40,124 @@ class SecurityDashboardController extends Controller
             ->orderBy('created_at', 'desc')
             ->limit(30)
             ->get()
-            ->map(function ($event) {
-                $context = is_array($event->context) ? $event->context : [];
-                $metadata = is_array($event->metadata) ? $event->metadata : [];
-
-                $riskScore = $event->risk_score ?? ($context['risk_score'] ?? null);
-                $deviceFingerprint = $event->device_fingerprint ?? ($metadata['device_fingerprint'] ?? null);
-                $deviceTrustScore = $metadata['device_trust_score'] ?? null;
-                $gps = $context['gps'] ?? null;
-                if (empty($gps) && $event->user_id) {
-                    $gps = $this->gpsService->getStoredForUser($event->user_id);
-                }
-
-                return [
-                    'id' => $event->id,
-                    'user_id' => $event->user_id,
-                    'user_name' => $event->user ? $event->user->name : 'Guest/System',
-                    'user_email' => $event->user?->email,
-                    'event_type' => $event->event_type,
-                    'severity' => $event->severity,
-                    'severity_label' => $this->severityLabel($event->severity),
-                    'ip_address' => $event->ip_address,
-                    'message' => $event->message,
-                    'method' => $context['method'] ?? null,
-                    'path' => $context['path'] ?? null,
-                    'risk_score' => is_numeric($riskScore) ? (int) $riskScore : null,
-                    'device_fingerprint' => $deviceFingerprint,
-                    'device_fingerprint_short' => $deviceFingerprint
-                        ? substr($deviceFingerprint, 0, 12) . '...'
-                        : null,
-                    'device_trust_score' => is_numeric($deviceTrustScore) ? (int) $deviceTrustScore : null,
-                    'gps' => $gps,
-                    'gps_label' => $this->formatGps($gps),
-                    'location' => $context['location'] ?? null,
-                    'context' => $context,
-                    'metadata' => $metadata,
-                    'time_diff' => $event->created_at->diffForHumans(),
-                    'created_at' => $event->created_at->format('d/m/Y H:i:s'),
-                ];
-            });
+            ->map(fn ($event) => $this->formatEvent($event));
 
         return response()->json($events);
+    }
+
+    /**
+     * Unduh log keamanan (CSV) per periode: day, week, month.
+     */
+    public function exportLogs(Request $request): StreamedResponse
+    {
+        $period = $request->query('period', 'day');
+        if (!in_array($period, ['day', 'week', 'month'], true)) {
+            abort(422, 'Periode tidak valid.');
+        }
+
+        $filename = match ($period) {
+            'week' => 'security-log-mingguan-' . now()->format('Y-m-d') . '.csv',
+            'month' => 'security-log-bulanan-' . now()->format('Y-m') . '.csv',
+            default => 'security-log-harian-' . now()->format('Y-m-d') . '.csv',
+        };
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control' => 'no-store, no-cache',
+        ];
+
+        return response()->stream(function () use ($period) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            fputcsv($handle, [
+                'ID',
+                'Waktu',
+                'Nama User',
+                'Email',
+                'Tipe Event',
+                'Severity',
+                'IP Address',
+                'Pesan',
+                'Method',
+                'Path',
+                'Risk Score',
+                'GPS',
+                'Device Fingerprint',
+                'Device Trust Score',
+            ]);
+
+            SecurityEvent::with('user:id,name,email')
+                ->excludeNoise()
+                ->forPeriod($period)
+                ->orderBy('created_at', 'desc')
+                ->chunk(200, function ($events) use ($handle) {
+                    foreach ($events as $event) {
+                        $row = $this->formatEvent($event);
+                        fputcsv($handle, [
+                            $row['id'],
+                            $row['created_at'],
+                            $row['user_name'],
+                            $row['user_email'] ?? '',
+                            $row['event_type'],
+                            $row['severity_label'],
+                            $row['ip_address'],
+                            $row['message'],
+                            $row['method'] ?? '',
+                            $row['path'] ?? '',
+                            $row['risk_score'] ?? '',
+                            $row['gps_label'] ?? '',
+                            $row['device_fingerprint'] ?? '',
+                            $row['device_trust_score'] ?? '',
+                        ]);
+                    }
+                });
+
+            fclose($handle);
+        }, 200, $headers);
+    }
+
+    protected function formatEvent(SecurityEvent $event): array
+    {
+        $context = is_array($event->context) ? $event->context : [];
+        $metadata = is_array($event->metadata) ? $event->metadata : [];
+
+        $riskScore = $event->risk_score ?? ($context['risk_score'] ?? null);
+        $deviceFingerprint = $event->device_fingerprint ?? ($metadata['device_fingerprint'] ?? null);
+        $deviceTrustScore = $metadata['device_trust_score'] ?? null;
+        $gps = $context['gps'] ?? null;
+
+        if (empty($gps) && $event->user_id) {
+            $gps = $this->gpsService->getStoredForUser($event->user_id);
+        }
+
+        return [
+            'id' => $event->id,
+            'user_id' => $event->user_id,
+            'user_name' => $event->user ? $event->user->name : 'Guest/System',
+            'user_email' => $event->user?->email,
+            'event_type' => $event->event_type,
+            'severity' => $event->severity,
+            'severity_label' => $this->severityLabel($event->severity),
+            'ip_address' => $event->ip_address,
+            'message' => $event->message,
+            'method' => $context['method'] ?? null,
+            'path' => $context['path'] ?? null,
+            'risk_score' => is_numeric($riskScore) ? (int) $riskScore : null,
+            'device_fingerprint' => $deviceFingerprint,
+            'device_fingerprint_short' => $deviceFingerprint
+                ? substr($deviceFingerprint, 0, 12) . '...'
+                : null,
+            'device_trust_score' => is_numeric($deviceTrustScore) ? (int) $deviceTrustScore : null,
+            'gps' => $gps,
+            'gps_label' => $this->formatGps($gps),
+            'location' => $context['location'] ?? null,
+            'context' => $context,
+            'metadata' => $metadata,
+            'time_diff' => $event->created_at->diffForHumans(),
+            'created_at' => $event->created_at->format('d/m/Y H:i:s'),
+        ];
     }
 
     protected function severityLabel(?string $severity): string

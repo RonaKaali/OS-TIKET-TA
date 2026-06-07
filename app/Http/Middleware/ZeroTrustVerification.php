@@ -234,6 +234,7 @@ class ZeroTrustVerification
             'device/verify', // Device verification page
             'zero-trust/gps', // Endpoint penyimpanan GPS (hindari log berulang tanpa koordinat)
             'admin/api/security-events/latest', // Polling dashboard admin
+            'admin/api/security-events/export', // Unduh log CSV
             'session/check', // Heartbeat session
             'up', // Health check
         ];
@@ -255,6 +256,7 @@ class ZeroTrustVerification
         $skipLoggingPaths = [
             'zero-trust/gps',
             'admin/api/security-events/latest',
+            'admin/api/security-events/export',
             'session/check',
         ];
 

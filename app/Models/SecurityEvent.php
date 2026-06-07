@@ -97,5 +97,19 @@ class SecurityEvent extends Model
                 ->where('message', 'not like', '%zero-trust/gps%');
         });
     }
+
+    /**
+     * Filter event berdasarkan periode unduhan log.
+     */
+    public function scopeForPeriod($query, string $period)
+    {
+        $start = match ($period) {
+            'week' => now()->subDays(6)->startOfDay(),
+            'month' => now()->startOfMonth(),
+            default => now()->startOfDay(),
+        };
+
+        return $query->where('created_at', '>=', $start);
+    }
 }
 

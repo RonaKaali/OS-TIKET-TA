@@ -86,6 +86,7 @@ Route::middleware(['auth', 'role:Super Admin'])->prefix('admin')->as('admin.')->
     // Zero Trust Security Dashboard
     Route::get('/security-dashboard', [SecurityDashboardController::class, 'index'])->name('security.dashboard');
     Route::get('/api/security-events/latest', [SecurityDashboardController::class, 'getLatestEvents'])->name('security.api.latest');
+    Route::get('/api/security-events/export', [SecurityDashboardController::class, 'exportLogs'])->name('security.api.export');
     Route::post('/api/security-events/revoke/{user}', [SecurityDashboardController::class, 'revokeAccess'])->name('security.api.revoke');
 });
 
