@@ -3,8 +3,8 @@
 
     #chatbot-widget {
         position: fixed !important;
-        bottom: 24px !important;
-        right: 24px !important;
+        bottom: max(16px, env(safe-area-inset-bottom)) !important;
+        right: max(16px, env(safe-area-inset-right)) !important;
         z-index: 99999 !important;
     }
 
@@ -53,7 +53,8 @@
 <div id="chatbot-widget"
      data-chatbot-url="{{ route('chatbot.message') }}"
      x-data="chatbotData()"
-     class="fixed bottom-6 right-6 z-[99999]">
+     class="fixed z-[99999]"
+     style="bottom: max(1rem, env(safe-area-inset-bottom)); right: max(1rem, env(safe-area-inset-right));">
 
     <!-- Floating Button -->
     <button id="chatbot-button"
@@ -79,8 +80,8 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
          x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-         class="absolute bottom-20 right-0 w-[22rem] sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden"
-         style="height: 32rem; max-height: calc(100vh - 120px);">
+         class="absolute right-0 w-[calc(100vw-2rem)] max-w-[22rem] sm:w-96 sm:max-w-none bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden"
+         style="bottom: calc(4.5rem + env(safe-area-inset-bottom)); height: min(32rem, calc(100vh - 7rem)); max-height: calc(100vh - 7rem);">
 
         <!-- Header -->
         <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-4 flex items-center justify-between shrink-0">

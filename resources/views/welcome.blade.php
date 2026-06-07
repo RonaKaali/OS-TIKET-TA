@@ -10,7 +10,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @include('partials.zero-trust-meta')
     <title>Pengaduan Insiden Siber - CSIRT Kalselprov</title>
@@ -70,7 +70,7 @@
                 <img src="{{ asset('images/logo-kalselprov.png') }}" alt="Logo" class="w-16 h-16 animate-pulse">
             </div>
         </div>
-        <h1 class="mt-8 text-2xl font-black text-white tracking-[0.3em] uppercase glow-text text-center px-4">
+        <h1 class="mt-8 text-lg sm:text-2xl font-black text-white tracking-[0.15em] sm:tracking-[0.3em] uppercase glow-text text-center px-6 leading-relaxed">
             Selamat Datang di Pusat Keamanan Siber<br>
             <span class="text-emerald-500">Pemerintah Kalsel</span>
         </h1>
@@ -86,51 +86,83 @@
     <div class="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/20 blur-[120px] pointer-events-none"></div>
 
     <!-- Navigation -->
-    <nav class="bg-white/80 dark:bg-slate-900/70 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 dark:border-emerald-500/30 transition-all">
+    <nav x-data="{ navOpen: false }" class="bg-white/90 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 dark:border-emerald-500/30 transition-all">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <div class="flex items-center space-x-4">
-                    <div class="w-14 h-14 flex items-center justify-center bg-white/5 rounded-xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)]">
-                        <img src="{{ asset('images/logo-kalselprov.png') }}" alt="Logo Kalselprov" class="w-10 h-10 object-contain">
+            <div class="flex justify-between items-center h-16 md:h-20 gap-3">
+                <!-- Brand -->
+                <a href="{{ route('welcome') }}" class="flex items-center gap-2.5 sm:gap-4 min-w-0 shrink">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center bg-emerald-500/5 rounded-xl border border-emerald-500/20 shrink-0">
+                        <img src="{{ asset('images/logo-kalselprov.png') }}" alt="Logo Kalselprov" class="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 object-contain">
                     </div>
-                    <div>
-                        <div class="text-lg font-extrabold text-slate-900 dark:text-white tracking-wider">CSIRT <span class="text-emerald-600 dark:text-emerald-400">KALSELPROV</span></div>
-                        <div class="text-xs text-emerald-200/70 uppercase tracking-widest flex items-center">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
-                            Zero Trust Secured
+                    <div class="min-w-0">
+                        <div class="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 dark:text-white tracking-wide truncate">
+                            CSIRT <span class="text-emerald-600 dark:text-emerald-400">KALSELPROV</span>
+                        </div>
+                        <div class="hidden sm:flex text-[10px] sm:text-xs text-emerald-700/80 dark:text-emerald-300/70 uppercase tracking-widest items-center">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse shrink-0"></span>
+                            <span class="truncate">Zero Trust Secured</span>
                         </div>
                     </div>
-                </div>
-                <div class="flex items-center space-x-4">
+                </a>
+
+                <!-- Desktop menu -->
+                <div class="hidden md:flex items-center gap-3 lg:gap-4 shrink-0">
                     <x-theme-toggle />
                     @auth
                         @can('admin.panel')
-                            <a href="{{ route('dashboard') }}"
-                                class="text-slate-300 hover:text-emerald-400 font-medium transition duration-300">Dasbor</a>
+                            <a href="{{ route('dashboard') }}" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium text-sm transition">Dasbor</a>
                         @endcan
-                        <a href="{{ route('profile.edit') }}"
-                            class="text-slate-300 hover:text-emerald-400 font-medium transition duration-300">Profil</a>
+                        <a href="{{ route('profile.edit') }}" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium text-sm transition">Profil</a>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
-                            <button type="submit"
-                                class="text-slate-300 hover:text-red-400 font-medium transition duration-300">Keluar</button>
+                            <button type="submit" class="text-slate-600 dark:text-slate-300 hover:text-red-600 dark:hover:text-red-400 font-medium text-sm transition">Keluar</button>
                         </form>
                     @else
-                        <a href="/admin" class="text-slate-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest">Admin Portal</a>
-                        <div class="h-4 w-[1px] bg-slate-800 mx-2"></div>
-                        <a href="{{ route('login') }}" 
-                           class="text-slate-300 hover:text-white hover:bg-slate-800/50 px-4 py-2 rounded-lg font-bold transition-all duration-300">
-                            Masuk
-                        </a>
+                        <a href="/admin" class="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs font-bold uppercase tracking-widest transition">Admin</a>
+                        <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
+                        <a href="{{ route('login') }}" class="text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-2 rounded-lg font-bold text-sm transition">Masuk</a>
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}"
-                                class="inline-flex items-center justify-center px-6 py-2 overflow-hidden text-sm font-bold rounded-xl text-white bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] transition-all transform hover:-translate-y-0.5">
-                                Daftar
-                            </a>
+                            <a href="{{ route('register') }}" class="inline-flex items-center px-5 py-2 text-sm font-bold rounded-xl text-white bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 shadow-md transition">Daftar</a>
                         @endif
                     @endauth
                 </div>
+
+                <!-- Mobile: theme + hamburger -->
+                <div class="flex md:hidden items-center gap-2 shrink-0">
+                    <x-theme-toggle />
+                    <button type="button" @click="navOpen = !navOpen" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" aria-label="Menu">
+                        <svg x-show="!navOpen" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                        <svg x-show="navOpen" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
+        </div>
+
+        <!-- Mobile dropdown -->
+        <div x-show="navOpen" x-cloak x-transition class="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-4 space-y-2">
+            @auth
+                @can('admin.panel')
+                    <a href="{{ route('dashboard') }}" class="block px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Dasbor</a>
+                @endcan
+                <a href="{{ route('portal.ticket.create') }}" class="block px-4 py-3 rounded-xl text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">Laporkan Insiden</a>
+                <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
+                <a href="{{ route('profile.edit') }}" class="block px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Profil</a>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="w-full text-left px-4 py-3 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition">Keluar</button>
+                </form>
+            @else
+                <a href="{{ route('login') }}" class="block px-4 py-3 rounded-xl text-center font-bold text-white bg-gradient-to-r from-emerald-600 to-blue-600 transition">Masuk / Login untuk Lapor</a>
+                @if (Route::has('register'))
+                    <a href="{{ route('register') }}" class="block px-4 py-3 rounded-xl text-center font-bold text-emerald-700 dark:text-emerald-300 border-2 border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">Daftar Akun Baru</a>
+                @endif
+                <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
+                <a href="/admin" class="block px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition">Admin Portal</a>
+            @endauth
         </div>
     </nav>
 
@@ -151,10 +183,10 @@
     @endif
 
     <!-- Hero Section -->
-    <div class="relative py-20 lg:py-32 overflow-hidden z-10">
+    <div class="relative py-12 sm:py-16 md:py-20 lg:py-32 overflow-hidden z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
-                <div class="inline-flex items-center justify-center px-4 py-1.5 mb-8 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-sm font-semibold uppercase tracking-wider backdrop-blur-md shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                <div class="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 mb-6 sm:mb-8 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm font-semibold uppercase tracking-wider backdrop-blur-md">
                     <span class="relative flex h-2 w-2 mr-2">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -162,19 +194,19 @@
                     Sistem Pelaporan Aktif
                 </div>
                 
-                <h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight">
+                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold mb-4 sm:mb-6 tracking-tight leading-tight px-1">
                     <span class="text-slate-900 dark:text-white transition-colors">Pusat Keamanan Siber</span><br/>
-                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 dark:from-emerald-400 via-teal-500 dark:via-teal-300 to-blue-600 dark:to-blue-500 glow-text">
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 dark:from-emerald-400 via-teal-500 dark:via-teal-300 to-blue-600 dark:to-blue-500">
                         Pemerintah Kalsel
                     </span>
                 </h1>
                 
-                <p class="text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto font-medium transition-colors">
+                <p class="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-8 sm:mb-10 max-w-3xl mx-auto font-medium transition-colors px-2">
                     Infrastruktur pelaporan insiden keamanan siber yang dilindungi oleh <span class="text-emerald-600 dark:text-emerald-400 font-bold border-b border-emerald-500 border-dashed">Zero Trust Security Architecture</span>.
                 </p>
 
                 <!-- CTA Buttons -->
-                <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-stretch sm:items-center max-w-md sm:max-w-none mx-auto px-2 sm:px-0">
                     @auth
                         <a href="{{ route('portal.ticket.create') }}"
                             class="group relative inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all duration-200 bg-emerald-600 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:bg-emerald-500 hover:-translate-y-1 w-full sm:w-auto">
@@ -203,7 +235,7 @@
                         </a>
                     @endauth
                     <a href="{{ route('portal.ticket.status.form') }}"
-                        class="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-emerald-400 transition-all duration-200 bg-transparent border-2 border-emerald-500/50 rounded-xl hover:bg-emerald-500/10 hover:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-600 hover:-translate-y-1 w-full sm:w-auto">
+                        class="inline-flex items-center justify-center px-6 sm:px-8 py-3.5 sm:py-4 text-base font-bold text-emerald-700 dark:text-emerald-400 transition-all duration-200 bg-transparent border-2 border-emerald-500/50 rounded-xl hover:bg-emerald-500/10 hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-600 w-full sm:w-auto">
                         <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -259,8 +291,8 @@
     </div>
 
     <!-- Live Intelligence & Stats Section -->
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-slate-50 dark:bg-slate-900/50 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-xl dark:shadow-2xl mb-20 transition-all">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 bg-slate-50 dark:bg-slate-900/50 rounded-2xl sm:rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-xl dark:shadow-2xl mb-12 sm:mb-20 transition-all">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
             <!-- Left: Chart -->
             <div>
                 <div class="flex items-center space-x-3 mb-8">
@@ -277,7 +309,7 @@
 
             <!-- Right: Live Intel -->
             <div>
-                <div class="flex items-center justify-between mb-8">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
                     <div class="flex items-center space-x-3">
                         <div class="w-10 h-10 bg-red-100 dark:bg-red-500/20 rounded-lg flex items-center justify-center shadow-sm">
                             <span class="relative flex h-3 w-3">
@@ -285,7 +317,7 @@
                                 <span class="relative inline-flex rounded-full h-3 w-3 bg-red-600 dark:bg-red-500"></span>
                             </span>
                         </div>
-                        <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight uppercase transition-colors">Global Threat <span class="text-red-600 dark:text-red-500">Intel</span></h2>
+                        <h2 class="text-lg sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight uppercase transition-colors">Global Threat <span class="text-red-600 dark:text-red-500">Intel</span></h2>
                     </div>
                     <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 py-1 border border-slate-200 dark:border-slate-800 rounded-full transition-colors">Secure Feed</span>
                 </div>
@@ -331,7 +363,7 @@
                     <div class="text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase text-sm transition-colors">Monitoring Aktif</div>
                 </div>
                 <div class="py-4">
-                    <div class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-400 dark:to-blue-600 mb-2 transition-all">< 1 Jam</div>
+                    <div class="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-blue-500 to-blue-700 dark:from-blue-400 dark:to-blue-600 mb-2 transition-all">&lt; 1 Jam</div>
                     <div class="text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase text-sm transition-colors">Rata-rata Respon</div>
                 </div>
                 <div class="py-4">
