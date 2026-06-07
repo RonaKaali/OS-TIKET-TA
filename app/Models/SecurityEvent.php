@@ -85,5 +85,17 @@ class SecurityEvent extends Model
     {
         return $query->where('created_at', '>=', now()->subHours($hours));
     }
+
+    /**
+     * Sembunyikan event polling/heartbeat yang membanjiri feed monitoring.
+     */
+    public function scopeExcludeNoise($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('message', 'not like', '%security-events/latest%')
+                ->where('message', 'not like', '%session/check%')
+                ->where('message', 'not like', '%zero-trust/gps%');
+        });
+    }
 }
 

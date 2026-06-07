@@ -12,6 +12,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @include('partials.zero-trust-meta')
 
     <title>{{ config('app.name', 'CSIRT Kalselprov') }}</title>
 

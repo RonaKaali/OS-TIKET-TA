@@ -31,8 +31,9 @@ class SecurityDashboardController extends Controller
     public function getLatestEvents()
     {
         $events = SecurityEvent::with('user:id,name,email')
+            ->excludeNoise()
             ->orderBy('created_at', 'desc')
-            ->limit(20)
+            ->limit(30)
             ->get()
             ->map(function ($event) {
                 $context = is_array($event->context) ? $event->context : [];

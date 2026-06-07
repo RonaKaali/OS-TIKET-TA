@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Services\MfaService;
+use App\Services\SecurityEventLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,7 +14,8 @@ use Illuminate\View\View;
 class AuthenticatedSessionController extends Controller
 {
     public function __construct(
-        protected MfaService $mfaService
+        protected MfaService $mfaService,
+        protected SecurityEventLogService $securityLog
     ) {}
 
     /**
@@ -59,6 +61,8 @@ class AuthenticatedSessionController extends Controller
 
         // Jika tidak ada MFA, lanjutkan dengan setup session normal
         $this->completeLogin($request, $user);
+
+        $this->securityLog->logAuthentication('login', $user->id, true, "Login berhasil: {$user->email}");
 
         // Redirect sesuai permission
         if ($user->can('admin.panel')) {

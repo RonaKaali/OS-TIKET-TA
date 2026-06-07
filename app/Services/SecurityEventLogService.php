@@ -201,6 +201,8 @@ class SecurityEventLogService
      */
     public function logAuthentication(string $type, ?int $userId, bool $success, string $message = ''): void
     {
+        $gps = request()->session()->get('zero_trust_gps');
+
         $this->logEvent([
             'user_id' => $userId,
             'event_type' => "auth_{$type}",
@@ -209,6 +211,8 @@ class SecurityEventLogService
             'context' => [
                 'success' => $success,
                 'type' => $type,
+                'ip' => request()->ip(),
+                'gps' => $gps,
             ],
         ]);
     }

@@ -165,6 +165,10 @@ class ZeroTrustVerification
             $this->validateSession($request, $user);
 
             // 4. Log access (untuk monitoring)
+            if ($this->shouldSkipLogging($request)) {
+                return $next($request);
+            }
+
             $accessContext = $request->get('access_context', []);
             $riskScore = $request->get('risk_score');
             $deviceFingerprint = $request->get('device_fingerprint');
@@ -220,11 +224,33 @@ class ZeroTrustVerification
             'mfa/backup-codes',
             'mfa/disable',
             'device/verify', // Device verification page
-            'portal/ticket', // Portal pelaporan & detail tiket
+            'zero-trust/gps', // Endpoint penyimpanan GPS (hindari log berulang tanpa koordinat)
+            'admin/api/security-events/latest', // Polling dashboard admin
+            'session/check', // Heartbeat session
             'up', // Health check
         ];
 
         foreach ($skipPaths as $path) {
+            if ($request->is($path) || $request->is($path . '/*')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Route yang tetap diverifikasi Zero Trust tetapi tidak dicatat ke security feed.
+     */
+    protected function shouldSkipLogging(Request $request): bool
+    {
+        $skipLoggingPaths = [
+            'zero-trust/gps',
+            'admin/api/security-events/latest',
+            'session/check',
+        ];
+
+        foreach ($skipLoggingPaths as $path) {
             if ($request->is($path) || $request->is($path . '/*')) {
                 return true;
             }

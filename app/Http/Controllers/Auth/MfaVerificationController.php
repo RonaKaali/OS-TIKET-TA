@@ -104,6 +104,7 @@ class MfaVerificationController extends Controller
         // Log successful MFA verification
         $logService = app(\App\Services\SecurityEventLogService::class);
         $logService->logAuthentication('mfa_totp', $user->id, true, 'MFA verification successful');
+        $logService->logAuthentication('login', $user->id, true, "Login berhasil (setelah MFA): {$user->email}");
 
         // Redirect sesuai permission
         if ($user->can('admin.panel')) {
@@ -166,6 +167,7 @@ class MfaVerificationController extends Controller
         // Log successful MFA verification dengan jenis backup code
         $logService = app(\App\Services\SecurityEventLogService::class);
         $logService->logAuthentication('mfa_backup_code', $user->id, true, 'MFA backup code verification successful');
+        $logService->logAuthentication('login', $user->id, true, "Login berhasil (setelah MFA backup): {$user->email}");
 
         // Redirect sesuai permission
         if ($user->can('admin.panel')) {
