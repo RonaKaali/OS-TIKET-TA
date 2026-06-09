@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Ticket, User, Status};
+use App\Support\RoleUi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +26,7 @@ class AssignmentController extends Controller
 
         // Validasi bahwa user yang dipilih harus memiliki permission admin.panel
         // atau memiliki role yang relevan (Agent, Admin, Super Admin)
-        if (!$agent->can('admin.panel') && !$agent->hasAnyRole(['Super Admin', 'Admin', 'Agent', 'Support Agent'])) {
+        if (!$agent->can('admin.panel') && !$agent->hasAnyRole(RoleUi::ASSIGNABLE_AGENT_ROLES)) {
             return back()->withErrors(['user_id' => 'User yang dipilih tidak memiliki akses sebagai agent.']);
         }
 
@@ -33,7 +34,10 @@ class AssignmentController extends Controller
         $ticket->load(['status', 'priority', 'department']);
 
         // Update assignment
-        $ticket->update(['assigned_to' => $agent->id]);
+        $ticket->update([
+            'assigned_to' => $agent->id,
+            'assigned_at' => now(),
+        ]);
 
         // Update status menjadi "assigned" jika ada
         if ($assignedStatus = Status::where('slug', 'assigned')->first()) {

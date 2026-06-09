@@ -49,7 +49,7 @@
                             </div>
                             <div class="hidden md:block">
                                 <div class="text-sm font-black text-slate-900 dark:text-white tracking-wider uppercase leading-none mb-1 transition-colors">CSIRT <span class="text-emerald-600 dark:text-emerald-400">Kalselprov</span></div>
-                                <div class="text-[10px] text-emerald-600 dark:text-emerald-500 font-bold uppercase tracking-[0.2em] transition-colors">Agen & Analis Portal</div>
+                                <div class="text-[10px] text-emerald-600 dark:text-emerald-500 font-bold uppercase tracking-[0.2em] transition-colors">{{ \App\Support\RoleUi::portalLabel(Auth::user()) }}</div>
                             </div>
                         </a>
                         
@@ -58,15 +58,30 @@
                                 class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 {{ request()->routeIs('agent.dashboard') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                 Dasbor
                             </a>
+                            @if(\App\Support\RoleUi::canManageAllTickets(Auth::user()) || \App\Support\RoleUi::isFieldAgent(Auth::user()))
                             <a href="{{ route('agent.tickets.index') }}"
                                 class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 {{ request()->routeIs('agent.tickets.*') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                Tiket Laporan
+                                @if(\App\Support\RoleUi::isFieldAgent(Auth::user()) && !\App\Support\RoleUi::canManageAllTickets(Auth::user()))
+                                    Tiket Saya
+                                @else
+                                    Tiket Laporan
+                                @endif
                             </a>
+                            @endif
                             @role('Super Admin')
                             <a href="{{ route('admin.index') }}"
                                 class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 border border-blue-500/20">
                                 Panel Admin
                             </a>
+                            <a href="{{ route('admin.security.dashboard') }}"
+                                class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20">
+                                Zero Trust
+                            </a>
+                            @endrole
+                            @role('Admin')
+                            <span class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                                Mode Penugasan
+                            </span>
                             @endrole
                         </div>
                     </div>
@@ -134,7 +149,15 @@
             <div :class="{'block': open, 'hidden': !open}" class="hidden sm:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 transition-colors">
                 <div class="pt-4 pb-6 space-y-2 px-4">
                     <a href="{{ route('agent.dashboard') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors">Dasbor</a>
-                    <a href="{{ route('agent.tickets.index') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors">Tiket Laporan</a>
+                    @if(\App\Support\RoleUi::canManageAllTickets(Auth::user()) || \App\Support\RoleUi::isFieldAgent(Auth::user()))
+                    <a href="{{ route('agent.tickets.index') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors">
+                        {{ \App\Support\RoleUi::isFieldAgent(Auth::user()) && !\App\Support\RoleUi::canManageAllTickets(Auth::user()) ? 'Tiket Saya' : 'Tiket Laporan' }}
+                    </a>
+                    @endif
+                    @role('Super Admin')
+                    <a href="{{ route('admin.index') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-blue-600 dark:text-blue-400 transition-colors">Panel Admin</a>
+                    <a href="{{ route('admin.security.dashboard') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-emerald-600 dark:text-emerald-400 transition-colors">Zero Trust</a>
+                    @endrole
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-red-500 dark:text-red-400 transition-colors">Keluar Sistem</button>
@@ -185,6 +208,8 @@
         <div class="fixed bottom-0 right-0 p-4 z-0 opacity-5 pointer-events-none">
             <div class="text-[120px] font-black select-none tracking-tighter">SECURED</div>
         </div>
+
+        <x-new-assignment-popup />
     </div>
 </body>
 

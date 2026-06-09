@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agent;
 use App\Http\Controllers\Controller;
 use App\Models\{Ticket, TicketThread, Status, Attachment, CannedResponse};
 use App\Services\FileEncryptionService;
+use App\Support\RoleUi;
 use App\Traits\LoggableActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
@@ -40,8 +41,8 @@ class TicketController extends Controller
             });
         }
 
-        // Batasi untuk agen biasa: hanya lihat tiket yang ditugaskan kepadanya
-        if (!$r->user()->hasAnyRole(['Super Admin', 'Admin'])) {
+        // Batasi untuk agen lapangan: hanya lihat tiket yang ditugaskan kepadanya
+        if (!RoleUi::canManageAllTickets($r->user())) {
             $q->where('assigned_to', $r->user()->id);
         }
 
@@ -61,15 +62,13 @@ class TicketController extends Controller
         $ticket->load(['threads.attachments', 'status', 'priority', 'department', 'assignee', 'requester']);
 
         // Cegah agen melihat tiket yang bukan miliknya, kecuali admin/super admin
-        if (!request()->user()->hasAnyRole(['Super Admin', 'Admin']) && $ticket->assigned_to !== request()->user()->id) {
+        if (!RoleUi::canManageAllTickets(request()->user()) && $ticket->assigned_to !== request()->user()->id) {
             abort(403);
         }
 
-        // Ambil daftar agent yang bisa ditugaskan (hanya yang punya permission admin.panel)
-        $agents = \App\Models\User::whereHas('permissions', function ($q) {
-            $q->where('permissions.name', 'admin.panel');
-        })->orWhereHas('roles', function ($q) {
-            $q->whereIn('roles.name', ['Super Admin', 'Admin', 'Agent', 'Support Agent']);
+        // Daftar agen yang bisa ditugaskan
+        $agents = \App\Models\User::whereHas('roles', function ($q) {
+            $q->whereIn('roles.name', RoleUi::ASSIGNABLE_AGENT_ROLES);
         })->with('roles')->get()->unique('id');
 
         // Ambil daftar canned responses untuk dipilih agent

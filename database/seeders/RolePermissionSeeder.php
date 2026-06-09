@@ -84,9 +84,19 @@ class RolePermissionSeeder extends Seeder
                 'admin.panel',
                 'tickets.view',
                 'tickets.update',
-                'tickets.assign',
+            ],
+            'Agent 1' => [
+                'admin.panel',
+                'tickets.view',
+                'tickets.update',
+            ],
+            'Agent 2' => [
+                'admin.panel',
+                'tickets.view',
+                'tickets.update',
             ],
             'Support Agent' => [
+                'admin.panel',
                 'tickets.view',
                 'tickets.update',
             ],

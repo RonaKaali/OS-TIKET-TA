@@ -5,6 +5,7 @@ use App\Http\Controllers\Agent\{
     DashboardController as AgentDashboard,
     TicketController as AgentTicket,
     AssignmentController as AgentAssignment,
+    NewAssignmentController as AgentNewAssignment,
     NoteController as AgentNote
 };
 use App\Http\Controllers\Admin\{
@@ -57,14 +58,20 @@ Route::middleware(['auth', 'permission:admin.panel'])->get('/dashboard', functio
 # Panel Agen
 Route::middleware(['auth', 'permission:admin.panel'])->prefix('agent')->group(function () {
     Route::get('/', AgentDashboard::class)->name('agent.dashboard');
-    Route::get('/tickets', [AgentTicket::class, 'index'])->name('agent.tickets.index');
-    Route::get('/tickets/{ticket}', [AgentTicket::class, 'show'])->name('agent.tickets.show');
-    Route::post('/tickets/{ticket}/reply', [AgentTicket::class, 'reply'])->name('agent.tickets.reply');
-    Route::post('/tickets/{ticket}/status', [AgentTicket::class, 'setStatus'])->name('agent.tickets.status');
+    Route::get('/assignments/pending', [AgentNewAssignment::class, 'index'])->name('agent.assignments.pending');
+    Route::post('/assignments/acknowledge', [AgentNewAssignment::class, 'acknowledge'])->name('agent.assignments.acknowledge');
+
+    Route::middleware('assignments.acknowledged')->group(function () {
+        Route::get('/tickets', [AgentTicket::class, 'index'])->name('agent.tickets.index');
+        Route::get('/tickets/{ticket}', [AgentTicket::class, 'show'])->name('agent.tickets.show');
+        Route::post('/tickets/{ticket}/reply', [AgentTicket::class, 'reply'])->name('agent.tickets.reply');
+        Route::post('/tickets/{ticket}/status', [AgentTicket::class, 'setStatus'])->name('agent.tickets.status');
+        Route::post('/tickets/{ticket}/note', AgentNote::class)->name('agent.tickets.note');
+    });
+
     Route::post('/tickets/{ticket}/assign', AgentAssignment::class)
         ->name('agent.tickets.assign')
         ->middleware('permission:tickets.assign');
-    Route::post('/tickets/{ticket}/note', AgentNote::class)->name('agent.tickets.note');
 });
 
 # Panel Admin (Hanya Super Admin)

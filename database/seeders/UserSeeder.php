@@ -60,11 +60,11 @@ class UserSeeder extends Seeder
             ]
         );
 
-        if (!$agent->hasRole('Agent')) {
-            $agent->assignRole('Agent');
-            $this->command->info('✓ Agent created and assigned role');
+        if (!$agent->hasRole('Agent 1')) {
+            $agent->syncRoles(['Agent 1']);
+            $this->command->info('✓ Agent 1 created and assigned role');
         } else {
-            $this->command->info('✓ Agent already exists');
+            $this->command->info('✓ Agent 1 already exists');
         }
 
         // 4. Support Agent
@@ -94,8 +94,8 @@ class UserSeeder extends Seeder
             ]
         );
 
-        if (!$agent2->hasRole('Agent')) {
-            $agent2->assignRole('Agent');
+        if (!$agent2->hasRole('Agent 2')) {
+            $agent2->syncRoles(['Agent 2']);
             $this->command->info('✓ Agent 2 created and assigned role');
         }
 
@@ -111,7 +111,7 @@ class UserSeeder extends Seeder
         $this->command->info('  Email: admin1@csirt.kalselprov.go.id');
         $this->command->info('  Password: password');
         $this->command->info('');
-        $this->command->info('Agent:');
+        $this->command->info('Agent 1:');
         $this->command->info('  Email: agent@csirt.kalselprov.go.id');
         $this->command->info('  Password: password');
         $this->command->info('');
