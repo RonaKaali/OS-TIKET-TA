@@ -20,12 +20,6 @@ class EnforceAccessRevocation
             return $next($request);
         }
 
-        // Skip cek revokasi di halaman MFA verify — stampSession belum dipanggil
-        // saat user baru login dan diarahkan ke MFA, session belum di-stamp
-        if ($request->is('mfa/verify') || $request->is('mfa/verify-backup') || $request->is('mfa/verify/*')) {
-            return $next($request);
-        }
-
         $user = Auth::user();
         $user->refresh();
 
