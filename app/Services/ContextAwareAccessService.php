@@ -233,7 +233,7 @@ class ContextAwareAccessService
         }
 
         try {
-            if (!class_exists(\GeoIp2\Database\Reader::class)) {
+            if (!class_exists(\GeoIp2\Database\Reader::class) || !is_readable($dbPath)) {
                 \Log::warning('GeoIP package not found or Reader class missing.');
                 return $location;
             }

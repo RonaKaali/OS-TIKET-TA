@@ -19,12 +19,13 @@ class CheckUserActivity
         if (Auth::check()) {
             $user = Auth::user();
             $lastActivity = $request->session()->get('last_activity');
-            $inactiveTimeout = config('auth.session_timeout', 3); // Mengambil dari config, default 3 menit
+            $inactiveTimeout = (int) config('auth.session_timeout', 3); 
 
             // Jika ada last_activity, cek apakah sudah melewati timeout
             if ($lastActivity) {
                 try {
-                    $lastActivityTime = \Carbon\Carbon::parse($lastActivity);
+                    // Gunakan cache atau session dengan format yang aman
+                    $lastActivityTime = \Illuminate\Support\Carbon::parse($lastActivity);
                     $minutesSinceLastActivity = now()->diffInMinutes($lastActivityTime);
 
                     // Jika sudah lebih dari 3 menit tanpa aktivitas, logout
@@ -39,7 +40,7 @@ class CheckUserActivity
                         }
 
                         Auth::logout();
-                        $request->session()->invalidate();
+                        $request->session()->flush();
                         $request->session()->regenerateToken();
 
                         return redirect()->route('login')

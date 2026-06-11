@@ -1,59 +1,94 @@
 @if(\App\Support\RoleUi::isFieldAgent(auth()->user()))
-<div id="assignment-popup-root" class="fixed inset-0 z-[100] hidden" aria-modal="true" role="dialog">
-    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" id="assignment-popup-backdrop"></div>
-    <div class="relative flex min-h-full items-center justify-center p-4">
-        <div class="w-full max-w-lg bg-white dark:bg-slate-900 border border-amber-500/30 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn">
-            <div class="px-6 py-5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-b border-amber-500/20 flex items-start gap-4">
-                <div class="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                </div>
-                <div>
-                    <h2 class="text-lg font-black text-slate-900 dark:text-white uppercase tracking-wide">Surat Tugas Baru</h2>
-                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Admin menugaskan tiket kepada Anda. Konfirmasi untuk mulai mengerjakan.</p>
-                </div>
-            </div>
-            <div id="assignment-popup-list" class="px-6 py-4 space-y-3 max-h-64 overflow-y-auto"></div>
-            <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row gap-3">
-                <button type="button" id="assignment-popup-confirm"
-                    class="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl uppercase tracking-widest transition-colors">
-                    Saya Siap Mengerjakan
-                </button>
-                <button type="button" id="assignment-popup-later"
-                    class="px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-black rounded-xl uppercase tracking-widest transition-colors">
-                    Nanti
-                </button>
-            </div>
+<div id="assignment-notification-root" class="fixed top-4 right-4 z-50">
+    <!-- Bell Icon with Badge -->
+    <button id="assignment-bell-btn" type="button" class="relative p-2 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl transition-all hover:scale-110"
+        aria-label="Notifikasi surat tugas">
+        <svg class="w-6 h-6 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <span id="assignment-badge" class="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs font-black rounded-full flex items-center justify-center hidden">0</span>
+    </button>
+
+    <!-- Dropdown Panel -->
+    <div id="assignment-dropdown" class="absolute top-full right-0 mt-2 w-80 max-h-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl overflow-hidden hidden">
+        <div class="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-amber-500/10 to-orange-500/10">
+            <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Surat Tugas Baru</h3>
+        </div>
+        <div id="assignment-list" class="divide-y divide-slate-100 dark:divide-slate-700 max-h-64 overflow-y-auto"></div>
+        <div id="assignment-empty" class="p-6 text-center text-slate-500 dark:text-slate-400 text-sm font-bold">
+            Tidak ada surat tugas baru
+        </div>
+        <div class="px-4 py-3 border-t border-slate-200 dark:border-slate-700 flex gap-2">
+            <button type="button" id="assignment-confirm-all"
+                class="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-lg uppercase tracking-widest transition-colors hidden">
+                Konfirmasi Semua
+            </button>
+            <button type="button" id="assignment-close"
+                class="flex-1 px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-black rounded-lg uppercase tracking-widest transition-colors">
+                Tutup
+            </button>
         </div>
     </div>
 </div>
+
 <script>
 (function () {
-    const root = document.getElementById('assignment-popup-root');
-    if (!root) return;
-
-    const listEl = document.getElementById('assignment-popup-list');
-    const confirmBtn = document.getElementById('assignment-popup-confirm');
-    const laterBtn = document.getElementById('assignment-popup-later');
+    const bellBtn = document.getElementById('assignment-bell-btn');
+    const dropdown = document.getElementById('assignment-dropdown');
+    const badge = document.getElementById('assignment-badge');
+    const listEl = document.getElementById('assignment-list');
+    const emptyEl = document.getElementById('assignment-empty');
+    const confirmAllBtn = document.getElementById('assignment-confirm-all');
+    const closeBtn = document.getElementById('assignment-close');
     let pendingItems = [];
+    let isOpen = false;
 
     function csrfToken() {
         return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     }
 
-    function showPopup(items) {
-        if (!items.length) {
-            root.classList.add('hidden');
+    function updateBadge() {
+        if (pendingItems.length > 0) {
+            badge.textContent = pendingItems.length;
+            badge.classList.remove('hidden');
+            confirmAllBtn.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+            confirmAllBtn.classList.add('hidden');
+        }
+    }
+
+    function renderList() {
+        if (pendingItems.length === 0) {
+            listEl.innerHTML = '';
+            emptyEl.classList.remove('hidden');
             return;
         }
-        pendingItems = items;
-        listEl.innerHTML = items.map(item => `
-            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                <div class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">${item.ticket_number}</div>
-                <div class="font-bold text-slate-900 dark:text-white text-sm mt-1">${item.subject}</div>
-                <div class="text-[10px] text-slate-500 mt-2 uppercase tracking-widest">${item.priority || '—'} · ${item.status || '—'} · ${item.assigned_at}</div>
+        
+        emptyEl.classList.add('hidden');
+        listEl.innerHTML = pendingItems.map((item, idx) => `
+            <div class="px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="flex-1">
+                        <div class="text-xs font-black text-emerald-600 dark:text-emerald-400">${item.ticket_number}</div>
+                        <div class="font-bold text-slate-900 dark:text-white text-sm mt-0.5">${item.subject}</div>
+                        <div class="text-xs text-slate-500 mt-1">${item.priority || '—'} · ${item.status || '—'}</div>
+                    </div>
+                    <a href="${item.url}" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black rounded transition-colors whitespace-nowrap">
+                        Lihat
+                    </a>
+                </div>
             </div>
         `).join('');
-        root.classList.remove('hidden');
+    }
+
+    function toggleDropdown() {
+        isOpen = !isOpen;
+        if (isOpen) {
+            dropdown.classList.remove('hidden');
+        } else {
+            dropdown.classList.add('hidden');
+        }
     }
 
     async function poll() {
@@ -64,17 +99,14 @@
             });
             if (!res.ok) return;
             const data = await res.json();
-            if (data.count > 0) {
-                showPopup(data.assignments);
-            } else {
-                root.classList.add('hidden');
-            }
+            pendingItems = data.assignments || [];
+            updateBadge();
+            if (isOpen) renderList();
         } catch (e) { /* ignore */ }
     }
 
-    async function acknowledge(redirectUrl) {
-        const ids = pendingItems.map(i => i.id);
-        if (!ids.length) return;
+    async function acknowledge(ticketIds) {
+        if (!ticketIds.length) return;
         await fetch('{{ route('agent.assignments.acknowledge') }}', {
             method: 'POST',
             headers: {
@@ -84,20 +116,31 @@
                 'X-Requested-With': 'XMLHttpRequest',
             },
             credentials: 'same-origin',
-            body: JSON.stringify({ ticket_ids: ids }),
+            body: JSON.stringify({ ticket_ids: ticketIds }),
         });
-        root.classList.add('hidden');
-        if (redirectUrl) {
-            window.location.href = redirectUrl;
-        } else if (pendingItems.length === 1) {
-            window.location.href = pendingItems[0].url;
-        } else {
-            window.location.href = '{{ route('agent.tickets.index') }}';
-        }
+        pendingItems = [];
+        updateBadge();
+        renderList();
     }
 
-    confirmBtn?.addEventListener('click', () => acknowledge(null));
-    laterBtn?.addEventListener('click', () => root.classList.add('hidden'));
+    bellBtn?.addEventListener('click', () => {
+        toggleDropdown();
+        if (isOpen) renderList();
+    });
+
+    closeBtn?.addEventListener('click', () => toggleDropdown());
+
+    confirmAllBtn?.addEventListener('click', () => {
+        const ids = pendingItems.map(i => i.id);
+        acknowledge(ids);
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#assignment-notification-root')) {
+            if (isOpen) toggleDropdown();
+        }
+    });
 
     poll();
     setInterval(poll, 20000);

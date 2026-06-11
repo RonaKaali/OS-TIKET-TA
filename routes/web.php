@@ -61,13 +61,11 @@ Route::middleware(['auth', 'permission:admin.panel'])->prefix('agent')->group(fu
     Route::get('/assignments/pending', [AgentNewAssignment::class, 'index'])->name('agent.assignments.pending');
     Route::post('/assignments/acknowledge', [AgentNewAssignment::class, 'acknowledge'])->name('agent.assignments.acknowledge');
 
-    Route::middleware('assignments.acknowledged')->group(function () {
-        Route::get('/tickets', [AgentTicket::class, 'index'])->name('agent.tickets.index');
-        Route::get('/tickets/{ticket}', [AgentTicket::class, 'show'])->name('agent.tickets.show');
-        Route::post('/tickets/{ticket}/reply', [AgentTicket::class, 'reply'])->name('agent.tickets.reply');
-        Route::post('/tickets/{ticket}/status', [AgentTicket::class, 'setStatus'])->name('agent.tickets.status');
-        Route::post('/tickets/{ticket}/note', AgentNote::class)->name('agent.tickets.note');
-    });
+    Route::get('/tickets', [AgentTicket::class, 'index'])->name('agent.tickets.index');
+    Route::get('/tickets/{ticket}', [AgentTicket::class, 'show'])->name('agent.tickets.show');
+    Route::post('/tickets/{ticket}/reply', [AgentTicket::class, 'reply'])->name('agent.tickets.reply');
+    Route::post('/tickets/{ticket}/status', [AgentTicket::class, 'setStatus'])->name('agent.tickets.status');
+    Route::post('/tickets/{ticket}/note', AgentNote::class)->name('agent.tickets.note');
 
     Route::post('/tickets/{ticket}/assign', AgentAssignment::class)
         ->name('agent.tickets.assign')

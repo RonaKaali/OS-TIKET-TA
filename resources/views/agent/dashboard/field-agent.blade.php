@@ -8,15 +8,9 @@
                 </h2>
                 <p class="text-sm font-bold text-slate-500 dark:text-slate-400 mt-1">Surat tugas dan tiket yang ditugaskan kepada Anda</p>
             </div>
-            @if($stats['pending_ack'] > 0)
-                <div class="px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-black rounded-xl uppercase tracking-widest">
-                    {{ $stats['pending_ack'] }} surat tugas baru — konfirmasi popup
-                </div>
-            @elseif($myTickets->isNotEmpty())
-                <a href="{{ route('agent.tickets.index') }}" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl uppercase tracking-widest shadow-lg transition-all">
-                    Buka Tiket Saya
-                </a>
-            @endif
+            <a href="{{ route('agent.tickets.index') }}" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl uppercase tracking-widest shadow-lg transition-all">
+                Buka Tiket Saya
+            </a>
         </div>
     </x-slot>
 
@@ -58,14 +52,10 @@
                                 {{ $ticket->status?->name }} · {{ $ticket->priority?->name ?? '—' }}
                             </div>
                         </div>
-                        @if($stats['pending_ack'] === 0)
-                            <a href="{{ route('agent.tickets.show', $ticket) }}"
-                               class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black rounded-lg uppercase tracking-widest transition-colors shrink-0">
-                                Kerjakan
-                            </a>
-                        @else
-                            <span class="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">Konfirmasi surat tugas terlebih dahulu</span>
-                        @endif
+                        <a href="{{ route('agent.tickets.show', $ticket) }}"
+                           class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black rounded-lg uppercase tracking-widest transition-colors shrink-0">
+                            Kerjakan
+                        </a>
                     </div>
                 @endforeach
             </div>

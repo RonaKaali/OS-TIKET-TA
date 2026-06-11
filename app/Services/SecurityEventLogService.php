@@ -69,11 +69,22 @@ class SecurityEventLogService
         );
 
         try {
-            // Cobalah menulis ke channel khusus security
-            Log::channel('security')->info($logMessage, [
-                'context' => json_decode($event['context'], true),
-                'metadata' => json_decode($event['metadata'], true),
-            ]);
+            // Pastikan channel 'security' ada sebelum digunakan, jika tidak gunakan log default
+            $availableChannels = config('logging.channels', []);
+            
+            if (isset($availableChannels['security'])) {
+                Log::channel('security')->info($logMessage, [
+                    'context' => json_decode($event['context'], true),
+                    'metadata' => json_decode($event['metadata'], true),
+                ]);
+            } else {
+                // Fallback ke log utama (biasanya stderr di Vercel)
+                Log::info("[SECURITY] " . $logMessage, [
+                    'user_id' => $event['user_id'],
+                    'context' => json_decode($event['context'], true),
+                    'metadata' => json_decode($event['metadata'], true),
+                ]);
+            }
         } catch (\Exception $e) {
             // Jika di Vercel/Serverless penulisan file dilarang, 
             // fallback ke log utama (stderr/error_log) agar tetap muncul di dashboard Vercel
