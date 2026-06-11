@@ -254,22 +254,44 @@ class MfaService
      */
     protected function getUserSecret(User $user): ?string
     {
-        $user->refresh();
+        try {
+            $user->refresh();
 
-        if (empty($user->mfa_secret)) {
+            if (empty($user->mfa_secret)) {
+                return null;
+            }
+
+            return decrypt($user->mfa_secret);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            // Secret corrupt atau encrypted dengan APP_KEY lama
+            \Log::error('MFA secret decryption failed - auto-disabling MFA for user', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
+
+            // Auto-disable MFA yang corrupt untuk prevent login loop
+            try {
+                MfaSchema::clearMfaForUser($user->id);
+                $user->refresh();
+            } catch (\Exception $clearError) {
+                \Log::error('Failed to auto-clear corrupt MFA', [
+                    'user_id' => $user->id,
+                    'error' => $clearError->getMessage(),
+                ]);
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            \Log::error('Failed to get MFA secret from database', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
             return null;
         }
-
-        try {
-            return decrypt($user->mfa_secret);
-        } catch (\Exception $e) {
-            \Log::error('Failed to decrypt MFA secret from database', [
-                'user_id' => $user->id,
-                'message' => $e->getMessage(),
-            ]);
-        }
-
-        return null;
     }
 
     /**

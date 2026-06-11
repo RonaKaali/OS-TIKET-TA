@@ -84,6 +84,55 @@ class User extends Authenticatable
     }
 
     /**
+     * Override getAttribute untuk handle JSON decode errors
+     */
+    public function getAttribute($key)
+    {
+        try {
+            return parent::getAttribute($key);
+        } catch (\Throwable $e) {
+            // Jika JSON field corrupt, return empty array
+            if (in_array($key, ['mfa_backup_codes', 'ip_whitelist'])) {
+                \Log::warning("Corrupted JSON field: {$key} for user {$this->email}");
+                return [];
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Safe getter untuk mfa_backup_codes
+     */
+    public function getMfaBackupCodesAttribute(): array
+    {
+        $value = $this->attributes['mfa_backup_codes'] ?? null;
+        if (!$value) return [];
+        if (is_array($value)) return $value;
+        try {
+            return json_decode($value, true, 512, JSON_THROW_ON_ERROR) ?? [];
+        } catch (\Throwable $e) {
+            \Log::warning("Failed to decode mfa_backup_codes for {$this->email}", ['error' => $e->getMessage()]);
+            return [];
+        }
+    }
+
+    /**
+     * Safe getter untuk ip_whitelist
+     */
+    public function getIpWhitelistAttribute(): array
+    {
+        $value = $this->attributes['ip_whitelist'] ?? null;
+        if (!$value) return [];
+        if (is_array($value)) return $value;
+        try {
+            return json_decode($value, true, 512, JSON_THROW_ON_ERROR) ?? [];
+        } catch (\Throwable $e) {
+            \Log::warning("Failed to decode ip_whitelist for {$this->email}", ['error' => $e->getMessage()]);
+            return [];
+        }
+    }
+
+    /**
      * Accessor untuk telegram_username (alias dari nama_pengguna_telegram)
      */
     public function getTelegramUsernameAttribute()
@@ -201,8 +250,19 @@ class User extends Authenticatable
      */
     public function hasMfaEnabled(): bool
     {
-        return filter_var($this->mfa_enabled, FILTER_VALIDATE_BOOLEAN)
-            && !empty($this->mfa_secret);
+        try {
+            return filter_var($this->mfa_enabled, FILTER_VALIDATE_BOOLEAN)
+                && !empty($this->mfa_secret);
+        } catch (\Throwable $e) {
+            \Log::warning('hasMfaEnabled check failed', [
+                'user_id' => $this->id ?? 'unknown',
+                'email' => $this->email ?? 'unknown',
+                'error' => $e->getMessage(),
+            ]);
+            
+            // Fail safe - return false jika terjadi error
+            return false;
+        }
     }
 
     /**

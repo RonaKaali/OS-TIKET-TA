@@ -203,12 +203,23 @@ class ZeroTrustVerification
                 ],
             ]);
 
-        } catch (\Exception $e) {
-            // Log error tapi jangan block request (fail open untuk availability)
-            \Log::error('Zero Trust verification error: ' . $e->getMessage(), [
+        } catch (\Throwable $e) {
+            // Log error dengan detail lengkap untuk debugging
+            \Log::error('Zero Trust verification error', [
                 'user_id' => $user->id ?? null,
+                'user_email' => $user->email ?? null,
                 'path' => $request->path(),
+                'method' => $request->method(),
+                'ip' => $request->ip(),
+                'error' => $e->getMessage(),
+                'error_class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
             ]);
+            
+            // Fail open - jangan block user karena error sistem
+            // Lebih baik system tetap berfungsi daripada block semua user
         }
 
         return $next($request);
