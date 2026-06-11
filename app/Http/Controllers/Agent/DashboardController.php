@@ -17,21 +17,25 @@ class DashboardController extends Controller
     {
         $userId = Auth::id();
 
-        // Get tickets assigned to current agent
-        $allTickets = Ticket::where('assigned_to', $userId)->get();
-
-        // Calculate stats for this agent
-        $stats = [
-            'assigned' => $allTickets->where('status', 'open')->count(),
-            'in_progress' => $allTickets->where('status', 'in_progress')->count(),
-            'completed' => $allTickets->where('status', 'closed')->count(),
-        ];
-
-        // Get tickets to display (limit to 10 most recent)
+        // Get tickets assigned to current agent with relationships
         $tickets = Ticket::where('assigned_to', $userId)
+            ->with(['status', 'priority', 'department'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
+
+        // Calculate stats for this agent by checking status_id
+        $stats = [
+            'assigned' => Ticket::where('assigned_to', $userId)
+                ->whereHas('status', fn($q) => $q->where('slug', 'open'))
+                ->count(),
+            'in_progress' => Ticket::where('assigned_to', $userId)
+                ->whereHas('status', fn($q) => $q->where('slug', 'in_progress'))
+                ->count(),
+            'completed' => Ticket::where('assigned_to', $userId)
+                ->whereHas('status', fn($q) => $q->where('slug', 'closed'))
+                ->count(),
+        ];
 
         return view('agent.dashboard', compact('stats', 'tickets'));
     }
