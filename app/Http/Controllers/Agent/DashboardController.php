@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -14,21 +15,24 @@ class DashboardController extends Controller
 
     public function __invoke()
     {
-        // Hitung overdue menggunakan query SQL langsung (efisien, tidak load semua tiket ke memori)
-        // Kriteria overdue: belum tutup, punya due_at, dan sudah lewat lebih dari 7 hari kalender
-        // (7 hari kalender selalu mencakup minimal 5 hari kerja Senin-Jumat)
-        $overdueCount = Ticket::whereNull('closed_at')
-            ->whereNotNull('due_at')
-            ->where('due_at', '<', now()->subDays(7))
-            ->count();
+        $userId = Auth::id();
 
+        // Get tickets assigned to current agent
+        $allTickets = Ticket::where('assigned_to', $userId)->get();
+
+        // Calculate stats for this agent
         $stats = [
-            'open'     => Ticket::whereHas('status', fn($q) => $q->where('slug', 'open'))->count(),
-            'answered' => Ticket::whereHas('status', fn($q) => $q->where('slug', 'answered'))->count(),
-            'overdue'  => $overdueCount,
-            'closed'   => Ticket::whereHas('status', fn($q) => $q->where('slug', 'closed'))->count(),
+            'assigned' => $allTickets->where('status', 'open')->count(),
+            'in_progress' => $allTickets->where('status', 'in_progress')->count(),
+            'completed' => $allTickets->where('status', 'closed')->count(),
         ];
 
-        return view('agent.dashboard', compact('stats'));
+        // Get tickets to display (limit to 10 most recent)
+        $tickets = Ticket::where('assigned_to', $userId)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        return view('agent.dashboard', compact('stats', 'tickets'));
     }
 }
