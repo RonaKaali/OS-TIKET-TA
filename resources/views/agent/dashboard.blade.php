@@ -106,18 +106,18 @@
                 </div>
                 <div id="tickets-container" class="divide-y divide-slate-100 dark:divide-slate-700/50">
                     @forelse($tickets as $ticket)
-                    <div class="p-6 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer group" onclick="window.location.href='{{ route('agent.tickets.show', $ticket->id) }}'">
+                    <div class="p-6 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer group" onclick="window.location.href='{{ route('agent.tickets.show', $ticket->ticket_number) }}'">
                         <div class="flex items-start justify-between mb-3">
                             <div class="flex-1">
-                                <h4 class="text-sm font-black text-slate-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ $ticket->title }}</h4>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">Tiket #{{ $ticket->id }}</p>
+                                <h4 class="text-sm font-black text-slate-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{{ $ticket->subject }}</h4>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Tiket #{{ $ticket->ticket_number }}</p>
                             </div>
                             <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest 
-                                {{ $ticket->status === 'open' ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400' : '' }}
-                                {{ $ticket->status === 'in_progress' ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400' : '' }}
-                                {{ $ticket->status === 'closed' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400' : '' }}
+                                {{ $ticket->status->slug === 'open' ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400' : '' }}
+                                {{ $ticket->status->slug === 'in_progress' ? 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400' : '' }}
+                                {{ $ticket->status->slug === 'closed' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400' : '' }}
                             ">
-                                @switch($ticket->status)
+                                @switch($ticket->status->slug)
                                     @case('open')
                                         Terbuka
                                         @break
@@ -128,11 +128,11 @@
                                         Selesai
                                         @break
                                     @default
-                                        {{ $ticket->status }}
+                                        {{ $ticket->status->name }}
                                 @endswitch
                             </span>
                         </div>
-                        <p class="text-xs text-slate-600 dark:text-slate-300 mb-3">{{ Str::limit($ticket->description, 100) }}</p>
+                        <p class="text-xs text-slate-600 dark:text-slate-300 mb-3 line-clamp-2">{{ $ticket->subject }}</p>
                         <div class="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
                             <span>Dibuat: {{ $ticket->created_at->format('d M Y') }}</span>
                             <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
