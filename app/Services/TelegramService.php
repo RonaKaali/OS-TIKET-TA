@@ -167,18 +167,18 @@ class TelegramService
      */
     protected function getChatIdByUsername(string $username): string|int|null
     {
-        // Jangan lakukan polling getUpdates di Vercel jika webhook terdeteksi aktif
-        if (app()->environment('production')) {
-            return null;
-        }
-
         try {
             // Coba dapatkan chat_id dari update terakhir
             // Metode ini memerlukan bot sudah pernah berinteraksi dengan user
-            $response = Http::timeout(3)->get("{$this->apiUrl}/getUpdates", [
+            $response = Http::timeout(5)->get("{$this->apiUrl}/getUpdates", [
                 'offset' => 0,
-                'limit' => 5, // Kurangi limit untuk kecepatan di Vercel
+                'limit' => 100, // Ambil 100 update terakhir
             ]);
+
+            if ($response->status() === 409) {
+                Log::warning("Telegram getUpdates gagal karena Webhook sedang aktif. Pastikan chat_id didapat melalui Webhook.");
+                return null;
+            }
 
             if ($response->successful()) {
                 $updates = $response->json('result', []);
@@ -186,11 +186,6 @@ class TelegramService
                 if (!is_array($updates)) {
                     return null;
                 }
-
-            if ($response->status() === 409 || $response->status() === 403) {
-                Log::warning("Telegram API Conflict: Abaikan jika Webhook aktif.");
-                return null;
-            }
 
                 Log::info("Mendapatkan " . count($updates) . " update(s) dari Telegram API");
 

@@ -30,16 +30,16 @@ class AttachmentController extends Controller
         // Cek apakah user memiliki akses
         $hasAccess = false;
         
-        // Super Admin / Admin: akses ke semua lampiran
-        if ($user->hasAnyRole(['Super Admin', 'Admin'])) {
+        // Admin/Agent dengan permission admin.panel
+        if ($user->can('admin.panel')) {
             $hasAccess = true;
-        }
-        // Agent dengan permission admin.panel: hanya boleh akses lampiran dari tiket yang ditugaskan kepadanya
-        elseif ($user->can('admin.panel')) {
-            $hasAccess = ($ticket->assigned_to === $user->id);
         }
         // User yang membuat tiket
         elseif ($ticket->user_id === $user->id || $ticket->reporter_email === $user->email) {
+            $hasAccess = true;
+        }
+        // User yang ditugaskan ke tiket (untuk agent)
+        elseif ($ticket->assigned_to === $user->id) {
             $hasAccess = true;
         }
 

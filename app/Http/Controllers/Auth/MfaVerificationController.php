@@ -184,16 +184,11 @@ class MfaVerificationController extends Controller
      */
     protected function completeLogin(Request $request, $user): void
     {
-        try {
-            // Generate bearer token untuk keamanan tambahan
-            $tokenResult = $user->createToken('web-session-token', ['*'], now()->addMinutes(3));
+        // Generate bearer token untuk keamanan tambahan
+        $tokenResult = $user->createToken('web-session-token', ['*'], now()->addMinutes(3));
 
-            // Simpan token ID di session
-            $request->session()->put('auth_token_id', $tokenResult->accessToken->id);
-        } catch (\Exception $e) {
-            // Abaikan jika tabel personal_access_tokens tidak ada (fresh Vercel deploy)
-            \Log::warning('createToken failed (tabel personal_access_tokens mungkin belum ada): ' . $e->getMessage());
-        }
+        // Simpan token ID di session
+        $request->session()->put('auth_token_id', $tokenResult->accessToken->id);
 
         // Set last activity time untuk auto logout
         $request->session()->put('last_activity', now()->toDateTimeString());

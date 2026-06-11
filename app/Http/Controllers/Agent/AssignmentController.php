@@ -8,7 +8,6 @@ use App\Support\RoleUi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 
 class AssignmentController extends Controller
 {
@@ -34,17 +33,11 @@ class AssignmentController extends Controller
         // Load relasi yang diperlukan
         $ticket->load(['status', 'priority', 'department']);
 
-        // Update assignment. assigned_at dipakai oleh fitur surat tugas baru,
-        // tetapi tetap fallback jika production belum menjalankan migration terbaru.
-        $assignmentData = [
+        // Update assignment
+        $ticket->update([
             'assigned_to' => $agent->id,
-        ];
-
-        if (Schema::hasColumn('tiket', 'assigned_at')) {
-            $assignmentData['assigned_at'] = now();
-        }
-
-        $ticket->update($assignmentData);
+            'assigned_at' => now(),
+        ]);
 
         // Update status menjadi "assigned" jika ada
         if ($assignedStatus = Status::where('slug', 'assigned')->first()) {

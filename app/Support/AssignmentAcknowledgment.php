@@ -5,7 +5,6 @@ namespace App\Support;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Collection;
 
 class AssignmentAcknowledgment
@@ -45,18 +44,12 @@ class AssignmentAcknowledgment
 
     public static function pendingFor(User $user, array $map): Collection
     {
-        $hasAssignedAt = Schema::hasColumn('tiket', 'assigned_at');
-
-        $query = Ticket::query()
+        return Ticket::query()
             ->with(['status', 'priority', 'department'])
             ->where('assigned_to', $user->id)
-            ->whereHas('status', fn ($q) => $q->whereIn('slug', ['assigned', 'in_progress']));
-
-        if ($hasAssignedAt) {
-            $query->orderByDesc('assigned_at');
-        }
-
-        return $query->orderByDesc('updated_at')
+            ->whereHas('status', fn ($q) => $q->whereIn('slug', ['assigned', 'in_progress']))
+            ->orderByDesc('assigned_at')
+            ->orderByDesc('updated_at')
             ->get()
             ->filter(fn (Ticket $ticket) => !self::isAcknowledged($ticket, $map));
     }

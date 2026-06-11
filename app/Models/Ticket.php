@@ -28,7 +28,6 @@ class Ticket extends Model
         'closed_at',
         'assigned_to',
         'assigned_at',
-        'acknowledged_at',
         'locked_by',
         'locked_until',
         'custom_fields'
@@ -37,7 +36,6 @@ class Ticket extends Model
     protected $casts = [
         'due_at' => 'datetime',
         'assigned_at' => 'datetime',
-        'acknowledged_at' => 'datetime',
         'closed_at' => 'datetime',
         'locked_until' => 'datetime',
         'custom_fields' => 'array',
@@ -77,11 +75,10 @@ class Ticket extends Model
                         break;
                     }
 
-                    // Jika sudah mencoba berkali-kali dan masih duplikat, gunakan timestamp + random bytes sebagai fallback
+                    // Jika sudah mencoba berkali-kali dan masih duplikat, gunakan timestamp sebagai fallback
                     if ($attempts >= $maxAttempts) {
                         $timestamp = substr(str_replace(['-', ':', ' '], '', now()->toDateTimeString()), -8);
-                        // Gunakan random_bytes() (CSPRNG) untuk suffix agar aman
-                        $randomSuffix = strtoupper(substr(bin2hex(random_bytes(4)), 0, 4));
+                        $randomSuffix = substr(str_shuffle($chars), 0, 4);
                         $t->ticket_number = "{$prefix}-{$timestamp}{$randomSuffix}";
                         break;
                     }
@@ -188,17 +185,28 @@ class Ticket extends Model
     }
 
     /**
-     * Scope untuk query tiket yang overdue.
-     * Menggunakan kriteria SQL langsung — tidak memuat semua tiket ke memori.
-     * Definisi overdue: due_at sudah lewat lebih dari 7 hari kalender (≈ 5 hari kerja).
-     *
+     * Scope untuk query tiket yang overdue
+     * Filter berdasarkan hari kerja (lebih dari 5 hari kerja)
+     * 
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeOverdue($query)
     {
-        return $query->whereNull('closed_at')
+        // Ambil semua tiket yang memenuhi kriteria dasar
+        $candidateIds = $query->whereNull('closed_at')
             ->whereNotNull('due_at')
-            ->where('due_at', '<', now()->subDays(7));
+            ->where('due_at', '<', now())
+            ->pluck('id');
+
+        // Filter berdasarkan perhitungan hari kerja
+        $overdueIds = static::whereIn('id', $candidateIds)
+            ->get()
+            ->filter(function ($ticket) {
+                return $ticket->isOverdue();
+            })
+            ->pluck('id');
+
+        return $query->whereIn('id', $overdueIds);
     }
 }

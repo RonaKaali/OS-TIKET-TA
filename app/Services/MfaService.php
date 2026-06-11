@@ -254,57 +254,33 @@ class MfaService
      */
     protected function getUserSecret(User $user): ?string
     {
-        try {
-            $user->refresh();
+        $user->refresh();
 
-            if (empty($user->mfa_secret)) {
-                return null;
-            }
-
-            return decrypt($user->mfa_secret);
-        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
-            // Secret corrupt atau encrypted dengan APP_KEY lama
-            \Log::error('MFA secret decryption failed - auto-disabling MFA for user', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'error' => $e->getMessage(),
-            ]);
-
-            // Auto-disable MFA yang corrupt untuk prevent login loop
-            try {
-                MfaSchema::clearMfaForUser($user->id);
-                $user->refresh();
-            } catch (\Exception $clearError) {
-                \Log::error('Failed to auto-clear corrupt MFA', [
-                    'user_id' => $user->id,
-                    'error' => $clearError->getMessage(),
-                ]);
-            }
-
-            return null;
-        } catch (\Exception $e) {
-            \Log::error('Failed to get MFA secret from database', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
+        if (empty($user->mfa_secret)) {
             return null;
         }
+
+        try {
+            return decrypt($user->mfa_secret);
+        } catch (\Exception $e) {
+            \Log::error('Failed to decrypt MFA secret from database', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+            ]);
+        }
+
+        return null;
     }
 
     /**
      * Generate backup codes dan simpan ke database.
-     * Menggunakan random_bytes() untuk kriptografi yang aman.
      */
     public function generateBackupCodes(User $user, int $count = 10): array
     {
         $codes = [];
 
         for ($i = 0; $i < $count; $i++) {
-            // random_bytes() adalah CSPRNG — aman untuk backup codes
-            $code = strtoupper(bin2hex(random_bytes(4))); // 8 karakter hex
+            $code = strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
             $codes[] = $code;
         }
 

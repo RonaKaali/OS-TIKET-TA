@@ -4,67 +4,65 @@ namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
+use App\Support\AssignmentAcknowledgment;
+use App\Support\RoleUi;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class NewAssignmentController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware(['auth', 'permission:admin.panel']);
     }
 
-    /**
-     * Get pending assignments for the logged-in agent
+  /**
+     * Daftar surat tugas / tiket baru yang belum di-acknowledge oleh agen.
      */
-    public function index()
+    public function index(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        
-        // Ambil tiket yang ditugaskan ke agent ini dan belum di-acknowledge
-        $assignments = Ticket::where('assigned_to', $user->id)
-            ->whereNull('acknowledged_at')
-            ->with(['priority', 'status', 'department'])
-            ->orderByDesc('created_at')
-            ->get()
-            ->map(function ($ticket) {
-                return [
-                    'id' => $ticket->id,
-                    'ticket_number' => $ticket->ticket_number,
-                    'subject' => $ticket->subject,
-                    'priority' => $ticket->priority?->name,
-                    'status' => $ticket->status?->name,
-                    'url' => route('agent.tickets.show', $ticket->ticket_number),
-                ];
-            });
+        $user = $request->user();
+
+        if (!RoleUi::isFieldAgent($user)) {
+            return response()->json(['assignments' => [], 'count' => 0]);
+        }
+
+        $map = AssignmentAcknowledgment::map($request);
+        $assignments = AssignmentAcknowledgment::pendingFor($user, $map)
+            ->take(10)
+            ->map(fn (Ticket $ticket) => [
+                'id' => $ticket->id,
+                'ticket_number' => $ticket->ticket_number,
+                'subject' => $ticket->subject,
+                'priority' => $ticket->priority?->name,
+                'status' => $ticket->status?->name,
+                'assigned_at' => $ticket->assigned_at?->diffForHumans() ?? $ticket->updated_at?->diffForHumans(),
+                'url' => route('agent.tickets.show', $ticket),
+            ])
+            ->values();
 
         return response()->json([
             'assignments' => $assignments,
+            'count' => $assignments->count(),
         ]);
     }
 
     /**
-     * Acknowledge/confirm assignments
+     * Tandai tugas sudah dilihat (tutup popup).
      */
-    public function acknowledge(Request $request)
+    public function acknowledge(Request $request): JsonResponse
     {
-        $user = Auth::user();
-        
-        $validated = $request->validate([
-            'ticket_ids' => 'required|array',
-            'ticket_ids.*' => 'required|integer|exists:tiket,id',
+        $data = $request->validate([
+            'ticket_ids' => ['required', 'array'],
+            'ticket_ids.*' => ['integer', 'exists:tiket,id'],
         ]);
 
-        // Update tickets - set acknowledged_at untuk tiket yang milik user
-        Ticket::whereIn('id', $validated['ticket_ids'])
-            ->where('assigned_to', $user->id)
-            ->update([
-                'acknowledged_at' => now(),
-            ]);
+        $user = $request->user();
+        AssignmentAcknowledgment::acknowledge($request, $user, $data['ticket_ids']);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Assignments acknowledged successfully',
+            'status' => 'ok',
+            'acknowledged' => count(AssignmentAcknowledgment::map($request)),
         ]);
     }
 }

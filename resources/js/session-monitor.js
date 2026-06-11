@@ -1,7 +1,7 @@
 /**
  * Session Monitor - Auto logout dan reload jika session expired
  */
-(function () {
+(function() {
     'use strict';
 
     // Konfigurasi
@@ -38,7 +38,7 @@
 
         try {
             isChecking = true;
-
+            
             const response = await fetch('/session/check', {
                 method: 'GET',
                 headers: {
@@ -69,7 +69,7 @@
             }
 
             const data = await response.json();
-
+            
             if (!data.authenticated || data.expired) {
                 handleSessionExpired(data.expired
                     ? 'Session Anda telah berakhir karena tidak ada aktivitas.'

@@ -203,23 +203,12 @@ class ZeroTrustVerification
                 ],
             ]);
 
-        } catch (\Throwable $e) {
-            // Log error dengan detail lengkap untuk debugging
-            \Log::error('Zero Trust verification error', [
+        } catch (\Exception $e) {
+            // Log error tapi jangan block request (fail open untuk availability)
+            \Log::error('Zero Trust verification error: ' . $e->getMessage(), [
                 'user_id' => $user->id ?? null,
-                'user_email' => $user->email ?? null,
                 'path' => $request->path(),
-                'method' => $request->method(),
-                'ip' => $request->ip(),
-                'error' => $e->getMessage(),
-                'error_class' => get_class($e),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
             ]);
-            
-            // Fail open - jangan block user karena error sistem
-            // Lebih baik system tetap berfungsi daripada block semua user
         }
 
         return $next($request);
@@ -322,35 +311,19 @@ class ZeroTrustVerification
     }
 
     /**
-     * Ambil IP klien sebenarnya.
-     * Hanya percaya X-Forwarded-For jika request berasal dari trusted proxy.
-     * Default: gunakan IP langsung dari koneksi untuk menghindari spoofing.
+     * Ambil IP klien sebenarnya (X-Forwarded-For jika ada, fallback ke request->ip()).
      */
     protected function getClientIp(Request $request): string
     {
-        // Daftar IP proxy yang dipercaya (Vercel, Cloudflare, load balancer internal)
-        // Konfigurasi di .env: TRUSTED_PROXIES=103.21.244.0/22,103.22.200.0/22
-        $trustedProxies = array_filter(array_map(
-            'trim',
-            explode(',', env('TRUSTED_PROXIES', ''))
-        ));
-
-        $remoteIp = $request->server('REMOTE_ADDR', '');
-
-        // Hanya ambil X-Forwarded-For jika REMOTE_ADDR adalah trusted proxy
-        if (!empty($trustedProxies) && in_array($remoteIp, $trustedProxies)) {
-            $forwarded = $request->header('X-Forwarded-For');
-            if ($forwarded) {
-                $parts = explode(',', $forwarded);
-                $ip = trim($parts[0]);
-                if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                    return $ip;
-                }
+        $forwarded = $request->header('X-Forwarded-For');
+        if ($forwarded) {
+            $parts = explode(',', $forwarded);
+            $ip = trim($parts[0]);
+            if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                return $ip;
             }
         }
 
-        // Jika tidak ada trusted proxy yang dikonfigurasi (development/Vercel),
-        // fallback aman ke ip() bawaan Laravel
         return $request->ip();
     }
 }

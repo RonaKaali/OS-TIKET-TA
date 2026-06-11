@@ -29,16 +29,13 @@ use Illuminate\Http\Request;
 
 Route::get('/', fn() => view('welcome'))->name('welcome');
 
-# Chatbot API (public access, rate-limited: 20 request per menit per IP)
-Route::post('/chatbot/message', [ChatbotController::class, 'message'])
-    ->name('chatbot.message')
-    ->middleware('throttle:20,1');
+# Chatbot API (public access)
+Route::post('/chatbot/message', [ChatbotController::class, 'message'])->name('chatbot.message');
 
 # Portal (Harus login untuk melaporkan)
 Route::prefix('portal')->group(function () {
     // Route untuk melaporkan - memerlukan login
     Route::middleware('auth')->group(function () {
-        Route::get('dashboard', [\App\Http\Controllers\Portal\DashboardController::class, 'index'])->name('portal.dashboard');
         Route::get('ticket/new', [PortalTicket::class, 'create'])->name('portal.ticket.create');
         Route::post('ticket', [PortalTicket::class, 'store'])->name('portal.ticket.store');
         Route::post('ticket/{number}/reply', [PortalTicket::class, 'reply'])->name('portal.ticket.reply');
@@ -59,16 +56,18 @@ Route::middleware(['auth', 'permission:admin.panel'])->get('/dashboard', functio
 })->name('dashboard');
 
 # Panel Agen
-Route::middleware('auth')->prefix('agent')->group(function () {
+Route::middleware(['auth', 'permission:admin.panel'])->prefix('agent')->group(function () {
     Route::get('/', AgentDashboard::class)->name('agent.dashboard');
     Route::get('/assignments/pending', [AgentNewAssignment::class, 'index'])->name('agent.assignments.pending');
     Route::post('/assignments/acknowledge', [AgentNewAssignment::class, 'acknowledge'])->name('agent.assignments.acknowledge');
 
-    Route::get('/tickets', [AgentTicket::class, 'index'])->name('agent.tickets.index');
-    Route::get('/tickets/{ticket}', [AgentTicket::class, 'show'])->name('agent.tickets.show');
-    Route::post('/tickets/{ticket}/reply', [AgentTicket::class, 'reply'])->name('agent.tickets.reply');
-    Route::post('/tickets/{ticket}/status', [AgentTicket::class, 'setStatus'])->name('agent.tickets.status');
-    Route::post('/tickets/{ticket}/note', AgentNote::class)->name('agent.tickets.note');
+    Route::middleware('assignments.acknowledged')->group(function () {
+        Route::get('/tickets', [AgentTicket::class, 'index'])->name('agent.tickets.index');
+        Route::get('/tickets/{ticket}', [AgentTicket::class, 'show'])->name('agent.tickets.show');
+        Route::post('/tickets/{ticket}/reply', [AgentTicket::class, 'reply'])->name('agent.tickets.reply');
+        Route::post('/tickets/{ticket}/status', [AgentTicket::class, 'setStatus'])->name('agent.tickets.status');
+        Route::post('/tickets/{ticket}/note', AgentNote::class)->name('agent.tickets.note');
+    });
 
     Route::post('/tickets/{ticket}/assign', AgentAssignment::class)
         ->name('agent.tickets.assign')
@@ -133,16 +132,8 @@ Route::middleware('auth')->group(function () {
 # Telegram Webhook (untuk menerima update dari bot Telegram)
 Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handle'])
     ->name('telegram.webhook');
-
-// Route deploy-db: hanya bisa diakses dengan secret token via env DEPLOY_SECRET
-// Contoh: /deploy-db?secret=isi_DEPLOY_SECRET_di_env
+// Route sementara untuk migrasi database di Vercel
 Route::get('/deploy-db', function () {
-    // Validasi secret token — wajib diisi di .env sebagai DEPLOY_SECRET
-    $secret = env('DEPLOY_SECRET', '');
-    if (empty($secret) || request()->query('secret') !== $secret) {
-        abort(403, 'Akses ditolak. Secret token tidak valid.');
-    }
-
     $lines = [];
 
     try {
@@ -189,116 +180,4 @@ Route::get('/deploy-db', function () {
         return response('<pre>' . implode("\n", $lines) . '</pre>', 500)
             ->header('Content-Type', 'text/html; charset=utf-8');
     }
-});
-
-// Route darurat: fix password + reset revokasi semua user
-// Akses: /fix-revoke?secret=ISI_DEPLOY_SECRET
-// Hapus route ini setelah masalah teratasi
-Route::get('/fix-revoke', function () {
-    $secret = env('DEPLOY_SECRET', '');
-    if (empty($secret) || request()->query('secret') !== $secret) {
-        abort(403, 'Akses ditolak.');
-    }
-
-    try {
-        $lines = [];
-
-        // 1. Reset access_revoked_at untuk semua user
-        $revokedCount = \Illuminate\Support\Facades\DB::table('pengguna')
-            ->whereNotNull('access_revoked_at')
-            ->count();
-        \Illuminate\Support\Facades\DB::table('pengguna')
-            ->whereNotNull('access_revoked_at')
-            ->update(['access_revoked_at' => null]);
-        $lines[] = "✓ Reset access_revoked_at: {$revokedCount} user dipulihkan.";
-
-        // 2. Reset password semua user ke bcrypt('password')
-        // Ini diperlukan jika password tersimpan dalam format non-bcrypt
-        $newHash = \Illuminate\Support\Facades\Hash::make('password');
-        $users = \Illuminate\Support\Facades\DB::table('pengguna')->get(['id', 'name', 'email', 'password']);
-        $fixed = 0;
-        foreach ($users as $u) {
-            // Cek apakah password adalah bcrypt (dimulai dengan $2y$ atau $2b$)
-            if (!str_starts_with($u->password, '$2y$') && !str_starts_with($u->password, '$2b$')) {
-                \Illuminate\Support\Facades\DB::table('pengguna')
-                    ->where('id', $u->id)
-                    ->update(['password' => $newHash]);
-                $lines[] = "✓ Password di-reset untuk: {$u->email}";
-                $fixed++;
-            }
-        }
-        if ($fixed === 0) {
-            $lines[] = "✓ Semua password sudah dalam format bcrypt — tidak perlu di-reset.";
-        }
-
-        // 3. Tampilkan status semua user
-        $lines[] = "";
-        $lines[] = "Status semua user:";
-        $allUsers = \Illuminate\Support\Facades\DB::table('pengguna')
-            ->get(['id', 'name', 'email', 'access_revoked_at', 'password']);
-        foreach ($allUsers as $u) {
-            $pwFormat = str_starts_with($u->password, '$2y$') || str_starts_with($u->password, '$2b$') ? 'bcrypt ✓' : 'BUKAN bcrypt ✗';
-            $revoked  = $u->access_revoked_at ?? 'NULL (OK)';
-            $lines[] = "ID:{$u->id} | {$u->email} | pw:{$pwFormat} | revoked:{$revoked}";
-        }
-
-        $lines[] = "";
-        $lines[] = "SELESAI. Semua user bisa login dengan password: 'password'";
-
-        return response('<pre style="font-family:monospace;font-size:14px;padding:20px">'
-            . implode("\n", $lines) . '</pre>', 200)
-            ->header('Content-Type', 'text/html; charset=utf-8');
-
-    } catch (\Throwable $e) {
-        return response('<pre>GAGAL: ' . $e->getMessage() . "\n" . $e->getTraceAsString() . '</pre>', 500)
-            ->header('Content-Type', 'text/html; charset=utf-8');
-    }
-});
-
-// Route darurat: reset password semua agent ke bcrypt 'password'
-// Akses: /fix-agents?secret=ISI_DEPLOY_SECRET
-// HAPUS setelah berhasil!
-Route::get('/fix-agents', function () {
-    $secret = env('DEPLOY_SECRET', '');
-    if (empty($secret) || request()->query('secret') !== $secret) {
-        abort(403, 'Akses ditolak.');
-    }
-
-    $emails = [
-        'agent@csirt.kalselprov.go.id',
-        'agent2@csirt.kalselprov.go.id',
-        'support@csirt.kalselprov.go.id',
-        'admin@csirt.kalselprov.go.id',
-        'admin1@csirt.kalselprov.go.id',
-    ];
-
-    $lines = [];
-    foreach ($emails as $email) {
-        try {
-            $affected = \Illuminate\Support\Facades\DB::table('pengguna')
-                ->where('email', $email)
-                ->update([
-                    'password'          => \Illuminate\Support\Facades\Hash::make('password'),
-                    'access_revoked_at' => null,
-                ]);
-
-            $lines[] = ($affected ? '✓' : '–') . " {$email} → password=bcrypt('password'), revoked=NULL";
-        } catch (\Throwable $e) {
-            $lines[] = "✗ {$email} → GAGAL: " . $e->getMessage();
-        }
-    }
-
-    // Tampilkan status semua user
-    $users = \Illuminate\Support\Facades\DB::table('pengguna')
-        ->select('id', 'name', 'email', 'access_revoked_at')
-        ->get();
-
-    $lines[] = '';
-    $lines[] = '=== STATUS USER ===';
-    foreach ($users as $u) {
-        $lines[] = "ID:{$u->id} | {$u->email} | revoked: " . ($u->access_revoked_at ?? 'NULL (OK)');
-    }
-
-    return response('<pre style="font-size:14px;padding:20px">' . implode("\n", $lines) . '</pre>')
-        ->header('Content-Type', 'text/html; charset=utf-8');
 });

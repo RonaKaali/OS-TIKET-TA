@@ -44,11 +44,13 @@ class AccessRevocationService
 
     /**
      * Bersihkan flag pencabutan setelah login sukses baru.
-     * Selalu update DB langsung tanpa tergantung state model.
      */
     public function clearRevocationFlag(User $user): void
     {
-        // Selalu update ke DB tanpa early return — pastikan flag selalu bersih saat login
+        if (!$user->access_revoked_at) {
+            return;
+        }
+
         DB::table('pengguna')
             ->where('id', $user->id)
             ->update(['access_revoked_at' => null]);
@@ -90,7 +92,7 @@ class AccessRevocationService
 
             return $raw ? Carbon::parse($raw) : null;
         } catch (\Throwable) {
-            return $user->access_revoked_at ? Carbon::parse($user->access_revoked_at) : null;
+            return $user->access_revoked_at;
         }
     }
 
