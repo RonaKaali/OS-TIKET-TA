@@ -59,7 +59,7 @@ Route::middleware(['auth', 'permission:admin.panel'])->get('/dashboard', functio
 })->name('dashboard');
 
 # Panel Agen
-Route::middleware(['auth', 'permission:admin.panel'])->prefix('agent')->group(function () {
+Route::middleware('auth')->prefix('agent')->group(function () {
     Route::get('/', AgentDashboard::class)->name('agent.dashboard');
     Route::get('/assignments/pending', [AgentNewAssignment::class, 'index'])->name('agent.assignments.pending');
     Route::post('/assignments/acknowledge', [AgentNewAssignment::class, 'acknowledge'])->name('agent.assignments.acknowledge');
