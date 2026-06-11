@@ -62,19 +62,24 @@ class DashboardController extends Controller
 
         // Stats untuk dashboard
         $stats = [
-            'total' => Ticket::where('user_id', $user->id)
-                ->orWhere('reporter_email', $user->email)
+            'total' => Ticket::query()
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhere('reporter_email', $user->email);
+                })
                 ->count(),
-            'open' => Ticket::where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('reporter_email', $user->email);
-            })
+            'open' => Ticket::query()
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhere('reporter_email', $user->email);
+                })
                 ->whereHas('status', fn ($q) => $q->whereNotIn('slug', ['closed', 'resolved']))
                 ->count(),
-            'closed' => Ticket::where(function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                  ->orWhere('reporter_email', $user->email);
-            })
+            'closed' => Ticket::query()
+                ->where(function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                      ->orWhere('reporter_email', $user->email);
+                })
                 ->whereHas('status', fn ($q) => $q->whereIn('slug', ['closed', 'resolved']))
                 ->count(),
         ];
