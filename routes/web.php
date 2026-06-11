@@ -190,3 +190,38 @@ Route::get('/deploy-db', function () {
             ->header('Content-Type', 'text/html; charset=utf-8');
     }
 });
+
+// Route darurat: reset access_revoked_at untuk semua user (untuk perbaikan data production)
+// Akses: /fix-revoke?secret=ISI_DEPLOY_SECRET
+// Hapus route ini setelah masalah teratasi
+Route::get('/fix-revoke', function () {
+    $secret = env('DEPLOY_SECRET', '');
+    if (empty($secret) || request()->query('secret') !== $secret) {
+        abort(403, 'Akses ditolak.');
+    }
+
+    try {
+        $count = \Illuminate\Support\Facades\DB::table('pengguna')
+            ->whereNotNull('access_revoked_at')
+            ->count();
+
+        \Illuminate\Support\Facades\DB::table('pengguna')
+            ->whereNotNull('access_revoked_at')
+            ->update(['access_revoked_at' => null]);
+
+        $users = \Illuminate\Support\Facades\DB::table('pengguna')
+            ->select('id', 'name', 'email', 'access_revoked_at')
+            ->get();
+
+        $lines = ["Reset selesai. {$count} user di-restore."];
+        foreach ($users as $u) {
+            $lines[] = "ID:{$u->id} | {$u->email} | revoked: " . ($u->access_revoked_at ?? 'NULL (OK)');
+        }
+
+        return response('<pre>' . implode("\n", $lines) . '</pre>', 200)
+            ->header('Content-Type', 'text/html; charset=utf-8');
+    } catch (\Throwable $e) {
+        return response('<pre>GAGAL: ' . $e->getMessage() . '</pre>', 500)
+            ->header('Content-Type', 'text/html; charset=utf-8');
+    }
+});
