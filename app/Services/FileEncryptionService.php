@@ -25,15 +25,32 @@ class FileEncryptionService
     }
 
     /**
-     * Enkripsi dan simpan file
+     * Enkripsi dan simpan file.
+     * CATATAN: Untuk file besar (>5MB), akan ada overhead memori karena seluruh file dimuat ke RAM.
+     * Pertimbangkan streaming encryption untuk file sangat besar di masa depan.
      */
     public function storeEncrypted($file, string $directory = 'attachments'): array
     {
         try {
             $this->assertStrongCipher();
 
+            $fileSize = $file->getSize();
+            
+            // Warning untuk file besar (>8MB) — bisa menyebabkan memory pressure
+            if ($fileSize > 8 * 1024 * 1024) {
+                \Log::warning('Large file encryption (>8MB)', [
+                    'size' => $fileSize,
+                    'filename' => $file->getClientOriginalName(),
+                    'memory_limit' => ini_get('memory_limit'),
+                ]);
+            }
+
             // Baca konten file
             $content = file_get_contents($file->getRealPath());
+            
+            if ($content === false) {
+                throw new Exception("Gagal membaca file dari storage sementara.");
+            }
             
             // Enkripsi konten menggunakan Laravel Crypt (AES-256-CBC)
             $encryptedContent = Crypt::encrypt($content);

@@ -99,7 +99,7 @@ class MfaController extends Controller
             return back()->withErrors(['code' => 'Kode verifikasi tidak valid. Pastikan: 1) Waktu di smartphone sudah benar (sinkronisasi waktu), 2) Menggunakan kode terbaru (berubah setiap 30 detik), 3) Secret key sudah benar di aplikasi authenticator.']);
         }
 
-        // Enable MFA — kode sudah diverifikasi di atas, jangan verifikasi ulang
+        // Enable MFA — tandai kode sudah diverifikasi agar tidak diverifikasi ulang di enableMfa()
         $error = $this->mfaService->enableMfa($user, $secret, $code, true);
 
         if ($error === null) {

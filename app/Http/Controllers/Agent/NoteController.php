@@ -15,6 +15,12 @@ class NoteController extends Controller
 
     public function __invoke(Request $r, Ticket $ticket)
     {
+        // Cegah agent menambah catatan ke tiket yang bukan miliknya,
+        // kecuali Super Admin / Admin
+        if (!$r->user()->hasAnyRole(['Super Admin', 'Admin']) && $ticket->assigned_to !== $r->user()->id) {
+            abort(403, 'Anda tidak memiliki akses ke tiket ini.');
+        }
+
         $data = $r->validate([
             'note' => ['required', 'string', 'max:20000'],
         ]);

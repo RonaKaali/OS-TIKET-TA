@@ -62,8 +62,11 @@ class TicketController extends Controller
         $ticket->load(['threads.attachments', 'status', 'priority', 'department', 'assignee', 'requester']);
 
         // Cegah agen melihat tiket yang bukan miliknya, kecuali admin/super admin
-        if (!RoleUi::canManageAllTickets(request()->user()) && $ticket->assigned_to !== request()->user()->id) {
-            abort(403);
+        // Jika tiket belum di-assign (assigned_to null), hanya Admin/Super Admin yang bisa lihat
+        if (!RoleUi::canManageAllTickets(request()->user())) {
+            if (is_null($ticket->assigned_to) || $ticket->assigned_to !== request()->user()->id) {
+                abort(403, 'Anda tidak memiliki akses ke tiket ini.');
+            }
         }
 
         // Daftar agen yang bisa ditugaskan
@@ -84,7 +87,7 @@ class TicketController extends Controller
     {
         $data = $r->validate([
             'message' => ['required', 'string', 'max:20000'],
-            'attachments.*' => ['file', 'max:10240'],
+            'attachments.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt,zip'],
         ]);
 
         $thread = TicketThread::create([
@@ -115,13 +118,19 @@ class TicketController extends Controller
         }
 
         // Kembalikan status ke "open" (menunggu pelapor)
+        // Hanya ubah jika status saat ini bukan in_progress, assigned, atau closed
+        $currentSlug = optional($ticket->status)->slug;
+        $protectedSlugs = ['in_progress', 'in-progress', 'assigned', 'closed', 'cancelled'];
         $oldStatusId = $ticket->status_id;
-        if ($openId = Status::where('slug', 'open')->value('id')) {
-            $ticket->update(['status_id' => $openId]);
+        
+        if (!in_array($currentSlug, $protectedSlugs)) {
+            if ($openId = Status::where('slug', 'open')->value('id')) {
+                $ticket->update(['status_id' => $openId]);
+            }
         }
 
         // Log aktivitas UPDATE (reply mengubah status)
-        if ($oldStatusId != $ticket->status_id) {
+        if ($oldStatusId != $ticket->fresh()->status_id) {
             $this->logUpdate('Ticket', $ticket, [
                 'status_id' => $oldStatusId,
             ], [

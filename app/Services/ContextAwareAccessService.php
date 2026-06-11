@@ -260,17 +260,26 @@ class ContextAwareAccessService
     }
 
     /**
-     * Dapatkan IP klien sebenarnya dengan mempertimbangkan header X-Forwarded-For.
+     * Dapatkan IP klien sebenarnya.
+     * Hanya percaya X-Forwarded-For jika berasal dari trusted proxy.
      */
     protected function getClientIp(Request $request): string
     {
-        $forwarded = $request->header('X-Forwarded-For');
-        if ($forwarded) {
-            // Ambil IP pertama (asal klien) dari daftar yang dipisah koma.
-            $parts = explode(',', $forwarded);
-            $ip = trim($parts[0]);
-            if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                return $ip;
+        $trustedProxies = array_filter(array_map(
+            'trim',
+            explode(',', env('TRUSTED_PROXIES', ''))
+        ));
+
+        $remoteIp = $request->server('REMOTE_ADDR', '');
+
+        if (!empty($trustedProxies) && in_array($remoteIp, $trustedProxies)) {
+            $forwarded = $request->header('X-Forwarded-For');
+            if ($forwarded) {
+                $parts = explode(',', $forwarded);
+                $ip = trim($parts[0]);
+                if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                    return $ip;
+                }
             }
         }
 

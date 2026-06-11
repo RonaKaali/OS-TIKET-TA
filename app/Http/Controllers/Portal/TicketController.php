@@ -30,7 +30,7 @@ class TicketController extends Controller
                 'help_topic_id' => ['required', Rule::exists('topik_bantuan', 'id')],
                 'priority_id' => ['nullable', Rule::exists('prioritas', 'id')],
                 'message' => ['required', 'string', 'max:20000'],
-                'attachments.*' => ['file', 'max:10240'], // 10MB
+                'attachments.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt,zip'], // 10MB, tipe file dibatasi
             ]);
 
             $topic = HelpTopic::with('department')->findOrFail($data['help_topic_id']);
@@ -87,7 +87,7 @@ class TicketController extends Controller
             }
 
             // Tampilkan langsung (hindari redirect yang gagal di serverless Vercel)
-            session()->now('ok', 'Tiket berhasil dibuat.');
+            session()->flash('ok', 'Tiket berhasil dibuat.');
 
             return view('portal.ticket.show', compact('ticket'));
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -157,7 +157,15 @@ class TicketController extends Controller
 
         // Jika tidak login, cek apakah ada sesi verifikasi dari statusCheck
         $verifiedEmail = session('ticket_verified_email_' . $ticket->ticket_number);
-        if ($verifiedEmail && $verifiedEmail === $ticket->reporter_email) {
+        $verifiedAt    = session('ticket_verified_at_' . $ticket->ticket_number);
+
+        // Verifikasi berlaku 2 jam, setelah itu user harus verifikasi ulang
+        $verificationValid = $verifiedEmail
+            && $verifiedEmail === $ticket->reporter_email
+            && $verifiedAt
+            && now()->diffInHours(\Carbon\Carbon::parse($verifiedAt)) < 2;
+
+        if ($verificationValid) {
             return view('portal.ticket.show', compact('ticket'));
         }
 
@@ -180,7 +188,7 @@ class TicketController extends Controller
 
         $data = $r->validate([
             'message' => ['required', 'string', 'max:20000'],
-            'attachments.*' => ['file', 'max:10240'],
+            'attachments.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,gif,pdf,doc,docx,txt,zip'],
         ]);
 
         $thread = TicketThread::create([
@@ -233,7 +241,11 @@ class TicketController extends Controller
         }
 
         // Simpan verifikasi email di session untuk akses ke halaman show
-        session(['ticket_verified_email_' . $t->ticket_number => $data['email']]);
+        // Tambahkan timestamp agar bisa diperiksa expiry-nya
+        session([
+            'ticket_verified_email_' . $t->ticket_number => $data['email'],
+            'ticket_verified_at_' . $t->ticket_number => now()->toIso8601String(),
+        ]);
 
         return redirect()->route('portal.ticket.show', $t->ticket_number);
     }

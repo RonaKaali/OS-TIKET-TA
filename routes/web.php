@@ -29,13 +29,16 @@ use Illuminate\Http\Request;
 
 Route::get('/', fn() => view('welcome'))->name('welcome');
 
-# Chatbot API (public access)
-Route::post('/chatbot/message', [ChatbotController::class, 'message'])->name('chatbot.message');
+# Chatbot API (public access, rate-limited: 20 request per menit per IP)
+Route::post('/chatbot/message', [ChatbotController::class, 'message'])
+    ->name('chatbot.message')
+    ->middleware('throttle:20,1');
 
 # Portal (Harus login untuk melaporkan)
 Route::prefix('portal')->group(function () {
     // Route untuk melaporkan - memerlukan login
     Route::middleware('auth')->group(function () {
+        Route::get('dashboard', [\App\Http\Controllers\Portal\DashboardController::class, 'index'])->name('portal.dashboard');
         Route::get('ticket/new', [PortalTicket::class, 'create'])->name('portal.ticket.create');
         Route::post('ticket', [PortalTicket::class, 'store'])->name('portal.ticket.store');
         Route::post('ticket/{number}/reply', [PortalTicket::class, 'reply'])->name('portal.ticket.reply');
@@ -130,8 +133,16 @@ Route::middleware('auth')->group(function () {
 # Telegram Webhook (untuk menerima update dari bot Telegram)
 Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handle'])
     ->name('telegram.webhook');
-// Route sementara untuk migrasi database di Vercel
+
+// Route deploy-db: hanya bisa diakses dengan secret token via env DEPLOY_SECRET
+// Contoh: /deploy-db?secret=isi_DEPLOY_SECRET_di_env
 Route::get('/deploy-db', function () {
+    // Validasi secret token — wajib diisi di .env sebagai DEPLOY_SECRET
+    $secret = env('DEPLOY_SECRET', '');
+    if (empty($secret) || request()->query('secret') !== $secret) {
+        abort(403, 'Akses ditolak. Secret token tidak valid.');
+    }
+
     $lines = [];
 
     try {

@@ -274,13 +274,15 @@ class MfaService
 
     /**
      * Generate backup codes dan simpan ke database.
+     * Menggunakan random_bytes() untuk kriptografi yang aman.
      */
     public function generateBackupCodes(User $user, int $count = 10): array
     {
         $codes = [];
 
         for ($i = 0; $i < $count; $i++) {
-            $code = strtoupper(substr(md5(uniqid(rand(), true)), 0, 8));
+            // random_bytes() adalah CSPRNG — aman untuk backup codes
+            $code = strtoupper(bin2hex(random_bytes(4))); // 8 karakter hex
             $codes[] = $code;
         }
 
