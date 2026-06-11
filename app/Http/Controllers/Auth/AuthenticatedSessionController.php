@@ -52,8 +52,10 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         if ($mfaEnabled) {
-            // Jika MFA enabled, redirect ke halaman verifikasi MFA
-            // Jangan set session lengkap dulu, tunggu MFA verified
+            // Bersihkan flag revokasi lama SEBELUM redirect ke MFA
+            // agar middleware EnforceAccessRevocation tidak memblokir di halaman MFA verify
+            $this->revocationService->clearRevocationFlag($user);
+
             \Log::info('MFA enabled for user, redirecting to MFA verification', [
                 'user_id' => $user->id,
                 'email' => $user->email,

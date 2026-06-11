@@ -44,17 +44,16 @@ class AccessRevocationService
 
     /**
      * Bersihkan flag pencabutan setelah login sukses baru.
+     * Selalu query langsung ke DB untuk memastikan data terbaru.
      */
     public function clearRevocationFlag(User $user): void
     {
-        if (!$user->access_revoked_at) {
-            return;
-        }
-
+        // Selalu update langsung ke DB, tanpa tergantung pada state model
         DB::table('pengguna')
             ->where('id', $user->id)
             ->update(['access_revoked_at' => null]);
 
+        // Update juga state model agar konsisten
         $user->access_revoked_at = null;
     }
 
