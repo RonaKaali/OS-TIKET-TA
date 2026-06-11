@@ -18,7 +18,19 @@ class EnsureAssignmentsAcknowledged
             return $next($request);
         }
 
-        if (AssignmentAcknowledgment::hasPending($user, $request)) {
+        try {
+            $hasPendingAssignment = AssignmentAcknowledgment::hasPending($user, $request);
+        } catch (\Throwable $e) {
+            \Log::warning('Assignment acknowledgment check failed', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $next($request);
+        }
+
+        if ($hasPendingAssignment) {
             return redirect()
                 ->route('agent.dashboard')
                 ->withErrors([

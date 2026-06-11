@@ -27,19 +27,29 @@ class NewAssignmentController extends Controller
             return response()->json(['assignments' => [], 'count' => 0]);
         }
 
-        $map = AssignmentAcknowledgment::map($request);
-        $assignments = AssignmentAcknowledgment::pendingFor($user, $map)
-            ->take(10)
-            ->map(fn (Ticket $ticket) => [
-                'id' => $ticket->id,
-                'ticket_number' => $ticket->ticket_number,
-                'subject' => $ticket->subject,
-                'priority' => $ticket->priority?->name,
-                'status' => $ticket->status?->name,
-                'assigned_at' => $ticket->assigned_at?->diffForHumans() ?? $ticket->updated_at?->diffForHumans(),
-                'url' => route('agent.tickets.show', $ticket),
-            ])
-            ->values();
+        try {
+            $map = AssignmentAcknowledgment::map($request);
+            $assignments = AssignmentAcknowledgment::pendingFor($user, $map)
+                ->take(10)
+                ->map(fn (Ticket $ticket) => [
+                    'id' => $ticket->id,
+                    'ticket_number' => $ticket->ticket_number,
+                    'subject' => $ticket->subject,
+                    'priority' => $ticket->priority?->name,
+                    'status' => $ticket->status?->name,
+                    'assigned_at' => $ticket->assigned_at?->diffForHumans() ?? $ticket->updated_at?->diffForHumans(),
+                    'url' => route('agent.tickets.show', $ticket),
+                ])
+                ->values();
+        } catch (\Throwable $e) {
+            \Log::warning('Pending assignments endpoint failed', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['assignments' => [], 'count' => 0]);
+        }
 
         return response()->json([
             'assignments' => $assignments,
