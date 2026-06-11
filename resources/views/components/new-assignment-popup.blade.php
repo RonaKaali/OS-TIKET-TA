@@ -1,4 +1,8 @@
-@if(\\App\\Support\\RoleUi::isFieldAgent(auth()->user()))
+@php
+    $isFieldAgent = \App\Support\RoleUi::isFieldAgent(auth()->user());
+@endphp
+
+@if($isFieldAgent)
 <div id="assignment-notification-root" class="fixed inset-0 z-50">
     <!-- Modal Backdrop -->
     <div id="assignment-modal-backdrop" class="hidden fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm transition-opacity duration-300"></div>
@@ -105,7 +109,7 @@
 
     async function poll() {
         try {
-            const res = await fetch('{{ route('agent.assignments.pending') }}', {
+            const res = await fetch('{{ route("agent.assignments.pending") }}', {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 credentials: 'same-origin',
             });
@@ -131,7 +135,7 @@
     async function acknowledge(ticketIds) {
         if (!ticketIds.length) return;
         try {
-            await fetch('{{ route('agent.assignments.acknowledge') }}', {
+            await fetch('{{ route("agent.assignments.acknowledge") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
