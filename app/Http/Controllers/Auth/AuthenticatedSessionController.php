@@ -68,8 +68,13 @@ class AuthenticatedSessionController extends Controller
 
         $this->securityLog->logAuthentication('login', $user->id, true, "Login berhasil: {$user->email}");
 
-        if ($user->can('admin.panel')) {
+        // Role-based redirect
+        if ($user->hasAnyRole(['Super Admin', 'Admin'])) {
             return redirect()->intended(route('dashboard', absolute: false));
+        }
+
+        if ($user->hasAnyRole(['Agent', 'Agent 1', 'Agent 2', 'Support Agent'])) {
+            return redirect()->intended(route('agent.dashboard', absolute: false));
         }
 
         return redirect()->intended(route('welcome', absolute: false))
