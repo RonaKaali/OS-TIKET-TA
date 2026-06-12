@@ -43,12 +43,17 @@ class NewAssignmentController extends Controller
                 'assigned_at' => $ticket->assigned_at?->diffForHumans() ?? $ticket->updated_at?->diffForHumans(),
                 'url' => route('agent.tickets.show', $ticket),
                 'acknowledged' => AssignmentAcknowledgment::isAcknowledged($ticket, $map),
+                'acknowledged_at' => $ticket->acknowledged_at?->diffForHumans(),
             ])
             ->values();
+
+        // Hitung yang benar-benar belum di-acknowledge
+        $unacknowledgedCount = $assignments->where('acknowledged', false)->count();
 
         return response()->json([
             'assignments' => $assignments,
             'count' => $assignments->count(),
+            'unacknowledged_count' => $unacknowledgedCount,
         ]);
     }
 

@@ -70,6 +70,9 @@ class TicketController extends Controller
         if ($ticket->assigned_to === request()->user()->id && is_null($ticket->acknowledged_at)) {
             $ticket->update(['acknowledged_at' => now()]);
             Log::info('Agent ' . request()->user()->id . ' acknowledged ticket ' . $ticket->ticket_number);
+
+            // Sinkronisasi session acknowledgment
+            \App\Support\AssignmentAcknowledgment::acknowledge(request(), request()->user(), [$ticket->id]);
         }
 
         // Daftar agen yang bisa ditugaskan

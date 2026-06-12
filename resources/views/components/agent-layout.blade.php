@@ -110,7 +110,8 @@
                                     .then(data => {
                                         if (data && data.assignments) {
                                             this.notifications = data.assignments;
-                                            this.unreadCount = this.notifications.filter(n => !n.acknowledged).length;
+                                            // Gunakan unacknowledged_count dari server lebih akurat
+                                            this.unreadCount = data.unacknowledged_count ?? this.notifications.filter(n => !n.acknowledged).length;
                                         }
                                     })
                                     .catch(() => {});
