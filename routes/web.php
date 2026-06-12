@@ -158,18 +158,24 @@ Route::get('/deploy-db', function () {
             $lines[] = $line;
         }
 
+        $lines[] = 'Memastikan kolom Acknowledged Tiket (SQL langsung)...';
+        foreach (\App\Support\AcknowledgmentSchema::ensureColumns() as $line) {
+            $lines[] = $line;
+        }
+
         $lines[] = 'Membersihkan cache...';
         \Illuminate\Support\Facades\Artisan::call('config:clear');
         \Illuminate\Support\Facades\Artisan::call('route:clear');
 
-        $mfaReady = \App\Support\MfaSchema::columnsExist();
-        $gpsReady = \App\Support\GpsSchema::columnsExist();
+        $mfaReady    = \App\Support\MfaSchema::columnsExist();
+        $gpsReady    = \App\Support\GpsSchema::columnsExist();
         $revokeReady = \App\Support\AccessRevocationSchema::columnsExist();
+        $ackReady    = \App\Support\AcknowledgmentSchema::columnsExist();
 
-        if ($mfaReady && $gpsReady && $revokeReady) {
-            $lines[] = 'SELESAI — Kolom MFA, GPS & Cabut Akses siap.';
+        if ($mfaReady && $gpsReady && $revokeReady && $ackReady) {
+            $lines[] = 'SELESAI — Semua kolom (MFA, GPS, Cabut Akses, Acknowledged Tiket) siap.';
         } elseif ($mfaReady) {
-            $lines[] = 'SELESAI sebagian — Periksa kolom GPS / access_revoked_at di atas.';
+            $lines[] = 'SELESAI sebagian — Periksa kolom GPS / access_revoked_at / acknowledged_at di atas.';
         } else {
             $lines[] = 'PERINGATAN — Kolom database belum lengkap. Cek koneksi Supabase.';
         }
