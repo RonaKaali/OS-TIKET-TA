@@ -19,6 +19,11 @@ class EnsureAssignmentsAcknowledged
             return $next($request);
         }
 
+        // Buka pembatasan untuk halaman detail tiket, karena mengakses halaman ini yang memicu auto-acknowledgement
+        if ($request->routeIs('agent.tickets.show')) {
+            return $next($request);
+        }
+
         $map = AssignmentAcknowledgment::map($request);
 
         // Cari tiket yang masih pending (belum di-acknowledge baik session maupun DB)

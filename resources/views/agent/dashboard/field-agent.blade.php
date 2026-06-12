@@ -50,25 +50,40 @@
         @else
             <div class="divide-y divide-slate-100 dark:divide-slate-700">
                 @foreach($myTickets as $ticket)
-                    <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    @php
+                        $isAck = \App\Support\AssignmentAcknowledgment::isAcknowledged($ticket, \App\Support\AssignmentAcknowledgment::map(request()));
+                    @endphp
+                    <div class="px-6 py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-all duration-200">
                         <div>
-                            <div class="text-xs font-black text-emerald-600 dark:text-emerald-400 mb-1">{{ $ticket->ticket_number }}</div>
-                            <div class="font-bold text-slate-900 dark:text-white">{{ $ticket->subject }}</div>
-                            <div class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">
-                                {{ $ticket->status?->name }} · {{ $ticket->priority?->name ?? '—' }}
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="text-xs font-mono font-black text-emerald-600 dark:text-emerald-400">{{ $ticket->ticket_number }}</span>
+                                @if(!$isAck)
+                                    <span class="px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded text-[9px] font-black uppercase tracking-wider animate-pulse">Baru</span>
+                                @endif
+                            </div>
+                            <div class="font-bold text-slate-900 dark:text-white text-sm tracking-tight">{{ $ticket->subject }}</div>
+                            <div class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest flex items-center space-x-2">
+                                <span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-900/50 rounded font-bold">{{ $ticket->status?->name }}</span>
+                                <span>·</span>
+                                <span class="font-bold {{ $ticket->priority?->name === 'Tinggi' ? 'text-red-500' : 'text-slate-400' }}">{{ $ticket->priority?->name ?? '—' }}</span>
                             </div>
                         </div>
-                        @if($stats['pending_ack'] === 0)
-                            <a href="{{ route('agent.tickets.show', $ticket) }}"
-                               class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black rounded-lg uppercase tracking-widest transition-colors shrink-0">
-                                Kerjakan
-                            </a>
-                        @else
-                            <span class="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">Konfirmasi surat tugas terlebih dahulu</span>
-                        @endif
+                        <div class="flex items-center space-x-3 shrink-0">
+                            @if(!$isAck)
+                                <a href="{{ route('agent.tickets.show', $ticket) }}"
+                                   class="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-[10px] font-black rounded-xl uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:shadow-[0_0_20px_rgba(245,158,11,0.5)] transform hover:-translate-y-0.5">
+                                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                    Lihat Surat Tugas
+                                </a>
+                            @else
+                                <a href="{{ route('agent.tickets.show', $ticket) }}"
+                                   class="inline-flex items-center justify-center px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[10px] font-black rounded-xl uppercase tracking-widest transition-all border border-slate-200 dark:border-slate-700">
+                                    Buka Tiket
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 @endforeach
             </div>
-        @endif
     </div>
 </x-agent-layout>
