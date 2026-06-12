@@ -66,6 +66,8 @@ Route::middleware(['auth', 'permission:admin.panel'])->prefix('agent')->group(fu
         Route::get('/tickets/{ticket}', [AgentTicket::class, 'show'])->name('agent.tickets.show');
         Route::post('/tickets/{ticket}/reply', [AgentTicket::class, 'reply'])->name('agent.tickets.reply');
         Route::post('/tickets/{ticket}/status', [AgentTicket::class, 'setStatus'])->name('agent.tickets.status');
+        Route::post('/tickets/{ticket}/complete', [AgentTicket::class, 'complete'])->name('agent.tickets.complete');
+        Route::post('/tickets/{ticket}/return', [AgentTicket::class, 'returnToAdmin'])->name('agent.tickets.return');
         Route::post('/tickets/{ticket}/note', AgentNote::class)->name('agent.tickets.note');
     });
 

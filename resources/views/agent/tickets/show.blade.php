@@ -198,28 +198,58 @@
 
         <!-- Sidebar Actions -->
         <div class="space-y-8">
-            <!-- Status Update Panel -->
+            <!-- Status & Action Panel -->
             <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl transition-colors">
                 <h3 class="text-xs font-black text-slate-900 dark:text-white mb-6 uppercase tracking-[0.2em] flex items-center transition-colors">
                     <svg class="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    Ubah Status Tiket
+                    Aksi Tiket
                 </h3>
-                <form method="POST" action="{{ route('agent.tickets.status', $ticket) }}">
+
+                <!-- Tombol Selesaikan Tiket -->
+                <form method="POST" action="{{ route('agent.tickets.complete', $ticket) }}" class="mb-3"
+                    onsubmit="return confirm('✅ Konfirmasi Selesaikan Tiket?\n\nApakah Anda yakin tiket ini sudah selesai dikerjakan?\nPelapor akan otomatis mendapat notifikasi email.')">
                     @csrf
-                    <div class="space-y-4">
-                        <select name="status_id"
-                            class="block w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:border-emerald-500 outline-none transition-all py-3 px-4">
-                            @foreach(\App\Models\Status::all() as $status)
-                                <option value="{{ $status->id }}" {{ $ticket->status_id == $status->id ? 'selected' : '' }} class="bg-white dark:bg-slate-900">
-                                    {{ $status->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <button type="submit" class="w-full py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all">
-                            Konfirmasi Perubahan
-                        </button>
-                    </div>
+                    <button type="submit"
+                        class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all transform hover:-translate-y-0.5 flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Selesaikan Tiket
+                    </button>
                 </form>
+
+                <!-- Tombol Kembalikan ke Super Admin -->
+                <form method="POST" action="{{ route('agent.tickets.return', $ticket) }}" class="mb-4"
+                    onsubmit="return confirm('🔄 Konfirmasi Kembalikan Tiket?\n\nTiket ini akan dikembalikan ke Super Admin.\nStatus akan diatur ulang dan Anda akan dilepaskan dari tiket ini.')">
+                    @csrf
+                    <button type="submit"
+                        class="w-full py-3 bg-amber-50 dark:bg-amber-600/10 border border-amber-200 dark:border-amber-600/30 text-amber-700 dark:text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-600/20 hover:text-amber-800 dark:hover:text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                        Kembalikan ke Super Admin
+                    </button>
+                </form>
+
+                <!-- Ubah Status Manual -->
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <form method="POST" action="{{ route('agent.tickets.status', $ticket) }}">
+                        @csrf
+                        <div class="space-y-4">
+                            <select name="status_id"
+                                class="block w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:border-emerald-500 outline-none transition-all py-3 px-4">
+                                @foreach(\App\Models\Status::all() as $status)
+                                    <option value="{{ $status->id }}" {{ $ticket->status_id == $status->id ? 'selected' : '' }} class="bg-white dark:bg-slate-900">
+                                        {{ $status->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="w-full py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all">
+                                Konfirmasi Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             <!-- Assignment Panel -->

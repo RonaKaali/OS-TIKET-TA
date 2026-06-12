@@ -16,9 +16,6 @@ class NewAssignmentController extends Controller
         $this->middleware(['auth', 'permission:admin.panel']);
     }
 
-  /**
-     * Daftar surat tugas / tiket baru yang belum di-acknowledge oleh agen.
-     */
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -28,8 +25,15 @@ class NewAssignmentController extends Controller
         }
 
         $map = AssignmentAcknowledgment::map($request);
-        $assignments = AssignmentAcknowledgment::pendingFor($user, $map)
-            ->take(10)
+
+        // Ambil SEMUA tiket yang ditugaskan ke agent ini (tidak hanya pending)
+        $assignments = Ticket::query()
+            ->with(['status', 'priority'])
+            ->where('assigned_to', $user->id)
+            ->latest('assigned_at')
+            ->latest('updated_at')
+            ->take(20)
+            ->get()
             ->map(fn (Ticket $ticket) => [
                 'id' => $ticket->id,
                 'ticket_number' => $ticket->ticket_number,
@@ -38,6 +42,7 @@ class NewAssignmentController extends Controller
                 'status' => $ticket->status?->name,
                 'assigned_at' => $ticket->assigned_at?->diffForHumans() ?? $ticket->updated_at?->diffForHumans(),
                 'url' => route('agent.tickets.show', $ticket),
+                'acknowledged' => AssignmentAcknowledgment::isAcknowledged($ticket, $map),
             ])
             ->values();
 
