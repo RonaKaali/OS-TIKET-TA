@@ -42,7 +42,7 @@ class NewAssignmentController extends Controller
                 'status' => $ticket->status?->name,
                 'assigned_at' => $ticket->assigned_at?->diffForHumans() ?? $ticket->updated_at?->diffForHumans(),
                 'url' => route('agent.tickets.show', $ticket),
-                'acknowledged' => AssignmentAcknowledgment::isAcknowledged($ticket, $map),
+                'acknowledged' => AssignmentAcknowledgment::isAcknowledged($ticket, $map) || !is_null($ticket->acknowledged_at),
                 'acknowledged_at' => $ticket->acknowledged_at?->diffForHumans(),
             ])
             ->values();
