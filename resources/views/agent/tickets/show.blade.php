@@ -55,8 +55,9 @@
                         <h3 class="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wide underline decoration-2 decoration-slate-800 dark:decoration-slate-200 underline-offset-4">Surat Tugas Penanganan Insiden Siber</h3>
                         <p class="text-sm font-bold text-slate-500 dark:text-slate-400 font-mono mt-2 tracking-wider">Nomor: ST/{{ $ticket->ticket_number }}/CSIRT/{{ $ticket->created_at->format('Y') }}</p>
                         <div class="mt-4 text-center">
-                            <a href="{{ route('agent.tickets.show', $ticket) }}" target="_blank" class="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 transition">Lihat Selengkapnya</a>
+                            <a href="{{ route('agent.tickets.show', $ticket) }}" target="_blank" class="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 transition shadow-md font-bold text-sm">Lihat Selengkapnya</a>
                         </div>
+                    </div>
 
                     <!-- Preamble / Pembukaan -->
                     <div class="text-base text-slate-700 dark:text-slate-300 mb-8 leading-relaxed font-medium text-justify">
@@ -64,7 +65,7 @@
                     </div>
 
                     <!-- Pihak Terlibat Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-700 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 mb-8">
                         <div>
                             <h4 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Penerima Tugas (Analis)</h4>
                             <div class="space-y-3">
@@ -112,20 +113,20 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="border-b border-slate-100 dark:border-slate-800">
+                                <tr class="bg-white dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
                                     <td class="px-6 py-5">
                                         <div class="text-base font-extrabold text-slate-900 dark:text-white mb-2">{{ $ticket->subject }}</div>
-                                        <div class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                                        <div class="text-sm text-slate-500 dark:text-slate-300 leading-relaxed">
                                             Melaksanakan tindakan mitigasi, pemulihan, serta forensik digital pada infrastruktur {{ $ticket->department->name }} sehubungan dengan laporan siber ini. Laporan kronologi harus diunggah lengkap melalui log aktivitas sistem.
                                         </div>
                                     </td>
                                     <td class="px-6 py-5 text-center whitespace-nowrap">
                                         @if($ticket->due_at)
-                                            <div class="inline-block font-mono font-bold text-sm {{ $ticket->due_at->isPast() ? 'text-red-600 dark:text-red-500' : 'text-slate-700 dark:text-slate-300' }}">
+                                            <div class="inline-block font-mono font-bold text-sm {{ $ticket->due_at->isPast() ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-300' }}">
                                                 {{ $ticket->due_at->format('d M Y, H:i') }}
                                             </div>
                                         @else
-                                            <span class="text-slate-400">—</span>
+                                            <span class="text-slate-400 dark:text-slate-500">—</span>
                                         @endif
                                     </td>
                                     <td class="px-6 py-5 text-right whitespace-nowrap">
