@@ -54,11 +54,13 @@
                     <div class="text-center my-8">
                         <h3 class="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wide underline decoration-2 decoration-slate-800 dark:decoration-slate-200 underline-offset-4">Surat Tugas Penanganan Insiden Siber</h3>
                         <p class="text-sm font-bold text-slate-500 dark:text-slate-400 font-mono mt-2 tracking-wider">Nomor: ST/{{ $ticket->ticket_number }}/CSIRT/{{ $ticket->created_at->format('Y') }}</p>
-                    </div>
+                        <div class="mt-4 text-center">
+                            <a href="{{ route('agent.tickets.show', $ticket) }}" target="_blank" class="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 transition">Lihat Selengkapnya</a>
+                        </div>
 
                     <!-- Preamble / Pembukaan -->
                     <div class="text-base text-slate-700 dark:text-slate-300 mb-8 leading-relaxed font-medium text-justify">
-                        Menimbang urgensi keamanan siber dan perlunya mitigasi insiden secara cepat pada infrastruktur teknologi informasi Pemerintah Provinsi Kalimantan Selatan, Kepala Dinas Komunikasi, Informatika, dan Statistik menginstruksikan kepada analis berikut untuk melaksanakan penanganan insiden:
+                        Menimbang urgensi keamanan siber dan perlu mitigasi insiden secara cepat pada infrastruktur teknologi informasi Pemerintah Provinsi Kalimantan Selatan, Kepala Dinas Komunikasi, Informatika, dan Statistik menginstruksikan kepada analis berikut untuk melaksanakan penanganan insiden:
                     </div>
 
                     <!-- Pihak Terlibat Grid -->
