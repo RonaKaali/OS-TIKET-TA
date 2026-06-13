@@ -57,6 +57,17 @@ class TicketController extends Controller
         return view('agent.tickets.index', compact('tickets'));
     }
 
+    public function print(Ticket $ticket)
+    {
+        $ticket->load(['department', 'assignee', 'priority', 'requester']);
+
+        if (!RoleUi::canManageAllTickets(request()->user()) && $ticket->assigned_to !== request()->user()->id) {
+            abort(403);
+        }
+
+        return view('agent.tickets.print', compact('ticket'));
+    }
+
     public function show(Ticket $ticket)
     {
         $ticket->load(['threads.attachments', 'status', 'priority', 'department', 'assignee', 'requester']);

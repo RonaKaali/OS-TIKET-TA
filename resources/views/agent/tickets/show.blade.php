@@ -55,7 +55,10 @@
                         <h3 class="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wide underline decoration-2 decoration-slate-800 dark:decoration-slate-200 underline-offset-4">Surat Tugas Penanganan Insiden Siber</h3>
                         <p class="text-sm font-bold text-slate-500 dark:text-slate-400 font-mono mt-2 tracking-wider">Nomor: ST/{{ $ticket->ticket_number }}/CSIRT/{{ $ticket->created_at->format('Y') }}</p>
                         <div class="mt-4 text-center">
-                            <a href="{{ route('agent.tickets.show', $ticket) }}" target="_blank" class="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 transition shadow-md font-bold text-sm">Lihat Selengkapnya</a>
+                            <a href="{{ route('agent.tickets.print', $ticket) }}" target="_blank" class="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 transition shadow-md font-bold text-sm">
+                                <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                Cetak / Download PDF
+                            </a>
                         </div>
                     </div>
 
