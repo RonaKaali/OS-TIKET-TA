@@ -105,7 +105,7 @@ class DeviceFingerprintService
                             'trust_score' => 50,
                             'registered_at' => now(),
                             'last_seen_at' => now(),
-                            'is_verified' => false,
+                            'is_verified' => \Illuminate\Support\Facades\DB::raw('false'),
                             'metadata' => $metadata,
                         ]
                     );
