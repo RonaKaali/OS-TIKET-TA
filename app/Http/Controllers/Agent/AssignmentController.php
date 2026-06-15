@@ -20,6 +20,7 @@ class AssignmentController extends Controller
     {
         $data = $r->validate([
             'user_id' => ['required', 'exists:pengguna,id'],
+            'priority_id' => ['required', 'exists:prioritas,id'],
         ]);
 
         $agent = User::findOrFail($data['user_id']);
@@ -33,10 +34,11 @@ class AssignmentController extends Controller
         // Load relasi yang diperlukan
         $ticket->load(['status', 'priority', 'department']);
 
-        // Update assignment
+        // Update assignment and priority
         $ticket->update([
             'assigned_to' => $agent->id,
             'assigned_at' => now(),
+            'priority_id' => $data['priority_id'],
         ]);
 
         // Update status menjadi "assigned" jika ada

@@ -402,6 +402,15 @@
                                     @endif
                                 @endforeach
                             </select>
+                            <select name="priority_id" required
+                                class="block w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:border-emerald-500 outline-none transition-all py-3 px-4">
+                                <option value="" class="bg-white dark:bg-slate-900">Pilih Tingkat Urgensi</option>
+                                @foreach(\App\Models\Priority::orderBy('weight')->get() as $priority)
+                                    <option value="{{ $priority->id }}" {{ $ticket->priority_id == $priority->id ? 'selected' : '' }} class="bg-white dark:bg-slate-900">
+                                        {{ $priority->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                             <button type="submit"
                             class="w-full py-3 bg-emerald-50 dark:bg-emerald-600/20 border border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-600/30 hover:text-emerald-700 dark:hover:text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all">
                                 Tugaskan Analis

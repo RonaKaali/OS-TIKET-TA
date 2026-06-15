@@ -18,6 +18,7 @@ class Ticket extends Model
         'subject',
         'reporter_email',
         'reporter_name',
+        'reporter_organization',
         'user_id',
         'department_id',
         'help_topic_id',

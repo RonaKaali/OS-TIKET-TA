@@ -126,18 +126,28 @@
                             @enderror
                         </div>
 
-                        <!-- Priority -->
-                        <div>
-                            <label for="priority_id" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 ml-1">Tingkat Urgensi</label>
-                            <select name="priority_id" id="priority_id"
+                        <!-- Reporter Organization -->
+                        <div class="neon-border-glow">
+                            <label for="reporter_organization" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 ml-1">
+                                Asal Pelapor / Organisasi <span class="text-emerald-500">*</span>
+                            </label>
+                            <select name="reporter_organization" id="reporter_organization" required
                                 class="block w-full bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl px-5 py-4 text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all duration-300 appearance-none cursor-pointer shadow-sm">
-                                <option value="" class="bg-white dark:bg-slate-900">Normal</option>
-                                @foreach(\App\Models\Priority::orderBy('weight')->get() as $priority)
-                                    <option value="{{ $priority->id }}" {{ old('priority_id') == $priority->id ? 'selected' : '' }} class="bg-white dark:bg-slate-900">
-                                        {{ $priority->name }}
-                                    </option>
-                                @endforeach
+                                <option value="" class="bg-white dark:bg-slate-900">Pilih Asal Organisasi</option>
+                                <option value="Masyarakat Biasa" {{ old('reporter_organization') == 'Masyarakat Biasa' ? 'selected' : '' }} class="bg-white dark:bg-slate-900 font-bold text-emerald-600 dark:text-emerald-400">
+                                    [ Masyarakat Biasa / Umum ]
+                                </option>
+                                @if(isset($organizations))
+                                    @foreach($organizations as $org)
+                                        <option value="{{ $org->name }}" {{ old('reporter_organization') == $org->name ? 'selected' : '' }} class="bg-white dark:bg-slate-900">
+                                            {{ $org->name }}
+                                        </option>
+                                    @endforeach
+                                @endif
                             </select>
+                            @error('reporter_organization')
+                                <p class="mt-2 text-sm text-rose-500 ml-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
