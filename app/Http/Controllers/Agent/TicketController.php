@@ -130,7 +130,7 @@ class TicketController extends Controller
                 'mime' => $fileData['mime'],
                 'size' => $fileData['size'], // Ukuran asli
                 'path' => $fileData['path'],
-                'is_encrypted' => true,
+                'is_encrypted' => \Illuminate\Support\Facades\DB::raw('true'),
             ]);
         }
 
