@@ -71,8 +71,8 @@
             </div>
         </div>
         <h1 class="mt-8 text-lg sm:text-2xl font-black text-white tracking-[0.15em] sm:tracking-[0.3em] uppercase glow-text text-center px-6 leading-relaxed">
-            Selamat Datang di Pusat Keamanan Siber<br>
-            <span class="text-emerald-500">Pemerintah Kalsel</span>
+            Portal Pelaporan Insiden Siber<br>
+            <span class="text-emerald-500">Pemprov Kalimantan Selatan</span>
         </h1>
         <div class="mt-4 flex space-x-1">
             <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
