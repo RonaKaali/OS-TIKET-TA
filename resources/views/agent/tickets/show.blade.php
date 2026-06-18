@@ -327,7 +327,7 @@
                     </button>
                 </form>
 
-                @if(!auth()->user()->hasRole('Agent 2'))
+                @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
                 <!-- Tombol Kembalikan ke Super Admin -->
                 <form method="POST" action="{{ route('agent.tickets.return', $ticket) }}" class="mb-4"
                     onsubmit="return confirm('🔄 Konfirmasi Kembalikan Tiket?\n\nTiket ini akan dikembalikan ke Super Admin.\nStatus akan diatur ulang dan Anda akan dilepaskan dari tiket ini.')">
