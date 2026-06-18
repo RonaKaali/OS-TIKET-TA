@@ -420,7 +420,7 @@
                         </div>
                     </form>
                 </div>
-            @endcan
+            @endif
 
             <!-- Internal Note Panel -->
             <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl relative overflow-hidden transition-colors">
