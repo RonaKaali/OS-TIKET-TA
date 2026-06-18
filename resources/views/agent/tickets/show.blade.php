@@ -327,7 +327,7 @@
                     </button>
                 </form>
 
-                @unless(auth()->user()->hasRole('Agent 2'))
+                @if(!auth()->user()->hasRole('Agent 2'))
                 <!-- Tombol Kembalikan ke Super Admin -->
                 <form method="POST" action="{{ route('agent.tickets.return', $ticket) }}" class="mb-4"
                     onsubmit="return confirm('🔄 Konfirmasi Kembalikan Tiket?\n\nTiket ini akan dikembalikan ke Super Admin.\nStatus akan diatur ulang dan Anda akan dilepaskan dari tiket ini.')">
@@ -340,7 +340,7 @@
                         Kembalikan ke Super Admin
                     </button>
                 </form>
-                @endunless
+                @endif
                 @endif
 
                 <!-- Ubah Status Manual -->
