@@ -223,9 +223,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function startTour() {
-        // Destroy existing tour if any
+        // Destroy existing tour completely
         if (window._csirtTour) {
-            window._csirtTour.complete();
+            try { window._csirtTour.complete(); } catch(e) {}
+            try { window._csirtTour.destroy(); } catch(e) {}
+            window._csirtTour = null;
+            // Force remove any leftover shepherd elements from DOM
+            document.querySelectorAll('.shepherd-element, .shepherd-modal-overlay-container').forEach(el => el.remove());
         }
 
         const steps = getSteps(role);

@@ -1,48 +1,49 @@
 /* ================================================
    CSIRT Kalselprov — Shepherd.js Custom Theme
+   Fixed: overlay centering, step stacking, positioning
    ================================================ */
 
-/* Shepherd base overrides */
-.shepherd-element,
-.shepherd-cancel-icon,
-.shepherd-header,
-.shepherd-text,
-.shepherd-footer {
-  all: unset;
-  box-sizing: border-box;
-}
-
-/* Main tooltip container */
+/* === Reset Shepherd defaults safely === */
 .shepherd-element {
-  position: absolute;
-  z-index: 9999;
   display: block;
+  position: absolute;
+  z-index: 10000;
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  outline: none;
   max-width: 380px;
   min-width: 280px;
+}
+
+/* Hide old steps properly */
+.shepherd-element.shepherd-element-hidden {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* === Main tooltip container === */
+.shepherd-element.shepherd-element-attached {
   background: #0f172a;
   border: 1px solid rgba(16, 185, 129, 0.3);
   border-radius: 1.25rem;
   box-shadow:
     0 0 30px rgba(16, 185, 129, 0.15),
-    0 25px 60px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(16, 185, 129, 0.1);
-  font-family: 'Inter', system-ui, sans-serif;
+    0 25px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.shepherd-element.shepherd-element-hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(8px) scale(0.97);
+  transition: opacity 0.2s ease;
 }
 
 /* Top accent gradient bar */
-.shepherd-element::before {
+.shepherd-element.shepherd-element-attached::before {
   content: '';
   display: block;
   height: 3px;
-  background: linear-gradient(90deg, #10b981, #3b82f6, #10b980);
+  background: linear-gradient(90deg, #10b981, #3b82f6, #10b981);
   background-size: 200% 100%;
   animation: csirt-gradient 3s ease infinite;
 }
@@ -61,27 +62,29 @@
   padding: 1rem 1.25rem 0.25rem;
 }
 
-/* Step counter badge */
-.shepherd-header .csirt-step-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.625rem;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  border-radius: 9999px;
-  font-size: 0.6rem;
-  font-weight: 800;
-  color: #34d399;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+/* Body / text */
+.shepherd-text {
+  padding: 0.5rem 1.25rem 1rem;
+  color: #e2e8f0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.65;
 }
 
-.shepherd-header .csirt-step-badge .step-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #10b981;
+.shepherd-text strong {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+/* Footer */
+.shepherd-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 0.5rem;
 }
 
 /* Close button */
@@ -107,37 +110,7 @@
   color: #ef4444;
 }
 
-/* Body / text */
-.shepherd-text {
-  padding: 0.5rem 1.25rem 1rem;
-  color: #e2e8f0;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  line-height: 1.65;
-}
-
-.shepherd-text strong {
-  color: #f8fafc;
-  font-weight: 700;
-}
-
-.shepherd-text .csirt-highlight {
-  color: #34d399;
-  font-weight: 700;
-}
-
-/* Footer */
-.shepherd-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1.25rem;
-  background: rgba(15, 23, 42, 0.6);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  gap: 0.5rem;
-}
-
-/* Navigation buttons */
+/* === Navigation buttons === */
 .shepherd-button {
   display: inline-flex;
   align-items: center;
@@ -152,58 +125,70 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: 'Inter', system-ui, sans-serif;
+  color: white;
+  background: transparent;
 }
 
-/* Primary / Next button */
 .shepherd-button.shepherd-button-primary {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: white !important;
   box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
 }
 
 .shepherd-button.shepherd-button-primary:hover {
-  background: linear-gradient(135deg, #34d399, #10b981);
+  background: linear-gradient(135deg, #34d399, #10b981) !important;
   box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
   transform: translateY(-1px);
 }
 
-/* Secondary / Back button */
 .shepherd-button:not(.shepherd-button-primary) {
-  background: rgba(255, 255, 255, 0.05);
-  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #94a3b8 !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .shepherd-button:not(.shepherd-button-primary):hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: white !important;
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Footer left/right layout */
-.shepherd-footer .csirt-footer-left {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.shepherd-footer .csirt-footer-right {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-
-/* "Skip All" text button */
 .shepherd-button.csirt-skip {
-  background: transparent;
-  color: #475569;
+  background: transparent !important;
+  color: #475569 !important;
   padding: 0.5rem 0.75rem;
   font-size: 0.625rem;
-  border: none;
+  border: none !important;
 }
 
 .shepherd-button.csirt-skip:hover {
-  color: #94a3b8;
+  color: #94a3b8 !important;
+}
+
+/* === Overlay - FIXED: center at viewport center === */
+.shepherd-modal-overlay-container {
+  position: fixed !important;
+  top: 50vh !important;
+  left: 50vw !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+  z-index: 9999 !important;
+  pointer-events: none !important;
+  transform: translate(-50%, -50%) !important;
+}
+
+.shepherd-modal-overlay-container .shepherd-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
 }
 
 /* Arrow */
@@ -217,7 +202,6 @@
   z-index: -1;
 }
 
-/* Arrow positions */
 .shepherd-element.shepherd-element-attached-bottom .shepherd-arrow {
   top: -9px;
   border-right: none;
@@ -242,41 +226,15 @@
   border-top: none;
 }
 
-/* Highlight overlay for focused element */
-.shepherd-modal-overlay-container {
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  pointer-events: none;
-}
-
-.shepherd-modal-overlay-container .shepherd-modal-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(2px);
-  border-radius: 0.75rem;
-  transition: all 0.3s ease;
-}
-
-/* Active element gets a glowing border */
-.shepherd-element-active {
-  box-shadow:
-    0 0 0 2px rgba(16, 185, 129, 0.6),
-    0 0 30px rgba(16, 185, 129, 0.3),
-    0 25px 60px rgba(0, 0, 0, 0.5);
-}
-
 /* ================================================
-   Light Mode Overrides (when not in dark mode)
+   Light Mode Overrides
    ================================================ */
-body:not(.dark) .shepherd-element {
+body:not(.dark) .shepherd-element.shepherd-element-attached {
   background: #ffffff;
   border-color: rgba(16, 185, 129, 0.3);
   box-shadow:
     0 0 30px rgba(16, 185, 129, 0.1),
-    0 25px 60px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(16, 185, 129, 0.1);
+    0 25px 60px rgba(0, 0, 0, 0.15);
 }
 
 body:not(.dark) .shepherd-text {
@@ -305,22 +263,14 @@ body:not(.dark) .shepherd-cancel-icon:hover {
 }
 
 body:not(.dark) .shepherd-button:not(.shepherd-button-primary) {
-  background: rgba(0, 0, 0, 0.04);
-  color: #64748b;
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #64748b !important;
   border-color: rgba(0, 0, 0, 0.1);
 }
 
 body:not(.dark) .shepherd-button:not(.shepherd-button-primary):hover {
-  background: rgba(0, 0, 0, 0.08);
-  color: #334155;
-}
-
-body:not(.dark) .shepherd-button.csirt-skip {
-  color: #94a3b8;
-}
-
-body:not(.dark) .shepherd-button.csirt-skip:hover {
-  color: #475569;
+  background: rgba(0, 0, 0, 0.08) !important;
+  color: #334155 !important;
 }
 
 body:not(.dark) .shepherd-arrow {
@@ -338,21 +288,10 @@ body:not(.dark) .shepherd-modal-overlay-container .shepherd-modal-overlay {
   .shepherd-element {
     max-width: calc(100vw - 2rem);
     min-width: 240px;
-    border-radius: 1rem;
   }
 
   .shepherd-text {
     font-size: 0.75rem;
-    padding: 0.5rem 1rem 0.75rem;
-  }
-
-  .shepherd-header {
-    padding: 0.75rem 1rem 0.125rem;
-  }
-
-  .shepherd-footer {
-    padding: 0.625rem 1rem;
-    flex-wrap: wrap;
   }
 
   .shepherd-button {
