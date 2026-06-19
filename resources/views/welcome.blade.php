@@ -91,7 +91,7 @@
             <div class="flex justify-between items-center h-16 md:h-20 gap-3">
                 <!-- Brand -->
                 <a href="{{ route('welcome') }}" class="flex items-center gap-2.5 sm:gap-4 min-w-0 shrink">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center bg-emerald-500/5 rounded-xl border border-emerald-500/20 shrink-0">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center bg-emerald-500/5 rounded-xl border border-emerald-500/20 shrink-0" id="tour-brand">
                         <img src="{{ asset('images/logo-kalselprov.png') }}" alt="Logo Kalselprov" class="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 object-contain">
                     </div>
                     <div class="min-w-0">
@@ -125,6 +125,11 @@
                             <a href="{{ route('register') }}" class="inline-flex items-center px-5 py-2 text-sm font-bold rounded-xl text-white bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 shadow-md transition">Daftar</a>
                         @endif
                     @endauth
+                    <!-- Tutorial Button -->
+                    <button onclick="startCsirtTour && startCsirtTour()" class="csirt-tour-trigger" title="Lihat Panduan Sistem">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253" /></svg>
+                        Tutorial
+                    </button>
                 </div>
 
                 <!-- Mobile: theme + hamburger -->
@@ -209,6 +214,7 @@
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-stretch sm:items-center max-w-md sm:max-w-none mx-auto px-2 sm:px-0">
                     @auth
                         <a href="{{ route('portal.ticket.create') }}"
+                            id="tour-cta-report"
                             class="group relative inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all duration-200 bg-emerald-600 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:bg-emerald-500 hover:-translate-y-1 w-full sm:w-auto">
                             <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -235,6 +241,7 @@
                         </a>
                     @endauth
                     <a href="{{ route('portal.ticket.status.form') }}"
+                        id="tour-cta-track"
                         class="inline-flex items-center justify-center px-6 sm:px-8 py-3.5 sm:py-4 text-base font-bold text-emerald-700 dark:text-emerald-400 transition-all duration-200 bg-transparent border-2 border-emerald-500/50 rounded-xl hover:bg-emerald-500/10 hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-600 w-full sm:w-auto">
                         <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -411,7 +418,7 @@
     </div>
 
     <!-- Stats Section -->
-    <div class="relative z-10 border-t border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 backdrop-blur-sm py-16 transition-colors">
+    <div class="relative z-10 border-t border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 backdrop-blur-sm py-16 transition-colors" id="tour-stats">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800">
                 <div class="py-4">
@@ -537,6 +544,28 @@
             }
         });
     </script>
+
+    <!-- Shepherd.js Tour Library -->
+    <link rel="stylesheet" href="{{ asset('css/shepherd-csirt-theme.css') }}">
+    <script src="{{ asset('js/shepherd.min.js') }}"></script>
+    <script>
+        @auth
+            @php
+                $userRole = Auth::user()->roles->first()->name ?? 'portal';
+                if (in_array($userRole, ['Agent 1', 'Agent 2'])) {
+                    $tourRole = 'agent';
+                } elseif (in_array($userRole, ['Super Admin', 'Admin'])) {
+                    $tourRole = 'admin';
+                } else {
+                    $tourRole = 'portal';
+                }
+            @endphp
+            window.csirtTourRole = '{{ $tourRole }}';
+        @else
+            window.csirtTourRole = 'visitor';
+        @endauth
+    </script>
+    @include('partials.tour-config')
 </body>
 
 </html>

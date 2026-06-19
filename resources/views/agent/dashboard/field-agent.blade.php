@@ -20,7 +20,7 @@
         </div>
     </x-slot>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="tour-agent-stats">
         <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Ditugaskan</p>
             <p class="text-3xl font-black text-blue-600 dark:text-blue-400">{{ $stats['assigned'] }}</p>
@@ -39,7 +39,7 @@
         </div>
     </div>
 
-    <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden" id="tour-agent-tasks">
         <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700">
             <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Tugas Aktif Saya</h3>
         </div>

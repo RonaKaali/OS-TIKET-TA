@@ -1,0 +1,394 @@
+/* ================================================
+   CSIRT Kalselprov — Shepherd.js Custom Theme
+   ================================================ */
+
+/* Shepherd base overrides */
+.shepherd-element,
+.shepherd-cancel-icon,
+.shepherd-header,
+.shepherd-text,
+.shepherd-footer {
+  all: unset;
+  box-sizing: border-box;
+}
+
+/* Main tooltip container */
+.shepherd-element {
+  position: absolute;
+  z-index: 9999;
+  display: block;
+  max-width: 380px;
+  min-width: 280px;
+  background: #0f172a;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 0 30px rgba(16, 185, 129, 0.15),
+    0 25px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(16, 185, 129, 0.1);
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow: hidden;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.shepherd-element.shepherd-element-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px) scale(0.97);
+}
+
+/* Top accent gradient bar */
+.shepherd-element::before {
+  content: '';
+  display: block;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981, #3b82f6, #10b980);
+  background-size: 200% 100%;
+  animation: csirt-gradient 3s ease infinite;
+}
+
+@keyframes csirt-gradient {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Header */
+.shepherd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 0.25rem;
+}
+
+/* Step counter badge */
+.shepherd-header .csirt-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 9999px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: #34d399;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.shepherd-header .csirt-step-badge .step-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+/* Close button */
+.shepherd-cancel-icon {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: #64748b;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.shepherd-cancel-icon:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+/* Body / text */
+.shepherd-text {
+  padding: 0.5rem 1.25rem 1rem;
+  color: #e2e8f0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.65;
+}
+
+.shepherd-text strong {
+  color: #f8fafc;
+  font-weight: 700;
+}
+
+.shepherd-text .csirt-highlight {
+  color: #34d399;
+  font-weight: 700;
+}
+
+/* Footer */
+.shepherd-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  gap: 0.5rem;
+}
+
+/* Navigation buttons */
+.shepherd-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Primary / Next button */
+.shepherd-button.shepherd-button-primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+.shepherd-button.shepherd-button-primary:hover {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Secondary / Back button */
+.shepherd-button:not(.shepherd-button-primary) {
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shepherd-button:not(.shepherd-button-primary):hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Footer left/right layout */
+.shepherd-footer .csirt-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.shepherd-footer .csirt-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* "Skip All" text button */
+.shepherd-button.csirt-skip {
+  background: transparent;
+  color: #475569;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.625rem;
+  border: none;
+}
+
+.shepherd-button.csirt-skip:hover {
+  color: #94a3b8;
+}
+
+/* Arrow */
+.shepherd-arrow {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: #0f172a;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  transform: rotate(45deg);
+  z-index: -1;
+}
+
+/* Arrow positions */
+.shepherd-element.shepherd-element-attached-bottom .shepherd-arrow {
+  top: -9px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.shepherd-element.shepherd-element-attached-top .shepherd-arrow {
+  bottom: -9px;
+  border-left: none;
+  border-top: none;
+}
+
+.shepherd-element.shepherd-element-attached-right .shepherd-arrow {
+  left: -9px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.shepherd-element.shepherd-element-attached-left .shepherd-arrow {
+  right: -9px;
+  border-right: none;
+  border-top: none;
+}
+
+/* Highlight overlay for focused element */
+.shepherd-modal-overlay-container {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+}
+
+.shepherd-modal-overlay-container .shepherd-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+/* Active element gets a glowing border */
+.shepherd-element-active {
+  box-shadow:
+    0 0 0 2px rgba(16, 185, 129, 0.6),
+    0 0 30px rgba(16, 185, 129, 0.3),
+    0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ================================================
+   Light Mode Overrides (when not in dark mode)
+   ================================================ */
+body:not(.dark) .shepherd-element {
+  background: #ffffff;
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow:
+    0 0 30px rgba(16, 185, 129, 0.1),
+    0 25px 60px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(16, 185, 129, 0.1);
+}
+
+body:not(.dark) .shepherd-text {
+  color: #334155;
+}
+
+body:not(.dark) .shepherd-text strong {
+  color: #0f172a;
+}
+
+body:not(.dark) .shepherd-footer {
+  background: rgba(248, 250, 252, 0.8);
+  border-top-color: rgba(0, 0, 0, 0.05);
+}
+
+body:not(.dark) .shepherd-cancel-icon {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #94a3b8;
+}
+
+body:not(.dark) .shepherd-cancel-icon:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+body:not(.dark) .shepherd-button:not(.shepherd-button-primary) {
+  background: rgba(0, 0, 0, 0.04);
+  color: #64748b;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body:not(.dark) .shepherd-button:not(.shepherd-button-primary):hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #334155;
+}
+
+body:not(.dark) .shepherd-button.csirt-skip {
+  color: #94a3b8;
+}
+
+body:not(.dark) .shepherd-button.csirt-skip:hover {
+  color: #475569;
+}
+
+body:not(.dark) .shepherd-arrow {
+  background: #ffffff;
+}
+
+body:not(.dark) .shepherd-modal-overlay-container .shepherd-modal-overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* ================================================
+   Mobile Responsive
+   ================================================ */
+@media (max-width: 640px) {
+  .shepherd-element {
+    max-width: calc(100vw - 2rem);
+    min-width: 240px;
+    border-radius: 1rem;
+  }
+
+  .shepherd-text {
+    font-size: 0.75rem;
+    padding: 0.5rem 1rem 0.75rem;
+  }
+
+  .shepherd-header {
+    padding: 0.75rem 1rem 0.125rem;
+  }
+
+  .shepherd-footer {
+    padding: 0.625rem 1rem;
+    flex-wrap: wrap;
+  }
+
+  .shepherd-button {
+    font-size: 0.625rem;
+    padding: 0.4375rem 0.75rem;
+  }
+}
+
+/* ================================================
+   Tour Trigger Button (Tutorial) 
+   ================================================ */
+.csirt-tour-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 0.625rem;
+  color: #10b981;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.csirt-tour-trigger:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+  transform: translateY(-1px);
+}
+
+.csirt-tour-trigger svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
