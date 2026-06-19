@@ -365,7 +365,7 @@
             </div>
 
             <!-- Assignment Panel -->
-            @if(auth()->user()->hasRole('Super Admin'))
+            @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
                 <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl transition-colors">
                     <h3 class="text-xs font-black text-slate-900 dark:text-white mb-6 uppercase tracking-[0.2em] flex items-center transition-colors">
                         <svg class="w-4 h-4 mr-2 text-emerald-600 dark:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
