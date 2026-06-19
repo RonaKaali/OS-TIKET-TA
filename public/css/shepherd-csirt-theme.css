@@ -1,45 +1,33 @@
 /* ================================================
    CSIRT Kalselprov — Shepherd.js Custom Theme
-   Fixed: overlay centering, step stacking, positioning
+   APPROACH: Only style appearance (colors/fonts/buttons)
+   DO NOT touch positioning/layout/overlay — let Shepherd handle it
    ================================================ */
 
-/* === Reset Shepherd defaults safely === */
+/* === Tooltip Container - ONLY background + border + border-radius === */
 .shepherd-element {
-  display: block;
-  position: absolute;
-  z-index: 10000;
-  font-family: 'Inter', system-ui, sans-serif;
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: none;
-  box-shadow: none;
-  outline: none;
-  max-width: 380px;
-  min-width: 280px;
+  border-radius: 1rem !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(16, 185, 129, 0.12) !important;
 }
 
-/* Hide old steps properly */
-.shepherd-element.shepherd-element-hidden {
-  display: none !important;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* === Main tooltip container === */
-.shepherd-element.shepherd-element-attached {
-  background: #0f172a;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 1.25rem;
-  box-shadow:
-    0 0 30px rgba(16, 185, 129, 0.15),
-    0 25px 60px rgba(0, 0, 0, 0.5);
+/* Dark mode (default) */
+.shepherd-element .shepherd-content {
+  background: #0f172a !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  border-radius: 1rem !important;
+  color: #e2e8f0 !important;
   overflow: hidden;
-  transition: opacity 0.2s ease;
 }
 
-/* Top accent gradient bar */
-.shepherd-element.shepherd-element-attached::before {
+/* Light mode */
+body:not(.dark) .shepherd-element .shepherd-content {
+  background: #ffffff !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 20px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* === Top gradient accent bar === */
+.shepherd-element .shepherd-content::before {
   content: '';
   display: block;
   height: 3px;
@@ -54,249 +42,129 @@
   100% { background-position: 0% 50%; }
 }
 
-/* Header */
-.shepherd-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.25rem 0.25rem;
-}
-
-/* Body / text */
-.shepherd-text {
-  padding: 0.5rem 1.25rem 1rem;
-  color: #e2e8f0;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  line-height: 1.65;
-}
-
-.shepherd-text strong {
-  color: #f8fafc;
-  font-weight: 700;
-}
-
-/* Footer */
-.shepherd-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1.25rem;
-  background: rgba(15, 23, 42, 0.6);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  gap: 0.5rem;
-}
-
-/* Close button */
-.shepherd-cancel-icon {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 0.5rem;
-  color: #64748b;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  flex-shrink: 0;
-}
-
-.shepherd-cancel-icon:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #ef4444;
-}
-
-/* === Navigation buttons === */
-.shepherd-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.625rem;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: 'Inter', system-ui, sans-serif;
-  color: white;
-  background: transparent;
-}
-
-.shepherd-button.shepherd-button-primary {
-  background: linear-gradient(135deg, #10b981, #059669) !important;
-  color: white !important;
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
-}
-
-.shepherd-button.shepherd-button-primary:hover {
-  background: linear-gradient(135deg, #34d399, #10b981) !important;
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.5);
-  transform: translateY(-1px);
-}
-
-.shepherd-button:not(.shepherd-button-primary) {
-  background: rgba(255, 255, 255, 0.05) !important;
-  color: #94a3b8 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.shepherd-button:not(.shepherd-button-primary):hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: white !important;
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.shepherd-button.csirt-skip {
+/* === Header === */
+.shepherd-element .shepherd-header {
   background: transparent !important;
-  color: #475569 !important;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.625rem;
-  border: none !important;
+  padding: 1rem 1.25rem 0 !important;
+  border-bottom: none !important;
 }
 
-.shepherd-button.csirt-skip:hover {
-  color: #94a3b8 !important;
+/* === Text === */
+.shepherd-element .shepherd-text {
+  color: #e2e8f0 !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  line-height: 1.65 !important;
+  padding: 0.5rem 1.25rem 1rem !important;
+  background: transparent !important;
 }
 
-/* === Overlay - FIXED: center at viewport center === */
-.shepherd-modal-overlay-container {
-  position: fixed !important;
-  top: 50vh !important;
-  left: 50vw !important;
-  width: 0 !important;
-  height: 0 !important;
-  overflow: visible !important;
-  z-index: 9999 !important;
-  pointer-events: none !important;
-  transform: translate(-50%, -50%) !important;
-}
-
-.shepherd-modal-overlay-container .shepherd-modal-overlay {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(2px);
-  pointer-events: none;
-}
-
-/* Arrow */
-.shepherd-arrow {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  background: #0f172a;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  transform: rotate(45deg);
-  z-index: -1;
-}
-
-.shepherd-element.shepherd-element-attached-bottom .shepherd-arrow {
-  top: -9px;
-  border-right: none;
-  border-bottom: none;
-}
-
-.shepherd-element.shepherd-element-attached-top .shepherd-arrow {
-  bottom: -9px;
-  border-left: none;
-  border-top: none;
-}
-
-.shepherd-element.shepherd-element-attached-right .shepherd-arrow {
-  left: -9px;
-  border-left: none;
-  border-bottom: none;
-}
-
-.shepherd-element.shepherd-element-attached-left .shepherd-arrow {
-  right: -9px;
-  border-right: none;
-  border-top: none;
-}
-
-/* ================================================
-   Light Mode Overrides
-   ================================================ */
-body:not(.dark) .shepherd-element.shepherd-element-attached {
-  background: #ffffff;
-  border-color: rgba(16, 185, 129, 0.3);
-  box-shadow:
-    0 0 30px rgba(16, 185, 129, 0.1),
-    0 25px 60px rgba(0, 0, 0, 0.15);
-}
-
-body:not(.dark) .shepherd-text {
-  color: #334155;
-}
-
-body:not(.dark) .shepherd-text strong {
-  color: #0f172a;
-}
-
-body:not(.dark) .shepherd-footer {
-  background: rgba(248, 250, 252, 0.8);
-  border-top-color: rgba(0, 0, 0, 0.05);
-}
-
-body:not(.dark) .shepherd-cancel-icon {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.1);
-  color: #94a3b8;
-}
-
-body:not(.dark) .shepherd-cancel-icon:hover {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-}
-
-body:not(.dark) .shepherd-button:not(.shepherd-button-primary) {
-  background: rgba(0, 0, 0, 0.04) !important;
-  color: #64748b !important;
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
-body:not(.dark) .shepherd-button:not(.shepherd-button-primary):hover {
-  background: rgba(0, 0, 0, 0.08) !important;
+body:not(.dark) .shepherd-element .shepherd-text {
   color: #334155 !important;
 }
 
+.shepherd-text strong {
+  color: #f8fafc !important;
+  font-weight: 700 !important;
+}
+
+body:not(.dark) .shepherd-text strong {
+  color: #0f172a !important;
+}
+
+/* === Footer === */
+.shepherd-element .shepherd-footer {
+  background: rgba(15, 23, 42, 0.7) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 0.75rem 1.25rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+body:not(.dark) .shepherd-element .shepherd-footer {
+  background: rgba(248, 250, 252, 0.9) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+/* === Buttons === */
+.shepherd-element .shepherd-button {
+  border: none !important;
+  border-radius: 0.5rem !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 0.6875rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  cursor: pointer !important;
+  padding: 0.5rem 1rem !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Primary (Next/Selesai) */
+.shepherd-element .shepherd-button.shepherd-button-primary {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: white !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
+}
+
+.shepherd-element .shepherd-button.shepherd-button-primary:hover {
+  background: linear-gradient(135deg, #34d399, #10b981) !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.5) !important;
+}
+
+/* Secondary (Back) */
+.shepherd-element .shepherd-button:not(.shepherd-button-primary):not(.shepherd-cancel-icon) {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body:not(.dark) .shepherd-element .shepherd-button:not(.shepherd-button-primary):not(.shepherd-cancel-icon) {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #64748b !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+/* === Cancel/X icon === */
+.shepherd-element .shepherd-cancel-icon {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0.5rem !important;
+  color: #64748b !important;
+  font-size: 1rem !important;
+}
+
+.shepherd-element .shepherd-cancel-icon:hover {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+}
+
+body:not(.dark) .shepherd-element .shepherd-cancel-icon {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #94a3b8 !important;
+}
+
+/* === Arrow - ONLY color, let Shepherd position it === */
+.shepherd-arrow {
+  background: #0f172a !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+}
+
 body:not(.dark) .shepherd-arrow {
-  background: #ffffff;
+  background: #ffffff !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
 }
 
-body:not(.dark) .shepherd-modal-overlay-container .shepherd-modal-overlay {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-/* ================================================
-   Mobile Responsive
-   ================================================ */
+/* === Mobile === */
 @media (max-width: 640px) {
-  .shepherd-element {
-    max-width: calc(100vw - 2rem);
-    min-width: 240px;
+  .shepherd-element .shepherd-text {
+    font-size: 0.75rem !important;
   }
-
-  .shepherd-text {
-    font-size: 0.75rem;
-  }
-
-  .shepherd-button {
-    font-size: 0.625rem;
-    padding: 0.4375rem 0.75rem;
+  .shepherd-element .shepherd-button {
+    font-size: 0.625rem !important;
+    padding: 0.4375rem 0.75rem !important;
   }
 }
 
