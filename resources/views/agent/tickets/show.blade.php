@@ -19,7 +19,7 @@
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-8">
             <!-- Surat Tugas Resmi / Official Assignment Letter -->
-            <div class="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 rounded-3xl shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.7)] overflow-hidden transition-all duration-300">
+            <div class="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 rounded-3xl shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.7)] overflow-hidden transition-all duration-300" id="tour-surat-tugas">
                 <!-- Subtle Top Accent Bar -->
                 <div class="h-1.5 bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 dark:from-emerald-600 dark:via-emerald-500 dark:to-cyan-500"></div>
 
@@ -244,7 +244,7 @@
             </div>
 
             <!-- Reply Form Card -->
-            <div class="bg-white dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm dark:shadow-2xl relative overflow-hidden transition-colors">
+            <div class="bg-white dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm dark:shadow-2xl relative overflow-hidden transition-colors" id="tour-reply-form">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-blue-500"></div>
                 <h3 class="text-lg font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight flex items-center transition-colors">
                     <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 mr-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
@@ -307,7 +307,7 @@
         <!-- Sidebar Actions -->
         <div class="space-y-8">
             <!-- Status & Action Panel -->
-            <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl transition-colors">
+            <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl transition-colors" id="tour-aksi-tiket">
                 <h3 class="text-xs font-black text-slate-900 dark:text-white mb-6 uppercase tracking-[0.2em] flex items-center transition-colors">
                     <svg class="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                     Aksi Tiket
@@ -315,7 +315,7 @@
 
                 @if($ticket->assigned_to === Auth::id())
                 <!-- Tombol Selesaikan Tiket -->
-                <form method="POST" action="{{ route('agent.tickets.complete', $ticket) }}" class="mb-3"
+                <form method="POST" action="{{ route('agent.tickets.complete', $ticket) }}" class="mb-3" id="tour-selesaikan"
                     onsubmit="return confirm('✅ Konfirmasi Selesaikan Tiket?\n\nApakah Anda yakin tiket ini sudah selesai dikerjakan?\nPelapor akan otomatis mendapat notifikasi email.')">
                     @csrf
                     <button type="submit"
@@ -366,7 +366,7 @@
 
             <!-- Assignment Panel -->
             @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
-                <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl transition-colors">
+                <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl transition-colors" id="tour-penugasan">
                     <h3 class="text-xs font-black text-slate-900 dark:text-white mb-6 uppercase tracking-[0.2em] flex items-center transition-colors">
                         <svg class="w-4 h-4 mr-2 text-emerald-600 dark:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                         Penugasan Analis
@@ -423,7 +423,7 @@
             @endif
 
             <!-- Internal Note Panel -->
-            <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl relative overflow-hidden transition-colors">
+            <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl relative overflow-hidden transition-colors" id="tour-catatan">
                 <div class="absolute top-0 right-0 p-2">
                     <span class="text-[8px] font-black text-amber-600 dark:text-amber-500/50 uppercase tracking-widest transition-colors">Confidential</span>
                 </div>

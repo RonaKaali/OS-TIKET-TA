@@ -1,238 +1,135 @@
 {{-- 
-    Tour Configuration for CSIRT Kalselprov
-    Include this in layouts that need the guided tour.
-    Usage: @include('partials.tour-config')
+    Tour Configuration for CSIRT Kalselprov — COMPREHENSIVE VERSION
     
-    Requires: shepherd.min.js and shepherd-csirt-theme.css to be loaded first.
-    The JS variable `csirtTourRole` should be set before this partial.
-    If not set, tour will not initialize.
+    Multi-page tour: each page has its own tour steps.
+    The JS variable `csirtTourRole` and `csirtTourPage` must be set before this partial.
+    
+    Usage in layouts:
+    @php
+        $tourRole = 'visitor'; // or 'portal', 'agent', 'admin'
+        $tourPage = 'dashboard'; // or 'tickets', 'ticket-show', etc.
+    @endphp
+    <script>
+        window.csirtTourRole = '{{ $tourRole }}';
+        window.csirtTourPage = '{{ $tourPage }}';
+    </script>
+    @include('partials.tour-config')
 --}}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Only init if role is set
     if (typeof window.csirtTourRole === 'undefined' || !window.csirtTourRole) return;
 
     const role = window.csirtTourRole;
-    const storageKey = 'csirt_tour_completed_' + role;
+    const page = window.csirtTourPage || 'default';
+    const storageKey = 'csirt_tour_completed_' + role + '_' + page;
 
-    // Tour trigger button handler
-    function bindTriggerButtons() {
-        document.querySelectorAll('.csirt-tour-trigger').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                localStorage.removeItem(storageKey);
-                startTour();
-            });
-        });
-    }
+    function getSteps(role, page) {
+        switch(role + '|' + page) {
 
-    // Define steps per role
-    function getSteps(role) {
-        const commonIntro = {
-            title: '📖 Selamat Datang di CSIRT Kalselprov',
-            text: 'Panduan singkat ini akan membantu Anda memahami cara menggunakan sistem pelaporan insiden siber.',
-            attachTo: { element: 'body', on: 'center' },
-            classes: 'csirt-step-intro',
-            buttons: [
-                { text: ' Lewati Semua', classes: 'csirt-skip', action: function() { this.cancel(); } },
-                { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-            ],
-            id: 'tour-welcome'
-        };
+        // ============================
+        // VISITOR — Landing Page
+        // ============================
+        case 'visitor|welcome':
+            return [
+                { title: '📖 Selamat Datang', text: 'Ini adalah <strong>Portal Pelaporan Insiden Siber</strong> CSIRT Kalselprov. Mari kita kenali fitur-fitur utama.', attachTo: { element: '#tour-brand', on: 'bottom' }, buttons: [{ text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } }, { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🚨 Laporkan Insiden', text: 'Tombol utama ini mengarahkan Anda ke <strong>formulir pelaporan insiden siber</strong>. Isi detail insiden: jenis serangan, dampak, dan bukti pendukung.', attachTo: { element: '#tour-cta-report', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🔍 Lacak Laporan', text: 'Punya nomor tiket? Masukkan di sini untuk <strong>melacak status</strong> penanganan insiden secara real-time tanpa perlu login.', attachTo: { element: '#tour-cta-track', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📊 Statistik Insiden', text: 'Grafik ini menampilkan <strong>tren insiden siber</strong> beberapa bulan terakhir. Data ini membantu memahami pola serangan di Kalsel.', attachTo: { element: '#tour-stats', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🛡️ Zero Trust Security', text: 'Portal ini dilindungi <strong>Zero Trust Architecture</strong> — verifikasi berlapis, fingerprint perangkat, dan deteksi anomali. Data Anda aman.', attachTo: { element: '#tour-features', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '✅ Siap Melapor!', text: 'Untuk melapor, klik tombol <strong>"Laporkan Insiden"</strong> atau <strong>"Masuk"</strong> jika sudah punya akun. Jika butuh bantuan, gunakan tombol <strong>"Tutorial"</strong> kapan saja.', attachTo: { element: '#tour-nav', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }] }
+            ];
 
-        switch(role) {
-            case 'visitor':
-                return [
-                    {
-                        title: '📖 Panduan Portal CSIRT',
-                        text: 'Selamat datang di Portal Pelaporan Insiden Siber Pemprov Kalsel. Mari kita kenali fitur-fitur utama.',
-                        attachTo: { element: '#tour-brand', on: 'bottom' },
-                        buttons: [
-                            { text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } },
-                            { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-v-0'
-                    },
-                    {
-                        title: '🚨 Laporkan Insiden Siber',
-                        text: 'Klik tombol ini untuk <strong>melaporkan insiden siber</strong>. Anda akan diarahkan ke formulir pelaporan resmi CSIRT.',
-                        attachTo: { element: '#tour-cta-report', on: 'bottom' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-v-1'
-                    },
-                    {
-                        title: '🔍 Lacak Laporan',
-                        text: 'Sudah punya nomor tiket? Gunakan tombol ini untuk <strong>melacak status laporan</strong> Anda secara real-time.',
-                        attachTo: { element: '#tour-cta-track', on: 'bottom' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-v-2'
-                    },
-                    {
-                        title: '📊 Statistik Insiden',
-                        text: 'Pantau <strong>statistik insiden siber</strong> secara real-time di dashboard ini. Data diperbarui otomatis.',
-                        attachTo: { element: '#tour-stats', on: 'top' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }
-                        ],
-                        id: 'tour-v-3'
-                    }
-                ];
+        // ============================
+        // PORTAL USER — Landing Page (after login)
+        // ============================
+        case 'portal|welcome':
+            return [
+                { title: '📖 Portal Pelaporan', text: 'Anda sudah login sebagai <strong>Pelapor</strong>. Berikut panduan cara membuat dan melacak laporan insiden.', attachTo: { element: '#tour-brand', on: 'bottom' }, buttons: [{ text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } }, { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🚨 Buat Laporan Baru', text: 'Klik tombol ini untuk mengisi <strong>formulir pelaporan</strong>. Sertakan: jenis insiden, departemen terdampak, kronologi, dan bukti.', attachTo: { element: '#tour-cta-report', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🔍 Lacak Status', text: 'Setelah melapor, Anda mendapat <strong>nomor tiket</strong>. Gunakan tombol ini untuk cek progres penanganan kapan saja.', attachTo: { element: '#tour-cta-track', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '⚙️ Profil Saya', text: 'Klik menu <strong>Profil</strong> untuk mengatur akun, mengaktifkan <strong>MFA (Multi-Factor Authentication)</strong>, dan mengelola keamanan akun.', attachTo: { element: '#tour-nav', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }] }
+            ];
 
-            case 'portal':
-                return [
-                    {
-                        title: '📖 Portal Pelaporan',
-                        text: 'Anda sudah login. Berikut panduan cepat untuk melaporkan insiden siber.',
-                        attachTo: { element: '#tour-brand', on: 'bottom' },
-                        buttons: [
-                            { text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } },
-                            { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-p-0'
-                    },
-                    {
-                        title: '🚨 Buat Laporan Baru',
-                        text: 'Klik tombol ini untuk <strong>membuat laporan insiden baru</strong>. Isi formulir dengan detail insiden yang Anda alami.',
-                        attachTo: { element: '#tour-cta-report', on: 'bottom' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-p-1'
-                    },
-                    {
-                        title: '🔍 Lacak Status',
-                        text: 'Setelah mengirim laporan, Anda akan mendapat nomor tiket. Gunakan tombol ini untuk <strong>melacak progres</strong> penanganan.',
-                        attachTo: { element: '#tour-cta-track', on: 'bottom' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }
-                        ],
-                        id: 'tour-p-2'
-                    }
-                ];
+        // ============================
+        // AGENT — Dashboard
+        // ============================
+        case 'agent|dashboard':
+            return [
+                { title: '📖 Dashboard Agen', text: 'Ini adalah <strong>pusat komando</strong> Anda. Semua tiket dan tugas ditampilkan di sini.', attachTo: { element: '#tour-agent-stats', on: 'bottom' }, buttons: [{ text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } }, { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📊 Kartu Statistik', text: '<strong>"Ditugaskan"</strong>: tiket aktif yang harus Anda kerjakan. <strong>"Dalam Proses"</strong>: sedang dikerjakan. <strong>"Selesai"</strong>: sudah ditutup.', attachTo: { element: '#tour-agent-stats', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📬 Surat Tugas Baru', text: 'Angka <strong>"Surat Tugas Baru"</strong> menunjukkan tugas yang belum Anda konfirmasi. Klik untuk <strong>menerima atau menolak</strong> penugasan.', attachTo: { element: '#tour-agent-tasks', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📋 Daftar Tugas Aktif', text: 'Ini daftar tiket yang harus Anda tangani. Klik tiket untuk melihat <strong>detail, merespon, dan menyelesaikan</strong>.', attachTo: { element: '#tour-agent-tasks', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🔔 Notifikasi', text: 'Bell notifikasi menampilkan <strong>tugas baru</strong> yang masuk. Klik untuk melihat detail.', attachTo: { element: '#tour-notification', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🧭 Navigasi', text: '<strong>"Tiket Saya"</strong> untuk daftar lengkap. <strong>"Tutorial"</strong> untuk mengulang panduan ini. Menu navigasi di atas untuk berpindah halaman.', attachTo: { element: '#tour-nav', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }] }
+            ];
 
-            case 'agent':
-                return [
-                    {
-                        title: '📖 Panel Agen CSIRT',
-                        text: 'Selamat datang, Agen! Berikut panduan untuk mengelola tiket insiden siber yang ditugaskan.',
-                        attachTo: { element: '#tour-agent-stats', on: 'bottom' },
-                        buttons: [
-                            { text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } },
-                            { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-a-0'
-                    },
-                    {
-                        title: '📊 Statistik Tiket',
-                        text: 'Dashboard ini menampilkan <strong>ringkasan tiket</strong>: ditugaskan, dalam proses, selesai, dan surat tugas baru yang perlu dikonfirmasi.',
-                        attachTo: { element: '#tour-agent-stats', on: 'bottom' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-a-1'
-                    },
-                    {
-                        title: '📋 Tugas Aktif',
-                        text: 'Di sini Anda melihat daftar <strong>tiket yang ditugaskan</strong> kepada Anda. Klik tiket untuk melihat detail dan mulai bekerja.',
-                        attachTo: { element: '#tour-agent-tasks', on: 'top' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-a-2'
-                    },
-                    {
-                        title: '✅ Selesaikan Tiket',
-                        text: 'Setelah menangani insiden, klik tombol ini untuk <strong>menandai tiket selesai</strong>. Pelapor akan mendapat notifikasi.',
-                        attachTo: { element: '#tour-agent-tasks', on: 'top' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }
-                        ],
-                        id: 'tour-a-3'
-                    }
-                ];
+        // ============================
+        // AGENT — Ticket List (index)
+        // ============================
+        case 'agent|tickets':
+            return [
+                { title: '📋 Daftar Laporan', text: 'Halaman ini menampilkan <strong>semua tiket</strong> yang bisa Anda akses. Gunakan filter untuk menemukan tiket tertentu.', attachTo: { element: '#tour-ticket-filters', on: 'bottom' }, buttons: [{ text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } }, { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🔍 Filter Status', text: 'Pilih status untuk menyaring tiket: <strong>Terbuka, Menunggu Pelapor, Ditugaskan, atau Tertutup</strong>.', attachTo: { element: '#tour-filter-status', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🔎 Pencarian Cepat', text: 'Ketik nomor laporan, subjek, atau email pelapor untuk <strong>mencari tiket spesifik</strong> secara instan.', attachTo: { element: '#tour-filter-search', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📊 Tabel Tiket', text: 'Setiap baris menampilkan: <strong>nomor laporan, subjek, pelapor, status, prioritas, dan waktu</strong>. Klik "LIHAT" untuk detail.', attachTo: { element: '#tour-ticket-table', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🔴 Status & Warning', text: 'Badge warna menunjukkan status: <strong>Biru</strong>=Terbuka, <strong>Kuning</strong>=Menunggu, <strong>Merah</strong>=Terlambat. Tiket terlambat ditandai <strong>⚠️</strong>.', attachTo: { element: '#tour-ticket-table', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📄 Pagination', text: 'Jika tiket banyak, gunakan <strong>navigasi halaman</strong> di bawah untuk berpindah.', attachTo: { element: '#tour-pagination', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }] }
+            ];
 
-            case 'admin':
-                return [
-                    {
-                        title: '📖 Panel Admin CSIRT',
-                        text: 'Selamat datang, Admin! Berikut panduan mengelola tiket dan penugasan analis.',
-                        attachTo: { element: '#tour-admin-stats', on: 'bottom' },
-                        buttons: [
-                            { text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } },
-                            { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-ad-0'
-                    },
-                    {
-                        title: '📊 Overview Tiket',
-                        text: 'Dashboard menampilkan <strong>statistik real-time</strong>: tiket aktif, menunggu info, belum ditugaskan, kritis, dan selesai.',
-                        attachTo: { element: '#tour-admin-stats', on: 'bottom' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-ad-1'
-                    },
-                    {
-                        title: '🎯 Penugasan Tiket',
-                        text: 'Tiket yang <strong>belum ditugaskan</strong> muncul di sini. Klik tiket lalu gunakan panel "Penugasan Analis" untuk menugaskan agen yang tepat.',
-                        attachTo: { element: '#tour-admin-assign', on: 'top' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-ad-2'
-                    },
-                    {
-                        title: '⚡ Tiket Kritis',
-                        text: 'Tiket berlabel <strong>"Kritis"</strong> adalah tiket yang sudah melewati batas waktu SLA. Prioritaskan penanganan tiket ini.',
-                        attachTo: { element: '#tour-admin-stats', on: 'bottom' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }
-                        ],
-                        id: 'tour-ad-3'
-                    },
-                    {
-                        title: '📋 Semua Tiket',
-                        text: 'Klik tombol ini untuk melihat <strong>daftar lengkap semua tiket</strong> dan mengelola penugasan secara detail.',
-                        attachTo: { element: '#tour-admin-alltickets', on: 'bottom' },
-                        buttons: [
-                            { text: '← Kembali', action: function() { this.back(); } },
-                            { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }
-                        ],
-                        id: 'tour-ad-4'
-                    }
-                ];
+        // ============================
+        // AGENT — Ticket Detail (show)
+        // ============================
+        case 'agent|ticket-show':
+            return [
+                { title: '📄 Detail Tiket', text: 'Halaman ini berisi <strong>seluruh informasi</strong> insiden siber yang ditugaskan kepada Anda. Mari kita kenali setiap bagian.', attachTo: { element: '#tour-surat-tugas', on: 'bottom' }, buttons: [{ text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } }, { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📋 Surat Tugas', text: 'Bagian ini adalah <strong>surat tugas resmi</strong> berisi: identitas analis, detail insiden, nomor tiket, dan deadline. Klik <strong>"Cetak/Download PDF"</strong> untuk versi cetak.', attachTo: { element: '#tour-surat-tugas', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '💬 Balasan & Kronologi', text: 'Gulir ke bawah untuk melihat <strong>kronologi percakapan</strong> dengan pelapor. Kirim respon via form "Kirim Respon Analisis".', attachTo: { element: '#tour-reply-form', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📎 Lampiran', text: 'Saat membalas, Anda bisa <strong>melampirkan bukti</strong>: gambar, PDF, atau dokumen. Pelapor juga bisa mengirim lampiran.', attachTo: { element: '#tour-reply-form', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '⚡ Aksi Tiket', text: 'Panel di sidebar untuk <strong>mengubah status</strong> tiket. Pilih status baru lalu klik "Konfirmasi Perubahan".', attachTo: { element: '#tour-aksi-tiket', on: 'left' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '✅ Selesaikan Tiket', text: 'Setelah insiden tertangani, klik tombol ini untuk <strong>menandai tiket selesai</strong>. Pelapor akan mendapat notifikasi email.', attachTo: { element: '#tour-selesaikan', on: 'left' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📝 Catatan Internal', text: 'Gunakan area ini untuk <strong>menulis catatan</strong> yang hanya terlihat oleh tim analis. Berguna untuk dokumentasi internal.', attachTo: { element: '#tour-catatan', on: 'left' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }] }
+            ];
 
-            default:
-                return [];
+        // ============================
+        // ADMIN — Dashboard
+        // ============================
+        case 'admin|dashboard':
+            return [
+                { title: '📖 Dashboard Admin', text: 'Selamat datang, Admin! Ini adalah <strong>pusat penugasan</strong> — Anda mengelola tiket dan menugaskan analis.', attachTo: { element: '#tour-admin-stats', on: 'bottom' }, buttons: [{ text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } }, { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📊 Statistik Tiket', text: '<strong>Aktif</strong>: sedang ditangani. <strong>Menunggu Info</strong>: butuh respon pelapor. <strong>Belum Ditugaskan</strong>: belum ada analis. <strong>Kritis</strong>: lewat deadline SLA.', attachTo: { element: '#tour-admin-stats', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '⚠️ Perhatikan: Belum Ditugaskan', text: 'Angka merah ini kritis — <strong>tiket baru yang belum ada analis</strong>. Klik tiket di bawah untuk langsung menugaskan.', attachTo: { element: '#tour-admin-assign', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🎯 Cara Menugaskan Analis', text: '1️⃣ Klik "Tugaskan Agen" → 2️⃣ Di halaman detail, pilih analis di panel "Penugasan Analis" → 3️⃣ Pilih urgensi → 4️⃣ Klik "Tugaskan Analis".', attachTo: { element: '#tour-admin-assign', on: 'top' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📋 Semua Tiket', text: 'Klik tombol ini untuk melihat <strong>daftar lengkap semua tiket</strong> — filter, cari, dan kelola dari sini.', attachTo: { element: '#tour-admin-alltickets', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🔔 Notifikasi', text: 'Bell notifikasi menampilkan <strong>tugas baru</strong> yang perlu direspons. Cek secara berkala.', attachTo: { element: '#tour-notification', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }] }
+            ];
+
+        // ============================
+        // ADMIN — Ticket Detail
+        // ============================
+        case 'admin|ticket-show':
+            return [
+                { title: '📄 Detail Tiket', text: 'Anda melihat detail tiket sebagai Admin. Tugas utama: <strong>menugaskan analis</strong> untuk menangani insiden ini.', attachTo: { element: '#tour-surat-tugas', on: 'bottom' }, buttons: [{ text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } }, { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📋 Surat Tugas', text: 'Informasi lengkap insiden: <strong>nomor tiket, departemen, prioritas, analis, dan deadline</strong>. Cetak PDF untuk arsip.', attachTo: { element: '#tour-surat-tugas', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '👥 Penugasan Analis', text: 'Panel ini <strong>hanya muncul untuk Admin</strong>. Pilih analis dari dropdown, atur urgensi, lalu klik <strong>"Tugaskan Analis"</strong>.', attachTo: { element: '#tour-penugasan', on: 'left' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🔄 Kembalikan ke Super Admin', text: 'Jika tiket perlu eskalasi, klik tombol ini untuk <strong>mengembalikan ke Super Admin</strong>. Status akan direset.', attachTo: { element: '#tour-aksi-tiket', on: 'left' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📝 Catatan Internal', text: 'Tulis catatan <strong>hanya untuk tim analis</strong>. Berguna untuk koordinasi internal tanpa diketahui pelapor.', attachTo: { element: '#tour-catatan', on: 'left' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }] }
+            ];
+
+        // Default empty tour
+        default:
+            return [];
         }
     }
 
     function startTour() {
-        // Destroy existing tour completely
         if (window._csirtTour) {
             try { window._csirtTour.complete(); } catch(e) {}
             try { window._csirtTour.destroy(); } catch(e) {}
             window._csirtTour = null;
-            // Force remove any leftover shepherd elements from DOM
             document.querySelectorAll('.shepherd-element, .shepherd-modal-overlay-container').forEach(el => el.remove());
         }
 
-        const steps = getSteps(role);
+        const steps = getSteps(role, page);
         if (steps.length === 0) return;
 
         const tour = new Shepherd.Tour({
@@ -249,6 +146,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         steps.forEach(step => {
+            step.buttons = step.buttons.map(b => {
+                if (b.text) b.text = b.text.trim();
+                return b;
+            });
             tour.addStep(step);
         });
 
@@ -264,13 +165,16 @@ document.addEventListener('DOMContentLoaded', function() {
         tour.start();
     }
 
-    // Global function for Tutorial button onclick
     window.startCsirtTour = function() {
-        localStorage.removeItem('csirt_tour_completed_' + window.csirtTourRole);
+        localStorage.removeItem(storageKey);
         startTour();
     };
 
-    // Bind trigger buttons
-    bindTriggerButtons();
+    document.querySelectorAll('.csirt-tour-trigger').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            startCsirtTour();
+        });
+    });
 });
 </script>

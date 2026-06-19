@@ -313,7 +313,6 @@
     <link rel="stylesheet" href="{{ asset('css/shepherd-csirt-theme.css') }}">
     <script src="{{ asset('js/shepherd.min.js') }}"></script>
     <script>
-        // Set tour role based on authenticated user
         @php
             $userRole = Auth::user()->roles->first()->name ?? 'agent';
             if (in_array($userRole, ['Agent 1', 'Agent 2'])) {
@@ -323,8 +322,12 @@
             } else {
                 $tourRole = 'portal';
             }
+            $tourPage = 'dashboard';
+            if (request()->routeIs('agent.tickets.index')) $tourPage = 'tickets';
+            elseif (request()->routeIs('agent.tickets.show')) $tourPage = 'ticket-show';
         @endphp
         window.csirtTourRole = '{{ $tourRole }}';
+        window.csirtTourPage = '{{ $tourPage }}';
     </script>
     @include('partials.tour-config')
 </body>

@@ -255,7 +255,7 @@
     </div>
 
     <!-- Features Section -->
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200 dark:border-slate-800 transition-colors">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200 dark:border-slate-800 transition-colors" id="tour-features">
         <div class="text-center mb-16">
             <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight transition-colors">Protokol <span class="text-emerald-600 dark:text-emerald-400">CSIRT</span></h2>
             <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto transition-colors">Sistem penanganan insiden siber canggih dengan perlindungan end-to-end</p>
@@ -562,8 +562,10 @@
                 }
             @endphp
             window.csirtTourRole = '{{ $tourRole }}';
+            window.csirtTourPage = 'welcome';
         @else
             window.csirtTourRole = 'visitor';
+            window.csirtTourPage = 'welcome';
         @endauth
     </script>
     @include('partials.tour-config')

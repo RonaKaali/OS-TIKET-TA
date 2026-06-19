@@ -10,13 +10,13 @@
     </x-slot>
 
     <!-- Filters -->
-    <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-2xl rounded-2xl mb-8 p-6 relative overflow-hidden group transition-colors">
+    <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-2xl rounded-2xl mb-8 p-6 relative overflow-hidden group transition-colors" id="tour-ticket-filters">
         <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500/50 group-hover:bg-emerald-500 transition-colors"></div>
         <form method="GET" action="{{ route('agent.tickets.index') }}"
             class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div>
                 <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 ml-1">Filter Status</label>
-                <select name="status"
+                <select name="status" id="tour-filter-status"
                     class="block w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none cursor-pointer">
                     <option value="" class="bg-white dark:bg-slate-900">Semua Status</option>
                     <option value="open" {{ request('status') == 'open' ? 'selected' : '' }} class="bg-white dark:bg-slate-900">Terbuka</option>
@@ -32,7 +32,7 @@
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within/input:text-emerald-600 dark:group-focus-within/input:text-emerald-500 transition-colors">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </div>
-                    <input type="text" name="search" value="{{ request('search') }}"
+                    <input type="text" name="search" value="{{ request('search') }}" id="tour-filter-search"
                         placeholder="No. laporan, subjek, email..."
                         class="block w-full pl-11 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none">
                 </div>
@@ -52,7 +52,7 @@
     </div>
 
     <!-- Tickets Table -->
-    <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-2xl rounded-2xl overflow-hidden relative transition-colors">
+    <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-2xl rounded-2xl overflow-hidden relative transition-colors" id="tour-ticket-table">
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 transition-colors">
                 <thead class="bg-slate-50 dark:bg-slate-950/50 transition-colors">
@@ -135,7 +135,7 @@
         <!-- Pagination -->
         @if($tickets->hasPages())
             <div class="bg-slate-50 dark:bg-slate-950/50 px-6 py-4 border-t border-slate-200 dark:border-slate-800 transition-colors">
-                <div class="custom-pagination">
+                <div class="custom-pagination" id="tour-pagination">
                     {{ $tickets->links() }}
                 </div>
             </div>
