@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     modifiers: [{ name: 'offset', options: { offset: [0, 12] } }]
                 }
             },
-            useModalOverlay: true,
+            useModalOverlay: false,
             exitOnEsc: true
         });
 

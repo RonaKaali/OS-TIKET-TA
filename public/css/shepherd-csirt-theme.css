@@ -1,8 +1,25 @@
 /* ================================================
    CSIRT Kalselprov — Shepherd.js Custom Theme
    APPROACH: Only style appearance (colors/fonts/buttons)
-   DO NOT touch positioning/layout/overlay — let Shepherd handle it
+   DO NOT touch positioning/layout — let Shepherd handle it
    ================================================ */
+
+/* === Tooltip Container z-index fix === */
+.shepherd-element {
+  z-index: 10001 !important;
+}
+
+/* Overlay behind tooltip */
+.shepherd-modal-overlay-container {
+  z-index: 10000 !important;
+}
+
+/* === HIDE non-active steps === */
+.shepherd-element:not(.shepherd-step-active) {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
 
 /* === Tooltip Container - ONLY background + border + border-radius === */
 .shepherd-element {
