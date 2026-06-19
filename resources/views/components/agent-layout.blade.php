@@ -309,6 +309,7 @@
     </div>
 
     <!-- Shepherd.js Tour Library -->
+    <link rel="stylesheet" href="{{ asset('css/shepherd-default.css') }}">
     <link rel="stylesheet" href="{{ asset('css/shepherd-csirt-theme.css') }}">
     <script src="{{ asset('js/shepherd.min.js') }}"></script>
     <script>

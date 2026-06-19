@@ -1,80 +1,54 @@
 /* ================================================
-   CSIRT Kalselprov — Shepherd.js Custom Theme
-   APPROACH: Only style appearance (colors/fonts/buttons)
-   DO NOT touch positioning/layout — let Shepherd handle it
+   CSIRT Kalselprov — Shepherd.js Theme
+   MINIMAL: Only colors, fonts, visual polish
+   Shepherd.js handles ALL positioning and show/hide
    ================================================ */
 
-/* === Tooltip Container z-index fix === */
-.shepherd-element {
-  z-index: 10001 !important;
-}
-
-/* Overlay behind tooltip */
-.shepherd-modal-overlay-container {
-  z-index: 10000 !important;
-}
-
-/* === HIDE non-active steps === */
-.shepherd-element:not(.shepherd-step-active) {
-  display: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-/* === Tooltip Container - ONLY background + border + border-radius === */
-.shepherd-element {
-  border-radius: 1rem !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 30px rgba(16, 185, 129, 0.12) !important;
-}
-
-/* Dark mode (default) */
+/* Tooltip: dark bg + emerald border + glow */
 .shepherd-element .shepherd-content {
   background: #0f172a !important;
-  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
   border-radius: 1rem !important;
-  color: #e2e8f0 !important;
-  overflow: hidden;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.12), 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+  overflow: hidden !important;
 }
 
-/* Light mode */
 body:not(.dark) .shepherd-element .shepherd-content {
   background: #ffffff !important;
-  border: 1px solid rgba(16, 185, 129, 0.3) !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 20px rgba(16, 185, 129, 0.1) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.1), 0 20px 60px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* === Top gradient accent bar === */
+/* Gradient accent bar on top */
 .shepherd-element .shepherd-content::before {
-  content: '';
-  display: block;
-  height: 3px;
-  background: linear-gradient(90deg, #10b981, #3b82f6, #10b981);
-  background-size: 200% 100%;
-  animation: csirt-gradient 3s ease infinite;
+  content: '' !important;
+  display: block !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, #10b981, #3b82f6, #10b981) !important;
+  background-size: 200% 100% !important;
+  animation: csirt-grad 3s ease infinite !important;
 }
 
-@keyframes csirt-gradient {
+@keyframes csirt-grad {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-/* === Header === */
+/* Header */
 .shepherd-element .shepherd-header {
   background: transparent !important;
   padding: 1rem 1.25rem 0 !important;
   border-bottom: none !important;
 }
 
-/* === Text === */
+/* Text */
 .shepherd-element .shepherd-text {
   color: #e2e8f0 !important;
   font-family: 'Inter', system-ui, sans-serif !important;
   font-size: 0.8125rem !important;
-  font-weight: 500 !important;
   line-height: 1.65 !important;
   padding: 0.5rem 1.25rem 1rem !important;
-  background: transparent !important;
 }
 
 body:not(.dark) .shepherd-element .shepherd-text {
@@ -83,55 +57,31 @@ body:not(.dark) .shepherd-element .shepherd-text {
 
 .shepherd-text strong {
   color: #f8fafc !important;
-  font-weight: 700 !important;
 }
 
 body:not(.dark) .shepherd-text strong {
   color: #0f172a !important;
 }
 
-/* === Footer === */
+/* Footer */
 .shepherd-element .shepherd-footer {
   background: rgba(15, 23, 42, 0.7) !important;
   border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
   padding: 0.75rem 1.25rem !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
 }
 
 body:not(.dark) .shepherd-element .shepherd-footer {
   background: rgba(248, 250, 252, 0.9) !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.06) !important;
 }
 
-/* === Buttons === */
-.shepherd-element .shepherd-button {
-  border: none !important;
-  border-radius: 0.5rem !important;
-  font-family: 'Inter', system-ui, sans-serif !important;
-  font-size: 0.6875rem !important;
-  font-weight: 800 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.1em !important;
-  cursor: pointer !important;
-  padding: 0.5rem 1rem !important;
-  transition: all 0.2s ease !important;
-}
-
-/* Primary (Next/Selesai) */
+/* Primary button */
 .shepherd-element .shepherd-button.shepherd-button-primary {
   background: linear-gradient(135deg, #10b981, #059669) !important;
   color: white !important;
-  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.3) !important;
 }
 
-.shepherd-element .shepherd-button.shepherd-button-primary:hover {
-  background: linear-gradient(135deg, #34d399, #10b981) !important;
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.5) !important;
-}
-
-/* Secondary (Back) */
+/* Back button */
 .shepherd-element .shepherd-button:not(.shepherd-button-primary):not(.shepherd-cancel-icon) {
   background: rgba(255, 255, 255, 0.06) !important;
   color: #94a3b8 !important;
@@ -141,52 +91,28 @@ body:not(.dark) .shepherd-element .shepherd-footer {
 body:not(.dark) .shepherd-element .shepherd-button:not(.shepherd-button-primary):not(.shepherd-cancel-icon) {
   background: rgba(0, 0, 0, 0.04) !important;
   color: #64748b !important;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
 }
 
-/* === Cancel/X icon === */
+/* Cancel (X) icon */
 .shepherd-element .shepherd-cancel-icon {
-  background: rgba(255, 255, 255, 0.06) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: 0.5rem !important;
   color: #64748b !important;
-  font-size: 1rem !important;
 }
 
 .shepherd-element .shepherd-cancel-icon:hover {
-  background: rgba(239, 68, 68, 0.15) !important;
   color: #ef4444 !important;
 }
 
-body:not(.dark) .shepherd-element .shepherd-cancel-icon {
-  background: rgba(0, 0, 0, 0.04) !important;
-  color: #94a3b8 !important;
-}
-
-/* === Arrow - ONLY color, let Shepherd position it === */
+/* Arrow color */
 .shepherd-arrow {
   background: #0f172a !important;
-  border: 1px solid rgba(16, 185, 129, 0.25) !important;
 }
 
 body:not(.dark) .shepherd-arrow {
   background: #ffffff !important;
-  border: 1px solid rgba(16, 185, 129, 0.3) !important;
-}
-
-/* === Mobile === */
-@media (max-width: 640px) {
-  .shepherd-element .shepherd-text {
-    font-size: 0.75rem !important;
-  }
-  .shepherd-element .shepherd-button {
-    font-size: 0.625rem !important;
-    padding: 0.4375rem 0.75rem !important;
-  }
 }
 
 /* ================================================
-   Tour Trigger Button (Tutorial) 
+   Tour Trigger Button
    ================================================ */
 .csirt-tour-trigger {
   display: inline-flex;
@@ -208,11 +134,9 @@ body:not(.dark) .shepherd-arrow {
   background: rgba(16, 185, 129, 0.15);
   border-color: rgba(16, 185, 129, 0.4);
   box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
-  transform: translateY(-1px);
 }
 
 .csirt-tour-trigger svg {
   width: 14px;
   height: 14px;
-  flex-shrink: 0;
 }
