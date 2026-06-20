@@ -11,9 +11,14 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('pengguna', function (Blueprint $t) {
-            $t->foreignId('id_organisasi')->nullable()->after('id')
-                ->constrained('organisasi')->nullOnDelete();
-            $t->string('telepon')->nullable()->after('email');
+            if (!Schema::hasColumn('pengguna', 'id_organisasi')) {
+                $t->foreignId('id_organisasi')->nullable()->after('id')
+                    ->constrained('organisasi')->nullOnDelete();
+            }
+
+            if (!Schema::hasColumn('pengguna', 'telepon')) {
+                $t->string('telepon')->nullable()->after('email');
+            }
         });
     }
 
@@ -23,8 +28,13 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('pengguna', function (Blueprint $t) {
-            $t->dropConstrainedForeignId('id_organisasi');
-            $t->dropColumn('telepon');
+            if (Schema::hasColumn('pengguna', 'id_organisasi')) {
+                $t->dropConstrainedForeignId('id_organisasi');
+            }
+
+            if (Schema::hasColumn('pengguna', 'telepon')) {
+                $t->dropColumn('telepon');
+            }
         });
     }
 };

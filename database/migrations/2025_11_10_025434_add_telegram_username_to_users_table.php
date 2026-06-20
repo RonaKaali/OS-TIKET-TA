@@ -11,7 +11,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('pengguna', function (Blueprint $table) {
-            $table->string('nama_pengguna_telegram')->nullable()->after('telepon');
+            if (!Schema::hasColumn('pengguna', 'nama_pengguna_telegram')) {
+                $table->string('nama_pengguna_telegram')->nullable()->after('telepon');
+            }
         });
     }
 
@@ -21,7 +23,9 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('pengguna', function (Blueprint $table) {
-            $table->dropColumn('nama_pengguna_telegram');
+            if (Schema::hasColumn('pengguna', 'nama_pengguna_telegram')) {
+                $table->dropColumn('nama_pengguna_telegram');
+            }
         });
     }
 };

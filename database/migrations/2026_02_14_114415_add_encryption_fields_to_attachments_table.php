@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('lampiran', function (Blueprint $table) {
-            $table->boolean('is_encrypted')->default(true)->after('path');
-            $table->string('original_filename')->nullable()->after('filename'); // Simpan nama asli jika berbeda
+            if (!Schema::hasColumn('lampiran', 'is_encrypted')) {
+                $table->boolean('is_encrypted')->default(true)->after('path');
+            }
+
+            if (!Schema::hasColumn('lampiran', 'original_filename')) {
+                $table->string('original_filename')->nullable()->after('filename');
+            }
         });
     }
 
@@ -23,7 +28,14 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('lampiran', function (Blueprint $table) {
-            $table->dropColumn(['is_encrypted', 'original_filename']);
+            $columns = array_values(array_filter(
+                ['is_encrypted', 'original_filename'],
+                fn (string $column) => Schema::hasColumn('lampiran', $column)
+            ));
+
+            if (!empty($columns)) {
+                $table->dropColumn($columns);
+            }
         });
     }
 };

@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('lampiran', function (Blueprint $table) {
-            $table->longText('file_data')->nullable()->after('path');
+            if (!Schema::hasColumn('lampiran', 'file_data')) {
+                $table->longText('file_data')->nullable()->after('path');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('lampiran', function (Blueprint $table) {
-            $table->dropColumn('file_data');
+            if (Schema::hasColumn('lampiran', 'file_data')) {
+                $table->dropColumn('file_data');
+            }
         });
     }
 };

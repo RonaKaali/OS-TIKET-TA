@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tiket', function (Blueprint $table) {
-            $table->string('reporter_organization')->nullable()->after('reporter_name');
+            if (!Schema::hasColumn('tiket', 'reporter_organization')) {
+                $table->string('reporter_organization')->nullable()->after('reporter_name');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('tiket', function (Blueprint $table) {
-            $table->dropColumn('reporter_organization');
+            if (Schema::hasColumn('tiket', 'reporter_organization')) {
+                $table->dropColumn('reporter_organization');
+            }
         });
     }
 };
