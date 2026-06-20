@@ -46,7 +46,8 @@
         <div class="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/10 blur-[120px] pointer-events-none"></div>
         <div class="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-900/10 blur-[120px] pointer-events-none"></div>
 
-        <!-- Sidebar -->
+        <!-- Sidebar (only for Admin roles) -->
+        @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
         <aside class="hidden lg:flex lg:flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 backdrop-blur-xl relative z-20 transition-colors">
             <div class="flex flex-col w-64">
                 <div class="flex flex-col flex-grow pt-8 pb-4 overflow-y-auto">
@@ -107,6 +108,7 @@
                 </div>
             </div>
         </aside>
+        @endif
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden relative z-10">
