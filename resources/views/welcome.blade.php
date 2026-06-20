@@ -71,8 +71,8 @@
             </div>
         </div>
         <h1 class="mt-8 text-lg sm:text-2xl font-black text-white tracking-[0.15em] sm:tracking-[0.3em] uppercase glow-text text-center px-6 leading-relaxed">
-            Selamat Datang di Pusat Keamanan Siber<br>
-            <span class="text-emerald-500">Pemerintah Kalsel</span>
+            Portal Pelaporan Insiden Siber<br>
+            <span class="text-emerald-500">Pemprov Kalimantan Selatan</span>
         </h1>
         <div class="mt-4 flex space-x-1">
             <div class="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
@@ -91,7 +91,7 @@
             <div class="flex justify-between items-center h-16 md:h-20 gap-3">
                 <!-- Brand -->
                 <a href="{{ route('welcome') }}" class="flex items-center gap-2.5 sm:gap-4 min-w-0 shrink">
-                    <div class="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center bg-emerald-500/5 rounded-xl border border-emerald-500/20 shrink-0">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 flex items-center justify-center bg-emerald-500/5 rounded-xl border border-emerald-500/20 shrink-0" id="tour-brand">
                         <img src="{{ asset('images/logo-kalselprov.png') }}" alt="Logo Kalselprov" class="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 object-contain">
                     </div>
                     <div class="min-w-0">
@@ -125,6 +125,11 @@
                             <a href="{{ route('register') }}" class="inline-flex items-center px-5 py-2 text-sm font-bold rounded-xl text-white bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 shadow-md transition">Daftar</a>
                         @endif
                     @endauth
+                    <!-- Tutorial Button -->
+                    <button onclick="startCsirtTour && startCsirtTour()" class="csirt-tour-trigger" title="Lihat Panduan Sistem">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253" /></svg>
+                        Tutorial
+                    </button>
                 </div>
 
                 <!-- Mobile: theme + hamburger -->
@@ -195,20 +200,21 @@
                 </div>
                 
                 <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold mb-4 sm:mb-6 tracking-tight leading-tight px-1">
-                    <span class="text-slate-900 dark:text-white transition-colors">Pusat Keamanan Siber</span><br/>
+                    <span class="text-slate-900 dark:text-white transition-colors">Portal Pelaporan Insiden Siber</span><br/>
                     <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 dark:from-emerald-400 via-teal-500 dark:via-teal-300 to-blue-600 dark:to-blue-500">
-                        Pemerintah Kalsel
+                        Pemerintah Provinsi Kalimantan Selatan
                     </span>
                 </h1>
                 
                 <p class="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-8 sm:mb-10 max-w-3xl mx-auto font-medium transition-colors px-2">
-                    Infrastruktur pelaporan insiden keamanan siber yang dilindungi oleh <span class="text-emerald-600 dark:text-emerald-400 font-bold border-b border-emerald-500 border-dashed">Zero Trust Security Architecture</span>.
+                    Layanan resmi untuk melaporkan celah keamanan, peretasan, dan insiden siber pada infrastruktur elektronik di lingkungan Pemprov Kalsel.
                 </p>
 
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-stretch sm:items-center max-w-md sm:max-w-none mx-auto px-2 sm:px-0">
                     @auth
                         <a href="{{ route('portal.ticket.create') }}"
+                            id="tour-cta-report"
                             class="group relative inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all duration-200 bg-emerald-600 font-pj rounded-xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-600 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] hover:bg-emerald-500 hover:-translate-y-1 w-full sm:w-auto">
                             <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -235,6 +241,7 @@
                         </a>
                     @endauth
                     <a href="{{ route('portal.ticket.status.form') }}"
+                        id="tour-cta-track"
                         class="inline-flex items-center justify-center px-6 sm:px-8 py-3.5 sm:py-4 text-base font-bold text-emerald-700 dark:text-emerald-400 transition-all duration-200 bg-transparent border-2 border-emerald-500/50 rounded-xl hover:bg-emerald-500/10 hover:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-600 w-full sm:w-auto">
                         <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -286,6 +293,62 @@
                 </div>
                 <h3 class="text-xl font-bold text-slate-800 dark:text-white mb-3 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Forensik Mendalam</h3>
                 <p class="text-slate-600 dark:text-slate-400 leading-relaxed text-sm">Analisis malware dan jejak digital secara mendalam oleh analis keamanan bersertifikat.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zero Trust Explained Section -->
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 transition-colors" x-data="{ activeTab: 1 }">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight transition-colors">Bagaimana Kami <span class="text-emerald-600 dark:text-emerald-400">Melindungi Anda?</span></h2>
+            <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto transition-colors">Mengenal teknologi <span class="font-bold text-emerald-600 dark:text-emerald-500">Zero Trust Security</span> yang digunakan pada portal ini.</p>
+        </div>
+
+        <div class="glass-panel dark:bg-slate-900/50 rounded-3xl p-6 md:p-10 shadow-xl border border-slate-200 dark:border-emerald-500/20 max-w-5xl mx-auto">
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- Sidebar Tabs -->
+                <div class="w-full md:w-1/3 flex flex-col space-y-3 border-r-0 md:border-r border-slate-200 dark:border-slate-800 pr-0 md:pr-6">
+                    <button @click="activeTab = 1" :class="activeTab === 1 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'" class="text-left px-5 py-4 rounded-xl border-l-4 font-bold transition-all flex items-center">
+                        <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        Apa itu Zero Trust?
+                    </button>
+                    <button @click="activeTab = 2" :class="activeTab === 2 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'" class="text-left px-5 py-4 rounded-xl border-l-4 font-bold transition-all flex items-center">
+                        <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" /></svg>
+                        Device Fingerprinting
+                    </button>
+                    <button @click="activeTab = 3" :class="activeTab === 3 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'" class="text-left px-5 py-4 rounded-xl border-l-4 font-bold transition-all flex items-center">
+                        <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        Context-Aware Access
+                    </button>
+                </div>
+
+                <!-- Content Area -->
+                <div class="w-full md:w-2/3 relative" style="min-height: 200px;">
+                    <!-- Tab 1 -->
+                    <div x-show="activeTab === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 flex flex-col justify-center">
+                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Prinsip Utama</span>
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Never Trust, Always Verify.</h3>
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Sistem ini tidak pernah berasumsi bahwa seseorang aman hanya karena mereka mengetahui password. Setiap tindakan selalu divalidasi ulang secara otomatis. Admin sekalipun akan diblokir aksesnya jika bertingkah laku mencurigakan.
+                        </p>
+                    </div>
+                    <!-- Tab 2 -->
+                    <div x-show="activeTab === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 flex flex-col justify-center" x-cloak>
+                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Keamanan Hardware</span>
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Pendeteksi Sidik Jari Perangkat</h3>
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Kami mencatat identitas unik dari fisik perangkat (HP/Laptop) yang digunakan. Jika hacker berhasil mencuri password Anda, mereka tetap tidak bisa mengakses akun Anda karena perangkat mereka belum pernah diverifikasi oleh sistem.
+                        </p>
+                    </div>
+                    <!-- Tab 3 -->
+                    <div x-show="activeTab === 3" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 flex flex-col justify-center" x-cloak>
+                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Analisis Real-time</span>
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Deteksi Anomali Konteks</h3>
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Sistem AI kami memantau dari lokasi dan jaringan apa sebuah akses dilakukan. Jika tiba-tiba ada akses dari negara lain atau menggunakan VPN/Proxy anonim, akses akan diblokir secara otomatis demi melindungi kerahasiaan laporan Anda.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -355,7 +418,7 @@
     </div>
 
     <!-- Stats Section -->
-    <div class="relative z-10 border-t border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 backdrop-blur-sm py-16 transition-colors">
+    <div class="relative z-10 border-t border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 backdrop-blur-sm py-16 transition-colors" id="tour-stats">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800">
                 <div class="py-4">
@@ -481,6 +544,29 @@
             }
         });
     </script>
+
+    <!-- Shepherd.js Tour Library -->
+    <link rel="stylesheet" href="{{ asset('css/shepherd-default.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/shepherd-csirt-theme.css') }}">
+    <script src="{{ asset('js/shepherd.min.js') }}"></script>
+    <script>
+        @auth
+            @php
+                $userRole = Auth::user()->roles->first()->name ?? 'portal';
+                if (in_array($userRole, ['Agent 1', 'Agent 2'])) {
+                    $tourRole = 'agent';
+                } elseif (in_array($userRole, ['Super Admin', 'Admin'])) {
+                    $tourRole = 'admin';
+                } else {
+                    $tourRole = 'portal';
+                }
+            @endphp
+            window.csirtTourRole = '{{ $tourRole }}';
+        @else
+            window.csirtTourRole = 'visitor';
+        @endauth
+    </script>
+    @include('partials.tour-config')
 </body>
 
 </html>

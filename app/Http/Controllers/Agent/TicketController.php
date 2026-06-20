@@ -57,6 +57,17 @@ class TicketController extends Controller
         return view('agent.tickets.index', compact('tickets'));
     }
 
+    public function print(Ticket $ticket)
+    {
+        $ticket->load(['department', 'assignee', 'priority', 'requester']);
+
+        if (!RoleUi::canManageAllTickets(request()->user()) && $ticket->assigned_to !== request()->user()->id) {
+            abort(403);
+        }
+
+        return view('agent.tickets.print', compact('ticket'));
+    }
+
     public function show(Ticket $ticket)
     {
         $ticket->load(['threads.attachments', 'status', 'priority', 'department', 'assignee', 'requester']);
@@ -64,6 +75,15 @@ class TicketController extends Controller
         // Cegah agen melihat tiket yang bukan miliknya, kecuali admin/super admin
         if (!RoleUi::canManageAllTickets(request()->user()) && $ticket->assigned_to !== request()->user()->id) {
             abort(403);
+        }
+
+        // Auto-acknowledge: jika agent yang ditugaskan melihat tiket ini dan belum di-acknowledge
+        if ($ticket->assigned_to === request()->user()->id && is_null($ticket->acknowledged_at)) {
+            $ticket->update(['acknowledged_at' => now()]);
+            Log::info('Agent ' . request()->user()->id . ' acknowledged ticket ' . $ticket->ticket_number);
+
+            // Sinkronisasi session acknowledgment
+            \App\Support\AssignmentAcknowledgment::acknowledge(request(), request()->user(), [$ticket->id]);
         }
 
         // Daftar agen yang bisa ditugaskan
@@ -110,7 +130,8 @@ class TicketController extends Controller
                 'mime' => $fileData['mime'],
                 'size' => $fileData['size'], // Ukuran asli
                 'path' => $fileData['path'],
-                'is_encrypted' => true,
+                'file_data' => $fileData['encrypted_content'],
+                'is_encrypted' => \Illuminate\Support\Facades\DB::raw('true'),
             ]);
         }
 
@@ -214,5 +235,85 @@ class TicketController extends Controller
         }
 
         return back()->with('ok', 'Status diperbarui.');
+    }
+
+    /**
+     * Tandai tiket sebagai selesai (closed) dan kirim notifikasi ke pelapor.
+     */
+    public function complete(Ticket $ticket)
+    {
+        // Pastikan tiket ini ditugaskan ke agent yang sedang login
+        if ($ticket->assigned_to !== request()->user()->id) {
+            abort(403, 'Anda tidak dapat menyelesaikan tiket yang bukan tugas Anda.');
+        }
+
+        $oldStatus = $ticket->status;
+        $closedStatus = Status::where('slug', 'closed')->orWhere('name', 'like', '%selesai%')->first();
+
+        if (!$closedStatus) {
+            return back()->withErrors('Status "Selesai" tidak ditemukan. Hubungi Super Admin.');
+        }
+
+        $ticket->update([
+            'status_id' => $closedStatus->id,
+            'closed_at' => now(),
+        ]);
+
+        $ticket->refresh();
+
+        // Log aktivitas
+        $this->logUpdate('Ticket', $ticket, ['status_id' => $oldStatus->id ?? null], [
+            'action' => 'completed_by_agent',
+            'agent_id' => request()->user()->id,
+        ]);
+
+        // Kirim notifikasi email ke pelapor
+        try {
+            $requester = \App\Models\User::where('email', $ticket->reporter_email)->first();
+            if ($requester) {
+                $requester->notify(new \App\Notifications\TicketStatusChanged($ticket, $oldStatus, $closedStatus));
+            } else {
+                Notification::route('mail', $ticket->reporter_email)
+                    ->notify(new \App\Notifications\TicketStatusChanged($ticket, $oldStatus, $closedStatus));
+            }
+            Log::info('Notifikasi penyelesaian tiket dikirim ke: ' . $ticket->reporter_email);
+        } catch (\Throwable $e) {
+            Log::warning('Gagal kirim notifikasi selesai: ' . $e->getMessage());
+        }
+
+        return back()->with('ok', 'Tiket berhasil diselesaikan. Pelapor telah diberitahu melalui email.');
+    }
+
+    /**
+     * Kembalikan tiket ke Super Admin (unassign).
+     */
+    public function returnToAdmin(Ticket $ticket)
+    {
+        // Pastikan tiket ini ditugaskan ke agent yang sedang login
+        if ($ticket->assigned_to !== request()->user()->id) {
+            abort(403, 'Anda tidak dapat mengembalikan tiket yang bukan tugas Anda.');
+        }
+
+        $oldStatus = $ticket->status;
+        $openStatus = Status::where('slug', 'open')->first();
+
+        $ticket->update([
+            'assigned_to' => null,
+            'assigned_at' => null,
+            'acknowledged_at' => null,
+            'status_id' => $openStatus ? $openStatus->id : $ticket->status_id,
+        ]);
+
+        $ticket->refresh();
+
+        // Log aktivitas
+        $this->logUpdate('Ticket', $ticket, [
+            'assigned_to' => request()->user()->id,
+        ], [
+            'action' => 'returned_to_admin',
+            'agent_id' => request()->user()->id,
+        ]);
+
+        return back()->with('ok', 'Tiket dikembalikan ke Super Admin untuk ditugaskan ulang.');
     }
 }

@@ -18,6 +18,7 @@ class Ticket extends Model
         'subject',
         'reporter_email',
         'reporter_name',
+        'reporter_organization',
         'user_id',
         'department_id',
         'help_topic_id',
@@ -28,6 +29,7 @@ class Ticket extends Model
         'closed_at',
         'assigned_to',
         'assigned_at',
+        'acknowledged_at',
         'locked_by',
         'locked_until',
         'custom_fields'
@@ -36,6 +38,7 @@ class Ticket extends Model
     protected $casts = [
         'due_at' => 'datetime',
         'assigned_at' => 'datetime',
+        'acknowledged_at' => 'datetime',
         'closed_at' => 'datetime',
         'locked_until' => 'datetime',
         'custom_fields' => 'array',

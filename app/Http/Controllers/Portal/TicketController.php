@@ -17,7 +17,8 @@ class TicketController extends Controller
     public function create()
     {
         $topics = HelpTopic::with('department')->orderBy('name')->get();
-        return view('portal.ticket.create', compact('topics'));
+        $organizations = \App\Models\Organization::orderBy('name')->get();
+        return view('portal.ticket.create', compact('topics', 'organizations'));
     }
 
     public function store(Request $r)
@@ -28,7 +29,7 @@ class TicketController extends Controller
             $data = $r->validate([
                 'subject' => ['required', 'string', 'max:255'],
                 'help_topic_id' => ['required', Rule::exists('topik_bantuan', 'id')],
-                'priority_id' => ['nullable', Rule::exists('prioritas', 'id')],
+                'reporter_organization' => ['required', 'string', 'max:255'],
                 'message' => ['required', 'string', 'max:20000'],
                 'attachments.*' => ['file', 'max:10240'], // 10MB
             ]);
@@ -47,7 +48,8 @@ class TicketController extends Controller
                 'user_id' => $user->id,
                 'department_id' => $topic->department_id,
                 'help_topic_id' => $topic->id,
-                'priority_id' => $data['priority_id'] ?: null,
+                'reporter_organization' => $data['reporter_organization'],
+                'priority_id' => null, // Ditentukan oleh admin saat penugasan
                 'status_id' => $status->id,
                 'sla_plan_id' => $slaId,
                 'due_at' => now()->addHours($grace),
@@ -80,7 +82,7 @@ class TicketController extends Controller
                 $this->logCreate('Ticket', $ticket, [
                     'ticket_number' => $ticket->ticket_number,
                     'department_id' => $ticket->department_id,
-                    'priority_id' => $ticket->priority_id,
+                    'reporter_organization' => $ticket->reporter_organization,
                 ]);
             } catch (\Throwable $e) {
                 \Log::error('Gagal mencatat aktivitas pembuatan tiket: ' . $e->getMessage());
@@ -268,7 +270,8 @@ class TicketController extends Controller
                 'mime' => $fileData['mime'],
                 'size' => $fileData['size'], // Ukuran asli
                 'path' => $fileData['path'],
-                'is_encrypted' => true,
+                'file_data' => $fileData['encrypted_content'],
+                'is_encrypted' => \Illuminate\Support\Facades\DB::raw('true'),
             ]);
         }
     }

@@ -8,13 +8,13 @@
                 </h2>
                 <p class="text-sm font-bold text-slate-500 dark:text-slate-400 mt-1">Kelola tiket dan tentukan agen yang mengerjakan laporan</p>
             </div>
-            <a href="{{ route('agent.tickets.index') }}" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl uppercase tracking-widest shadow-lg transition-all">
+            <a href="{{ route('agent.tickets.index') }}" id="tour-admin-alltickets" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl uppercase tracking-widest shadow-lg transition-all">
                 Semua Tiket
             </a>
         </div>
     </x-slot>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8" id="tour-admin-stats">
         <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Aktif</p>
             <p class="text-3xl font-black text-blue-600 dark:text-blue-400">{{ $stats['open'] }}</p>
@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden" id="tour-admin-assign">
         <div class="px-6 py-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
             <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Tiket Perlu Penugasan</h3>
             <span class="text-[10px] font-bold text-slate-500">{{ $unassignedTickets->count() }} tiket</span>

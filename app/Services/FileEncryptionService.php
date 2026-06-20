@@ -60,6 +60,7 @@ class FileEncryptionService
                 'size' => $file->getSize(),
                 'encrypted_size' => strlen($encryptedContent),
                 'is_encrypted' => true,
+                'encrypted_content' => $encryptedContent,
             ];
         } catch (Exception $e) {
             Log::error('File encryption failed: ' . $e->getMessage());

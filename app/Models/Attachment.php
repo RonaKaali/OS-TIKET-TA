@@ -11,7 +11,7 @@ class Attachment extends Model
 
     protected $table = 'lampiran';
 
-    protected $fillable = ['ticket_thread_id', 'filename', 'original_filename', 'mime', 'size', 'path', 'is_encrypted'];
+    protected $fillable = ['ticket_thread_id', 'filename', 'original_filename', 'mime', 'size', 'path', 'is_encrypted', 'file_data'];
 
     protected $casts = [
         'is_encrypted' => 'boolean',

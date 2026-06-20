@@ -74,7 +74,11 @@ class AttachmentController extends Controller
 
             // Jika file terenkripsi, dekripsi dulu
             if ($attachment->is_encrypted) {
-                $decryptedContent = $this->encryptionService->getDecrypted($attachment->path);
+                if (!empty($attachment->file_data)) {
+                    $decryptedContent = \Illuminate\Support\Facades\Crypt::decrypt($attachment->file_data);
+                } else {
+                    $decryptedContent = $this->encryptionService->getDecrypted($attachment->path);
+                }
                 
                 if (!$decryptedContent) {
                     abort(404, 'File tidak ditemukan atau gagal didekripsi.');

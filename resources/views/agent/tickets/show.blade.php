@@ -18,58 +18,166 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-8">
-            <!-- Ticket Info Header Card -->
-            <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-8 relative overflow-hidden group shadow-sm dark:shadow-2xl transition-colors">
-                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                    <svg class="w-24 h-24 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                </div>
-                <h3 class="text-lg font-black text-slate-900 dark:text-white mb-6 uppercase tracking-tight flex items-center transition-colors">
-                    <div class="w-2 h-6 bg-emerald-500 mr-3 rounded-full"></div>
-                    Informasi Kontrol Laporan
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors">
-                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest transition-colors">Status Aktif:</span>
-                            <span class="px-3 py-1 bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase transition-colors">
-                                {{ $ticket->status->name }}
-                            </span>
+            <!-- Surat Tugas Resmi / Official Assignment Letter -->
+            <div class="bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 rounded-3xl shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.7)] overflow-hidden transition-all duration-300">
+                <!-- Subtle Top Accent Bar -->
+                <div class="h-1.5 bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 dark:from-emerald-600 dark:via-emerald-500 dark:to-cyan-500"></div>
+
+                <!-- Kop Surat (Official Letterhead) -->
+                <div class="p-10 pb-6">
+                    <div class="flex items-start justify-between gap-6">
+                        <!-- Logo -->
+                        <div class="w-20 h-20 flex-shrink-0">
+                            <img src="{{ asset('images/logo-kalselprov.png') }}" alt="Logo Pemerintah Provinsi Kalimantan Selatan" class="w-full h-full object-contain drop-shadow-md dark:brightness-110">
                         </div>
-                        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors">
-                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest transition-colors">Tingkat Bahaya:</span>
-                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors">{{ $ticket->priority?->name ?? 'Normal' }}</span>
+                        <!-- Instansi Info -->
+                        <div class="flex-1 text-center">
+                            <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Pemerintah Provinsi Kalimantan Selatan</p>
+                            <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight mt-1">Dinas Komunikasi, Informatika, dan Statistik</h2>
+                            <h3 class="text-lg font-black text-emerald-600 dark:text-emerald-400 tracking-[0.25em] uppercase mt-1">CSIRT Kalselprov</h3>
+                            <p class="text-xs text-slate-400 dark:text-slate-500 font-medium mt-1.5">Jl. Dharma Praja II, Kawasan Perkantoran Pemprov Kalsel, Banjarbaru</p>
                         </div>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors">
-                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest transition-colors">Sektor/Dept:</span>
-                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors">{{ $ticket->department->name }}</span>
-                        </div>
-                        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-950/50 rounded-xl border border-slate-200 dark:border-slate-800 transition-colors">
-                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest transition-colors">Waktu Input:</span>
-                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors">{{ $ticket->created_at->format('d/m/Y H:i') }}</span>
+                        <!-- Akreditasi Seal -->
+                        <div class="w-20 h-20 flex items-center justify-center rounded-2xl bg-emerald-500/10 border border-emerald-500/30 shadow-lg flex-shrink-0">
+                            <svg class="w-10 h-10 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
                         </div>
                     </div>
-                </div>
+
+                    <!-- Double Border Separator -->
+                    <div class="mt-6 border-t-2 border-b-2 border-double border-slate-800 dark:border-slate-300 py-2">
+                        <div class="border-t border-slate-300 dark:border-slate-600"></div>
+                    </div>
                 
-                @if($ticket->due_at)
-                    <div class="mt-6 p-4 bg-red-500/5 border border-red-500/20 rounded-2xl flex items-center justify-between transition-colors">
-                        <div class="flex items-center">
-                            <svg class="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            <div>
-                                <div class="text-[10px] font-black text-red-400 dark:text-red-400 uppercase tracking-widest transition-colors">Deadline Penyelesaian (SLA)</div>
-                                <div class="text-sm font-black text-slate-900 dark:text-white {{ $ticket->due_at->isPast() ? 'text-red-600 dark:text-red-500' : '' }} transition-colors">
-                                    {{ $ticket->due_at->format('d M Y, H:i') }}
+                    <!-- Document Title -->
+                    <div class="text-center my-8">
+                        <h3 class="text-xl font-black text-slate-900 dark:text-white uppercase tracking-wide underline decoration-2 decoration-slate-800 dark:decoration-slate-200 underline-offset-4">Surat Tugas Penanganan Insiden Siber</h3>
+                        <p class="text-sm font-bold text-slate-500 dark:text-slate-400 font-mono mt-2 tracking-wider">Nomor: ST/{{ $ticket->ticket_number }}/CSIRT/{{ $ticket->created_at->format('Y') }}</p>
+                        <div class="mt-4 text-center">
+                            <a href="{{ route('agent.tickets.print', $ticket) }}" target="_blank" class="inline-block px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500 transition shadow-md font-bold text-sm">
+                                <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                                Cetak / Download PDF
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Preamble / Pembukaan -->
+                    <div class="text-base text-slate-700 dark:text-slate-300 mb-8 leading-relaxed font-medium text-justify">
+                        Menimbang urgensi keamanan siber dan perlu mitigasi insiden secara cepat pada infrastruktur teknologi informasi Pemerintah Provinsi Kalimantan Selatan, Kepala Dinas Komunikasi, Informatika, dan Statistik menginstruksikan kepada analis berikut untuk melaksanakan penanganan insiden:
+                    </div>
+
+                    <!-- Pihak Terlibat Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 mb-8">
+                        <div>
+                            <h4 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Penerima Tugas (Analis)</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+                                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Nama</span>
+                                    <span class="text-base font-extrabold text-slate-900 dark:text-white">{{ $ticket->assignee->name ?? 'Belum Ditugaskan' }}</span>
+                                </div>
+                                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+                                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Jabatan</span>
+                                    <span class="text-base font-extrabold text-slate-900 dark:text-white">Analis Siber TI</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Unit Kerja</span>
+                                    <span class="text-base font-extrabold text-slate-900 dark:text-white">CSIRT Kalselprov</span>
                                 </div>
                             </div>
                         </div>
-                        @if($ticket->isOverdue())
-                            <span class="px-3 py-1 bg-red-600 dark:bg-red-500 text-white text-[10px] font-black rounded-full uppercase shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-colors">
-                                Terlambat
-                            </span>
-                        @endif
+                        <div>
+                            <h4 class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">Rincian Insiden</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+                                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Nomor Laporan</span>
+                                    <span class="text-base font-mono font-extrabold text-slate-900 dark:text-white">{{ $ticket->ticket_number }}</span>
+                                </div>
+                                <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-2">
+                                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Sektor / Instansi</span>
+                                    <span class="text-base font-extrabold text-slate-900 dark:text-white">{{ $ticket->department->name }}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Kedaruratan</span>
+                                    <span class="text-base font-extrabold text-red-600 dark:text-red-400">{{ $ticket->priority?->name ?? 'Normal' }}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                @endif
+
+                    <!-- Task Description Table -->
+                    <div class="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden mb-8">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                                    <th class="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Deskripsi Tugas Resmi</th>
+                                    <th class="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">Batas Waktu (SLA)</th>
+                                    <th class="px-6 py-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Status Tugas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="bg-white dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+                                    <td class="px-6 py-5">
+                                        <div class="text-base font-extrabold text-slate-900 dark:text-white mb-2">{{ $ticket->subject }}</div>
+                                        <div class="text-sm text-slate-500 dark:text-slate-300 leading-relaxed">
+                                            Melaksanakan tindakan mitigasi, pemulihan, serta forensik digital pada infrastruktur {{ $ticket->department->name }} sehubungan dengan laporan siber ini. Laporan kronologi harus diunggah lengkap melalui log aktivitas sistem.
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5 text-center whitespace-nowrap">
+                                        @if($ticket->due_at)
+                                            <div class="inline-block font-mono font-bold text-sm {{ $ticket->due_at->isPast() ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-300' }}">
+                                                {{ $ticket->due_at->format('d M Y, H:i') }}
+                                            </div>
+                                        @else
+                                            <span class="text-slate-400 dark:text-slate-500">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-5 text-right whitespace-nowrap">
+                                        @if($ticket->acknowledged_at)
+                                            <span class="inline-flex items-center px-4 py-1.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 rounded-full font-black text-xs uppercase tracking-wider">
+                                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                                                Diterima / Aktif
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-4 py-1.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 rounded-full font-black text-xs uppercase tracking-wider animate-pulse">
+                                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                Tugas Baru
+                                            </span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer: Sign-off + Security Badges -->
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+                        <!-- Left: Badge -->
+                        <div class="flex items-center gap-3 px-4 py-3 bg-emerald-500/5 border border-emerald-500/15 rounded-2xl">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Zero Trust Verified</div>
+                                <div class="text-xs font-semibold text-slate-400">Secured &amp; Digitally Signed</div>
+                            </div>
+                        </div>
+
+                        <!-- Right: QR + Signatory -->
+                        <div class="flex items-center gap-4">
+                            <div class="text-right">
+                                <p class="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Penetap Tugas</p>
+                                <p class="text-base font-black text-slate-800 dark:text-slate-200">Kepala CSIRT Kalselprov</p>
+                                <p class="text-xs font-mono text-slate-400 dark:text-slate-500 mt-0.5">ID: ST-{{ substr($ticket->uuid, 0, 8) }}</p>
+                            </div>
+                            <div class="p-2 bg-white border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-lg">
+                                {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(56)->generate(route('agent.tickets.show', $ticket)) !!}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Threads / Timeline -->
@@ -198,32 +306,66 @@
 
         <!-- Sidebar Actions -->
         <div class="space-y-8">
-            <!-- Status Update Panel -->
+            <!-- Status & Action Panel -->
             <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl transition-colors">
                 <h3 class="text-xs font-black text-slate-900 dark:text-white mb-6 uppercase tracking-[0.2em] flex items-center transition-colors">
                     <svg class="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                    Ubah Status Tiket
+                    Aksi Tiket
                 </h3>
-                <form method="POST" action="{{ route('agent.tickets.status', $ticket) }}">
+
+                @if($ticket->assigned_to === Auth::id())
+                <!-- Tombol Selesaikan Tiket -->
+                <form method="POST" action="{{ route('agent.tickets.complete', $ticket) }}" class="mb-3"
+                    onsubmit="return confirm('✅ Konfirmasi Selesaikan Tiket?\n\nApakah Anda yakin tiket ini sudah selesai dikerjakan?\nPelapor akan otomatis mendapat notifikasi email.')">
                     @csrf
-                    <div class="space-y-4">
-                        <select name="status_id"
-                            class="block w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:border-emerald-500 outline-none transition-all py-3 px-4">
-                            @foreach(\App\Models\Status::all() as $status)
-                                <option value="{{ $status->id }}" {{ $ticket->status_id == $status->id ? 'selected' : '' }} class="bg-white dark:bg-slate-900">
-                                    {{ $status->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <button type="submit" class="w-full py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all">
-                            Konfirmasi Perubahan
-                        </button>
-                    </div>
+                    <button type="submit"
+                        class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all transform hover:-translate-y-0.5 flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Selesaikan Tiket
+                    </button>
                 </form>
+
+                @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
+                <!-- Tombol Kembalikan ke Super Admin -->
+                <form method="POST" action="{{ route('agent.tickets.return', $ticket) }}" class="mb-4"
+                    onsubmit="return confirm('🔄 Konfirmasi Kembalikan Tiket?\n\nTiket ini akan dikembalikan ke Super Admin.\nStatus akan diatur ulang dan Anda akan dilepaskan dari tiket ini.')">
+                    @csrf
+                    <button type="submit"
+                        class="w-full py-3 bg-amber-50 dark:bg-amber-600/10 border border-amber-200 dark:border-amber-600/30 text-amber-700 dark:text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-600/20 hover:text-amber-800 dark:hover:text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                        </svg>
+                        Kembalikan ke Super Admin
+                    </button>
+                </form>
+                @endif
+                @endif
+
+                <!-- Ubah Status Manual -->
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <form method="POST" action="{{ route('agent.tickets.status', $ticket) }}">
+                        @csrf
+                        <div class="space-y-4">
+                            <select name="status_id"
+                                class="block w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:border-emerald-500 outline-none transition-all py-3 px-4">
+                                @foreach(\App\Models\Status::all() as $status)
+                                    <option value="{{ $status->id }}" {{ $ticket->status_id == $status->id ? 'selected' : '' }} class="bg-white dark:bg-slate-900">
+                                        {{ $status->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="w-full py-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all">
+                                Konfirmasi Perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             <!-- Assignment Panel -->
-            @can('tickets.assign')
+            @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
                 <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl transition-colors">
                     <h3 class="text-xs font-black text-slate-900 dark:text-white mb-6 uppercase tracking-[0.2em] flex items-center transition-colors">
                         <svg class="w-4 h-4 mr-2 text-emerald-600 dark:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
@@ -262,6 +404,15 @@
                                     @endif
                                 @endforeach
                             </select>
+                            <select name="priority_id" required
+                                class="block w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:border-emerald-500 outline-none transition-all py-3 px-4">
+                                <option value="" class="bg-white dark:bg-slate-900">Pilih Tingkat Urgensi</option>
+                                @foreach(\App\Models\Priority::orderBy('weight')->get() as $priority)
+                                    <option value="{{ $priority->id }}" {{ $ticket->priority_id == $priority->id ? 'selected' : '' }} class="bg-white dark:bg-slate-900">
+                                        {{ $priority->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                             <button type="submit"
                             class="w-full py-3 bg-emerald-50 dark:bg-emerald-600/20 border border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-600/30 hover:text-emerald-700 dark:hover:text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all">
                                 Tugaskan Analis
@@ -269,7 +420,7 @@
                         </div>
                     </form>
                 </div>
-            @endcan
+            @endif
 
             <!-- Internal Note Panel -->
             <div class="bg-white dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm dark:shadow-xl relative overflow-hidden transition-colors">

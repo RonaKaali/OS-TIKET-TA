@@ -64,8 +64,11 @@ Route::middleware(['auth', 'permission:admin.panel'])->prefix('agent')->group(fu
     Route::middleware('assignments.acknowledged')->group(function () {
         Route::get('/tickets', [AgentTicket::class, 'index'])->name('agent.tickets.index');
         Route::get('/tickets/{ticket}', [AgentTicket::class, 'show'])->name('agent.tickets.show');
+        Route::get('/tickets/{ticket}/print', [AgentTicket::class, 'print'])->name('agent.tickets.print');
         Route::post('/tickets/{ticket}/reply', [AgentTicket::class, 'reply'])->name('agent.tickets.reply');
         Route::post('/tickets/{ticket}/status', [AgentTicket::class, 'setStatus'])->name('agent.tickets.status');
+        Route::post('/tickets/{ticket}/complete', [AgentTicket::class, 'complete'])->name('agent.tickets.complete');
+        Route::post('/tickets/{ticket}/return', [AgentTicket::class, 'returnToAdmin'])->name('agent.tickets.return');
         Route::post('/tickets/{ticket}/note', AgentNote::class)->name('agent.tickets.note');
     });
 
@@ -156,18 +159,24 @@ Route::get('/deploy-db', function () {
             $lines[] = $line;
         }
 
+        $lines[] = 'Memastikan kolom Acknowledged Tiket (SQL langsung)...';
+        foreach (\App\Support\AcknowledgmentSchema::ensureColumns() as $line) {
+            $lines[] = $line;
+        }
+
         $lines[] = 'Membersihkan cache...';
         \Illuminate\Support\Facades\Artisan::call('config:clear');
         \Illuminate\Support\Facades\Artisan::call('route:clear');
 
-        $mfaReady = \App\Support\MfaSchema::columnsExist();
-        $gpsReady = \App\Support\GpsSchema::columnsExist();
+        $mfaReady    = \App\Support\MfaSchema::columnsExist();
+        $gpsReady    = \App\Support\GpsSchema::columnsExist();
         $revokeReady = \App\Support\AccessRevocationSchema::columnsExist();
+        $ackReady    = \App\Support\AcknowledgmentSchema::columnsExist();
 
-        if ($mfaReady && $gpsReady && $revokeReady) {
-            $lines[] = 'SELESAI — Kolom MFA, GPS & Cabut Akses siap.';
+        if ($mfaReady && $gpsReady && $revokeReady && $ackReady) {
+            $lines[] = 'SELESAI — Semua kolom (MFA, GPS, Cabut Akses, Acknowledged Tiket) siap.';
         } elseif ($mfaReady) {
-            $lines[] = 'SELESAI sebagian — Periksa kolom GPS / access_revoked_at di atas.';
+            $lines[] = 'SELESAI sebagian — Periksa kolom GPS / access_revoked_at / acknowledged_at di atas.';
         } else {
             $lines[] = 'PERINGATAN — Kolom database belum lengkap. Cek koneksi Supabase.';
         }

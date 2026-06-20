@@ -31,5 +31,11 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Zero Trust: Pastikan non-aktif untuk baseline testing -->
+        <env name="ZERO_TRUST_ENABLED" value="false"/>
+        <env name="ZERO_TRUST_CONTEXT_AWARE" value="false"/>
+        <env name="ZERO_TRUST_DEVICE_FINGERPRINTING" value="false"/>
+        <env name="GEO_LOCATION_ENABLED" value="false"/>
+        <env name="ZERO_TRUST_MFA_ENABLED" value="false"/>
     </php>
 </phpunit>

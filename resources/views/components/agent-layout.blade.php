@@ -95,6 +95,104 @@
 
                         <x-theme-toggle />
 
+                        <!-- Tutorial / Tour Trigger Button -->
+                        <button onclick="startCsirtTour && startCsirtTour()" class="csirt-tour-trigger" title="Lihat Panduan Sistem">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253" /></svg>
+                            Tutorial
+                        </button>
+
+                        <!-- Notification Bell -->
+                        <div class="relative" x-data="{
+                            notifications: [],
+                            unreadCount: 0,
+                            open: false,
+                            init() {
+                                this.fetchNotifications();
+                                setInterval(() => this.fetchNotifications(), 30000);
+                            },
+                            fetchNotifications() {
+                                fetch('{{ route('agent.assignments.pending') }}')
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        if (data && data.assignments) {
+                                            this.notifications = data.assignments;
+                                            // Gunakan unacknowledged_count dari server lebih akurat
+                                            this.unreadCount = data.unacknowledged_count ?? this.notifications.filter(n => !n.acknowledged).length;
+                                        }
+                                    })
+                                    .catch(() => {});
+                            },
+                            markRead(notification) {
+                                this.open = false;
+                            }
+                        }" x-init="init()">
+                            <button @click="open = !open" @click.outside="open = false"
+                                class="relative p-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700 transition-all group">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <!-- Red dot -->
+                                <template x-if="unreadCount > 0">
+                                    <span class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full flex items-center justify-center text-[9px] font-black text-white shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse"
+                                        x-text="unreadCount > 9 ? '9+' : unreadCount">
+                                    </span>
+                                </template>
+                            </button>
+                            <!-- Dropdown -->
+                            <div x-show="open" x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="absolute right-0 mt-3 w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden" style="display: none;">
+                                <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                    <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Notifikasi Tugas Baru</h3>
+                                    <template x-if="unreadCount > 0">
+                                        <span class="px-2 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded text-[9px] font-black" x-text="unreadCount + ' baru'"></span>
+                                    </template>
+                                </div>
+                                <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                                    <template x-for="(item, index) in notifications" :key="index">
+                                        <a :href="'{{ url('/agent/tickets') }}/' + item.id"
+                                            @click="markRead(item)"
+                                            class="block px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                                            <div class="flex items-start space-x-3">
+                                                <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-emerald-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-bold text-slate-900 dark:text-white truncate" x-text="item.subject || 'Tiket #' + item.id"></p>
+                                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5" x-text="item.ticket_number || 'Tiket Baru'"></p>
+                                                    <p class="text-[9px] text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-widest mt-1">Klik untuk lihat detail</p>
+                                                </div>
+                                                <template x-if="!item.acknowledged">
+                                                    <span class="w-2 h-2 bg-emerald-500 rounded-full flex-shrink-0 mt-2 shadow-[0_0_6px_rgba(16,185,129,0.5)]"></span>
+                                                </template>
+                                            </div>
+                                        </a>
+                                    </template>
+                                    <template x-if="notifications.length === 0">
+                                        <div class="px-4 py-10 text-center">
+                                            <svg class="w-12 h-12 mx-auto text-slate-300 dark:text-slate-700 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <p class="text-sm font-bold text-slate-500 dark:text-slate-400">Tidak ada tugas baru</p>
+                                            <p class="text-[10px] text-slate-400 dark:text-slate-600 mt-1">Semua tiket sudah ditangani</p>
+                                        </div>
+                                    </template>
+                                </div>
+                                <div class="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-center">
+                                    <a href="{{ route('agent.dashboard') }}" class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 uppercase tracking-widest transition-colors">
+                                        Lihat Semua Tiket →
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End Notification Bell -->
+
                         <x-dropdown align="right" width="48">
                             <x-slot name="trigger">
                                 <button class="flex items-center space-x-3 p-1.5 pr-4 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700 group shadow-sm">
@@ -208,9 +306,27 @@
         <div class="fixed bottom-0 right-0 p-4 z-0 opacity-5 pointer-events-none">
             <div class="text-[120px] font-black select-none tracking-tighter">SECURED</div>
         </div>
-
-        <x-new-assignment-popup />
     </div>
+
+    <!-- Shepherd.js Tour Library -->
+    <link rel="stylesheet" href="{{ asset('css/shepherd-default.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/shepherd-csirt-theme.css') }}">
+    <script src="{{ asset('js/shepherd.min.js') }}"></script>
+    <script>
+        // Set tour role based on authenticated user
+        @php
+            $userRole = Auth::user()->roles->first()->name ?? 'agent';
+            if (in_array($userRole, ['Agent 1', 'Agent 2'])) {
+                $tourRole = 'agent';
+            } elseif (in_array($userRole, ['Super Admin', 'Admin'])) {
+                $tourRole = 'admin';
+            } else {
+                $tourRole = 'portal';
+            }
+        @endphp
+        window.csirtTourRole = '{{ $tourRole }}';
+    </script>
+    @include('partials.tour-config')
 </body>
 
 </html>

@@ -59,7 +59,7 @@ class DeviceFingerprint extends Model
      */
     public function markAsVerified(): void
     {
-        $this->is_verified = true;
+        $this->is_verified = \Illuminate\Support\Facades\DB::raw('true');
         $this->save();
     }
 

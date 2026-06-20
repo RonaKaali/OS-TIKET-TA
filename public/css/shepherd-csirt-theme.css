@@ -1,0 +1,142 @@
+/* ================================================
+   CSIRT Kalselprov — Shepherd.js Theme
+   MINIMAL: Only colors, fonts, visual polish
+   Shepherd.js handles ALL positioning and show/hide
+   ================================================ */
+
+/* Tooltip: dark bg + emerald border + glow */
+.shepherd-element .shepherd-content {
+  background: #0f172a !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.12), 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+  overflow: hidden !important;
+}
+
+body:not(.dark) .shepherd-element .shepherd-content {
+  background: #ffffff !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.1), 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Gradient accent bar on top */
+.shepherd-element .shepherd-content::before {
+  content: '' !important;
+  display: block !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, #10b981, #3b82f6, #10b981) !important;
+  background-size: 200% 100% !important;
+  animation: csirt-grad 3s ease infinite !important;
+}
+
+@keyframes csirt-grad {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Header */
+.shepherd-element .shepherd-header {
+  background: transparent !important;
+  padding: 1rem 1.25rem 0 !important;
+  border-bottom: none !important;
+}
+
+/* Text */
+.shepherd-element .shepherd-text {
+  color: #e2e8f0 !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.65 !important;
+  padding: 0.5rem 1.25rem 1rem !important;
+}
+
+body:not(.dark) .shepherd-element .shepherd-text {
+  color: #334155 !important;
+}
+
+.shepherd-text strong {
+  color: #f8fafc !important;
+}
+
+body:not(.dark) .shepherd-text strong {
+  color: #0f172a !important;
+}
+
+/* Footer */
+.shepherd-element .shepherd-footer {
+  background: rgba(15, 23, 42, 0.7) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding: 0.75rem 1.25rem !important;
+}
+
+body:not(.dark) .shepherd-element .shepherd-footer {
+  background: rgba(248, 250, 252, 0.9) !important;
+}
+
+/* Primary button */
+.shepherd-element .shepherd-button.shepherd-button-primary {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.3) !important;
+}
+
+/* Back button */
+.shepherd-element .shepherd-button:not(.shepherd-button-primary):not(.shepherd-cancel-icon) {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #94a3b8 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+body:not(.dark) .shepherd-element .shepherd-button:not(.shepherd-button-primary):not(.shepherd-cancel-icon) {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #64748b !important;
+}
+
+/* Cancel (X) icon */
+.shepherd-element .shepherd-cancel-icon {
+  color: #64748b !important;
+}
+
+.shepherd-element .shepherd-cancel-icon:hover {
+  color: #ef4444 !important;
+}
+
+/* Arrow color */
+.shepherd-arrow {
+  background: #0f172a !important;
+}
+
+body:not(.dark) .shepherd-arrow {
+  background: #ffffff !important;
+}
+
+/* ================================================
+   Tour Trigger Button
+   ================================================ */
+.csirt-tour-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 0.625rem;
+  color: #10b981;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.csirt-tour-trigger:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+.csirt-tour-trigger svg {
+  width: 14px;
+  height: 14px;
+}

@@ -27,11 +27,32 @@ class AssignmentAcknowledgment
             $map[(int) $ticketId] = (int) $timestamp;
         }
 
+        // Sinkronisasi: tambahkan tiket yang sudah acknowledged di DB tapi belum di session
+        if ($request->user()) {
+            $dbAcknowledged = Ticket::query()
+                ->where('assigned_to', $request->user()->id)
+                ->whereNotNull('acknowledged_at')
+                ->get();
+
+            foreach ($dbAcknowledged as $ticket) {
+                $ts = $ticket->acknowledged_at?->timestamp;
+                if ($ts && !isset($map[$ticket->id])) {
+                    $map[$ticket->id] = $ts;
+                }
+            }
+        }
+
         return $map;
     }
 
     public static function isAcknowledged(Ticket $ticket, array $map): bool
     {
+        // Cek DB acknowledged_at terlebih dahulu
+        if ($ticket->acknowledged_at !== null) {
+            return true;
+        }
+
+        // Fallback ke session
         $stored = $map[$ticket->id] ?? null;
         if ($stored === null) {
             return false;
@@ -69,6 +90,11 @@ class AssignmentAcknowledgment
 
         foreach ($tickets as $ticket) {
             $map[$ticket->id] = $ticket->assigned_at?->timestamp ?? now()->timestamp;
+
+            // Juga update acknowledged_at di DB jika masih null
+            if (is_null($ticket->acknowledged_at)) {
+                $ticket->update(['acknowledged_at' => now()]);
+            }
         }
 
         $request->session()->put(self::SESSION_KEY, $map);
