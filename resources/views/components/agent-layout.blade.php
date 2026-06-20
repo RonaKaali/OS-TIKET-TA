@@ -56,7 +56,7 @@
                         <div class="hidden sm:ml-12 sm:flex sm:space-x-2">
                             <a href="{{ route('agent.dashboard') }}" 
                                 class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 {{ request()->routeIs('agent.dashboard') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                Dasbor
+                                Dashboard
                             </a>
                             @if(\App\Support\RoleUi::canManageAllTickets(Auth::user()) || \App\Support\RoleUi::isFieldAgent(Auth::user()))
                             <a href="{{ route('agent.tickets.index') }}"
@@ -246,7 +246,7 @@
             <!-- Mobile Menu -->
             <div :class="{'block': open, 'hidden': !open}" class="hidden sm:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 transition-colors">
                 <div class="pt-4 pb-6 space-y-2 px-4">
-                    <a href="{{ route('agent.dashboard') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors">Dasbor</a>
+                    <a href="{{ route('agent.dashboard') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors">Dashboard</a>
                     @if(\App\Support\RoleUi::canManageAllTickets(Auth::user()) || \App\Support\RoleUi::isFieldAgent(Auth::user()))
                     <a href="{{ route('agent.tickets.index') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors">
                         {{ \App\Support\RoleUi::isFieldAgent(Auth::user()) && !\App\Support\RoleUi::canManageAllTickets(Auth::user()) ? 'Tiket Saya' : 'Tiket Laporan' }}
