@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -19,9 +20,11 @@ class SecurityEventLogService
             'severity' => $eventData['severity'] ?? 'low',
             'ip_address' => $eventData['ip_address'] ?? request()->ip(),
             'user_agent' => $eventData['user_agent'] ?? request()->userAgent(),
+            'device_fingerprint' => $eventData['device_fingerprint'] ?? null,
             'context' => json_encode($eventData['context'] ?? []),
             'message' => $eventData['message'] ?? '',
             'metadata' => json_encode($eventData['metadata'] ?? []),
+            'risk_score' => $eventData['risk_score'] ?? null,
             'created_at' => now()->toDateTimeString(),
         ];
 
@@ -201,22 +204,101 @@ class SecurityEventLogService
      */
     public function logAuthentication(string $type, ?int $userId, bool $success, string $message = ''): void
     {
-        $gps = $userId
-            ? app(GpsLocationService::class)->resolve(request(), $userId)
-            : null;
+        $request = request();
+        $zeroTrust = $this->buildZeroTrustAuthenticationContext($userId);
+        $gps = $zeroTrust['context']['gps']
+            ?? ($userId ? app(GpsLocationService::class)->resolve($request, $userId) : null);
+
+        $context = array_merge([
+            'success' => $success,
+            'type' => $type,
+            'ip' => $zeroTrust['context']['ip'] ?? $request->ip(),
+            'method' => $request->method(),
+            'path' => $request->path(),
+            'gps' => $gps,
+        ], $zeroTrust['context']);
+
+        if (is_numeric($zeroTrust['risk_score'])) {
+            $context['risk_score'] = (int) $zeroTrust['risk_score'];
+        }
+
+        $metadata = [];
+        if (!empty($zeroTrust['device_fingerprint'])) {
+            $metadata['device_fingerprint'] = $zeroTrust['device_fingerprint'];
+        }
+        if (is_numeric($zeroTrust['device_trust_score'])) {
+            $metadata['device_trust_score'] = (int) $zeroTrust['device_trust_score'];
+        }
 
         $this->logEvent([
             'user_id' => $userId,
             'event_type' => "auth_{$type}",
             'severity' => $success ? 'low' : 'high',
             'message' => $message ?: ($success ? "Authentication {$type} successful" : "Authentication {$type} failed"),
-            'context' => [
-                'success' => $success,
-                'type' => $type,
-                'ip' => request()->ip(),
-                'gps' => $gps,
-            ],
+            'risk_score' => is_numeric($zeroTrust['risk_score']) ? (int) $zeroTrust['risk_score'] : null,
+            'device_fingerprint' => $zeroTrust['device_fingerprint'],
+            'context' => $context,
+            'metadata' => $metadata,
         ]);
+    }
+
+    /**
+     * Lengkapi event auth dengan konteks Zero Trust karena route MFA/login di-skip oleh middleware utama.
+     */
+    protected function buildZeroTrustAuthenticationContext(?int $userId): array
+    {
+        $request = request();
+        $result = [
+            'risk_score' => null,
+            'device_fingerprint' => null,
+            'device_trust_score' => null,
+            'context' => [],
+        ];
+
+        if (!$userId) {
+            return $result;
+        }
+
+        try {
+            $user = User::find($userId);
+        } catch (\Throwable $e) {
+            Log::warning('Unable to load user for authentication risk scoring: ' . $e->getMessage());
+            return $result;
+        }
+
+        if (!$user) {
+            return $result;
+        }
+
+        if (config('zero_trust.context_aware', true)) {
+            try {
+                $contextService = app(ContextAwareAccessService::class);
+                $context = $contextService->analyzeContext($request, $user);
+                $result['context'] = array_merge($result['context'], $context);
+                $result['risk_score'] = $contextService->calculateRiskScore($user, $context);
+            } catch (\Throwable $e) {
+                Log::warning('Unable to calculate authentication risk score: ' . $e->getMessage());
+            }
+        }
+
+        if (config('zero_trust.device_fingerprinting', true)) {
+            try {
+                $deviceService = app(DeviceFingerprintService::class);
+                $fingerprint = $request->get('device_fingerprint') ?: $deviceService->generateFingerprint($request);
+                $trustScore = $request->get('device_trust_score');
+
+                if (!is_numeric($trustScore)) {
+                    $trustScore = $deviceService->calculateTrustScore($user, $fingerprint, $request);
+                }
+
+                $result['device_fingerprint'] = $fingerprint;
+                $result['device_trust_score'] = is_numeric($trustScore) ? (int) $trustScore : null;
+            } catch (\Throwable $e) {
+                Log::warning('Unable to calculate authentication device trust score: ' . $e->getMessage());
+            }
+        }
+
+        return $result;
     }
 
     /**
