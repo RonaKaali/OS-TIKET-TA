@@ -239,6 +239,7 @@ class ZeroTrustVerification
         $skipPaths = [
             'login',
             'register',
+            'logout',
             'password',
             'email/verify',
             'chatbot/message',

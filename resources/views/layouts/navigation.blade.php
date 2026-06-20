@@ -67,12 +67,11 @@
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
 
-                                <x-dropdown-link :href="route('logout')" onclick="event.preventDefault();
-                                                    this.closest('form').submit();"
-                                    class="text-red-400 hover:bg-red-900/20 hover:text-red-300 flex items-center">
+                                <button type="submit"
+                                    class="block w-full px-4 py-2 text-start text-sm leading-5 transition duration-150 ease-in-out text-red-400 hover:bg-red-900/20 hover:text-red-300 flex items-center">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                                     {{ __('Terminasi Sesi') }}
-                                </x-dropdown-link>
+                                </button>
                             </form>
                         </div>
                     </x-slot>
@@ -123,11 +122,10 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
 
-                    <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault();
-                                        this.closest('form').submit();"
-                        class="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                    <button type="submit"
+                        class="block w-full ps-3 pe-4 py-2 border-l-4 border-transparent text-start text-base font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                         {{ __('Terminasi Sesi') }}
-                    </x-responsive-nav-link>
+                    </button>
                 </form>
             </div>
         </div>
