@@ -84,6 +84,12 @@
                                 'Selesai' => 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
                                 default => 'bg-slate-500/10 text-slate-600 dark:text-slate-400',
                             };
+                            $accentColor = match($priority) {
+                                'Kritis' => 'from-red-500 to-red-400',
+                                'Tinggi' => 'from-orange-500 to-orange-400',
+                                'Sedang' => 'from-yellow-500 to-yellow-400',
+                                default => 'from-slate-400 to-slate-300',
+                            };
                         @endphp
                         <a href="{{ route('agent.tickets.show', $ticket) }}"
                            class="group relative bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:-translate-y-1 overflow-hidden cursor-pointer block no-underline">
@@ -91,7 +97,7 @@
                             <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             
                             <!-- Top accent line -->
-                            <div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r {{ $priority === 'Kritis' ? 'from-red-500 to-red-400' : $priority === 'Tinggi' ? 'from-orange-500 to-orange-400' : $priority === 'Sedang' ? 'from-yellow-500 to-yellow-400' : 'from-slate-400 to-slate-300' }} opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r {{ $accentColor }} opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             
                             <div class="relative z-10">
                                 <!-- Header: ticket number + badges -->
