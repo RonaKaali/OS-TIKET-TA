@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
 use App\Models\{Ticket, TicketThread};
+use App\Support\RoleUi;
 use Illuminate\Http\Request;
 
 class NoteController extends Controller
@@ -15,6 +16,10 @@ class NoteController extends Controller
 
     public function __invoke(Request $r, Ticket $ticket)
     {
+        if (!RoleUi::canManageAllTickets($r->user())) {
+            abort_unless($ticket->assigned_to === $r->user()?->id, 403, 'Anda tidak memiliki akses ke tiket ini.');
+        }
+
         $data = $r->validate([
             'note' => ['required', 'string', 'max:20000'],
         ]);

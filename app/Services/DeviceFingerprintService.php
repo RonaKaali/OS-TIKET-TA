@@ -3,9 +3,10 @@
 namespace App\Services;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
+use App\Models\DeviceFingerprint;
 use App\Models\User;
+use App\Notifications\DeviceVerificationRequired;
 
 class DeviceFingerprintService
 {
@@ -63,6 +64,10 @@ class DeviceFingerprintService
      */
     public function isDeviceRegistered(User $user, string $fingerprint): bool
     {
+        if ($this->findDevice($user, $fingerprint)) {
+            return true;
+        }
+
         $devices = Cache::get("user_devices:{$user->id}", []);
         
         return in_array($fingerprint, $devices);
@@ -78,41 +83,41 @@ class DeviceFingerprintService
         if (!in_array($fingerprint, $devices)) {
             $devices[] = $fingerprint;
             Cache::put("user_devices:{$user->id}", $devices, now()->addDays(30));
-            
-            // Simpan metadata device
-            $deviceMetadata = [
-                'user_agent' => $metadata['user_agent'] ?? null,
-                'ip' => $metadata['ip'] ?? null,
-                'registered_at' => now()->toDateTimeString(),
-                'last_seen' => now()->toDateTimeString(),
-                'trust_score' => 50, // Default trust score untuk device baru
-            ];
-            Cache::put("device_metadata:{$user->id}:{$fingerprint}", $deviceMetadata, now()->addDays(30));
-            
-            // Simpan ke database jika model tersedia
-            if (class_exists(\App\Models\DeviceFingerprint::class)) {
-                try {
-                    \App\Models\DeviceFingerprint::updateOrCreate(
-                        [
-                            'user_id' => $user->id,
-                            'fingerprint' => $fingerprint,
-                        ],
-                        [
-                            'user_agent' => $metadata['user_agent'] ?? null,
-                            'ip_address' => $metadata['ip'] ?? null,
-                            'screen_resolution' => $metadata['screen_resolution'] ?? null,
-                            'timezone' => $metadata['timezone'] ?? null,
-                            'trust_score' => 50,
-                            'registered_at' => now(),
-                            'last_seen_at' => now(),
-                            'is_verified' => \Illuminate\Support\Facades\DB::raw('false'),
-                            'metadata' => $metadata,
-                        ]
-                    );
-                } catch (\Exception $e) {
-                    \Log::error('Failed to save device fingerprint to database: ' . $e->getMessage());
-                }
+        }
+
+        $deviceMetadata = [
+            'user_agent' => $metadata['user_agent'] ?? null,
+            'ip' => $metadata['ip'] ?? null,
+            'registered_at' => now()->toDateTimeString(),
+            'last_seen' => now()->toDateTimeString(),
+            'trust_score' => 30,
+            'is_verified' => false,
+        ];
+        Cache::put("device_metadata:{$user->id}:{$fingerprint}", $deviceMetadata, now()->addDays(30));
+
+        try {
+            $device = DeviceFingerprint::firstOrNew([
+                'user_id' => $user->id,
+                'fingerprint' => $fingerprint,
+            ]);
+
+            if (!$device->exists) {
+                $device->registered_at = now();
+                $device->is_verified = false;
+                $device->trust_score = 30;
             }
+
+            $device->fill([
+                'user_agent' => $metadata['user_agent'] ?? null,
+                'ip_address' => $metadata['ip'] ?? null,
+                'screen_resolution' => $metadata['screen_resolution'] ?? null,
+                'timezone' => $metadata['timezone'] ?? null,
+                'last_seen_at' => now(),
+                'metadata' => $metadata,
+            ]);
+            $device->save();
+        } catch (\Throwable $e) {
+            \Log::error('Failed to save device fingerprint to database: ' . $e->getMessage());
         }
     }
 
@@ -127,6 +132,14 @@ class DeviceFingerprintService
             $metadata['last_seen'] = now()->toDateTimeString();
             Cache::put("device_metadata:{$user->id}:{$fingerprint}", $metadata, now()->addDays(30));
         }
+
+        try {
+            DeviceFingerprint::where('user_id', $user->id)
+                ->where('fingerprint', $fingerprint)
+                ->update(['last_seen_at' => now()]);
+        } catch (\Throwable $e) {
+            \Log::warning('Failed to update device fingerprint last seen: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -134,44 +147,38 @@ class DeviceFingerprintService
      */
     public function calculateTrustScore(User $user, string $fingerprint, Request $request): int
     {
-        // Jika user belum memiliki device terdaftar sama sekali (login/registrasi pertama),
-        // otomatis berikan trust score maksimal (100) sebagai baseline.
-        $devices = Cache::get("user_devices:{$user->id}", []);
-        if (empty($devices)) {
-            return 100;
+        $clientIp = $this->getClientIp($request);
+        $device = $this->findDevice($user, $fingerprint);
+
+        if (!$device) {
+            return 30;
         }
 
-        $score = 50; // Base score
+        $score = $device->is_verified ? 75 : 35;
         $metadata = Cache::get("device_metadata:{$user->id}:{$fingerprint}", []);
         
-        // Jika device sudah terdaftar, tambahkan score
-        if (!empty($metadata)) {
-            $score += 20;
-            
-            // Tambahkan score berdasarkan usia device
-            $registeredAt = $metadata['registered_at'] ?? null;
-            if ($registeredAt) {
-                $daysSinceRegistration = now()->diffInDays($registeredAt);
-                if ($daysSinceRegistration > 7) {
-                    $score += 10; // Device sudah digunakan lebih dari seminggu
-                }
-                if ($daysSinceRegistration > 30) {
-                    $score += 10; // Device sudah digunakan lebih dari sebulan
-                }
+        $registeredAt = $device->registered_at ?? ($metadata['registered_at'] ?? null);
+        if ($registeredAt && $device->is_verified) {
+            $daysSinceRegistration = now()->diffInDays($registeredAt);
+            if ($daysSinceRegistration > 7) {
+                $score += 10;
             }
-            
-            // Tambahkan score berdasarkan frekuensi penggunaan
-            $lastSeen = $metadata['last_seen'] ?? null;
-            if ($lastSeen) {
-                $hoursSinceLastSeen = now()->diffInHours($lastSeen);
-                if ($hoursSinceLastSeen < 24) {
-                    $score += 10; // Device digunakan dalam 24 jam terakhir
-                }
+            if ($daysSinceRegistration > 30) {
+                $score += 10;
+            }
+        }
+
+        $lastSeen = $device->last_seen_at ?? ($metadata['last_seen'] ?? null);
+        if ($lastSeen && $device->is_verified) {
+            $hoursSinceLastSeen = now()->diffInHours($lastSeen);
+            if ($hoursSinceLastSeen < 24) {
+                $score += 10;
             }
         }
         
         // Kurangi score jika IP berbeda dari yang terdaftar
-        if (!empty($metadata['ip']) && $metadata['ip'] !== $request->ip()) {
+        $registeredIp = $device->ip_address ?? ($metadata['ip'] ?? null);
+        if (!empty($registeredIp) && $registeredIp !== $clientIp) {
             $score -= 20;
         }
         
@@ -189,6 +196,26 @@ class DeviceFingerprintService
      */
     public function getUserDevices(User $user): array
     {
+        try {
+            return DeviceFingerprint::where('user_id', $user->id)
+                ->orderByDesc('last_seen_at')
+                ->get()
+                ->map(fn (DeviceFingerprint $device) => [
+                    'fingerprint' => $device->fingerprint,
+                    'metadata' => [
+                        'user_agent' => $device->user_agent,
+                        'ip' => $device->ip_address,
+                        'registered_at' => $device->registered_at?->toDateTimeString(),
+                        'last_seen' => $device->last_seen_at?->toDateTimeString(),
+                        'trust_score' => $device->trust_score,
+                        'is_verified' => $device->is_verified,
+                    ],
+                ])
+                ->all();
+        } catch (\Throwable) {
+            // Fallback untuk instalasi yang belum menjalankan migrasi device_fingerprints.
+        }
+
         $devices = Cache::get("user_devices:{$user->id}", []);
         $devicesWithMetadata = [];
         
@@ -213,6 +240,14 @@ class DeviceFingerprintService
         
         Cache::put("user_devices:{$user->id}", $devices, now()->addDays(30));
         Cache::forget("device_metadata:{$user->id}:{$fingerprint}");
+
+        try {
+            DeviceFingerprint::where('user_id', $user->id)
+                ->where('fingerprint', $fingerprint)
+                ->delete();
+        } catch (\Throwable $e) {
+            \Log::warning('Failed to remove device fingerprint from database: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -222,7 +257,86 @@ class DeviceFingerprintService
     {
         $threshold = (int) config('zero_trust.device_trust_score_threshold', 70);
         
-        return $trustScore < $threshold;
+        return !$this->isDeviceVerified($user, $fingerprint) || $trustScore < $threshold;
+    }
+
+    public function isDeviceVerified(User $user, string $fingerprint): bool
+    {
+        $device = $this->findDevice($user, $fingerprint);
+
+        return (bool) ($device?->is_verified);
+    }
+
+    public function markDeviceVerified(User $user, string $fingerprint, ?Request $request = null): void
+    {
+        $metadata = [
+            'verified_at' => now()->toIso8601String(),
+            'verified_by' => 'mfa_or_signed_email',
+        ];
+
+        if ($request) {
+            $metadata['user_agent'] = $request->userAgent();
+            $metadata['ip'] = $this->getClientIp($request);
+        }
+
+        try {
+            $device = DeviceFingerprint::firstOrNew([
+                'user_id' => $user->id,
+                'fingerprint' => $fingerprint,
+            ]);
+
+            if (!$device->exists) {
+                $device->registered_at = now();
+            }
+
+            $device->fill([
+                'user_agent' => $metadata['user_agent'] ?? $device->user_agent,
+                'ip_address' => $metadata['ip'] ?? $device->ip_address,
+                'trust_score' => max((int) $device->trust_score, (int) config('zero_trust.device_trust_score_threshold', 70)),
+                'last_seen_at' => now(),
+                'is_verified' => true,
+                'metadata' => array_merge((array) ($device->metadata ?? []), $metadata),
+            ]);
+            $device->save();
+        } catch (\Throwable $e) {
+            \Log::error('Failed to mark device as verified: ' . $e->getMessage());
+            throw $e;
+        }
+
+        $cached = Cache::get("device_metadata:{$user->id}:{$fingerprint}", []);
+        $cached['is_verified'] = true;
+        $cached['trust_score'] = max((int) ($cached['trust_score'] ?? 0), (int) config('zero_trust.device_trust_score_threshold', 70));
+        $cached['last_seen'] = now()->toDateTimeString();
+        Cache::put("device_metadata:{$user->id}:{$fingerprint}", $cached, now()->addDays(30));
+    }
+
+    public function sendVerificationChallenge(User $user, string $fingerprint, Request $request): void
+    {
+        $cacheKey = "device_verification_email_sent:{$user->id}:{$fingerprint}";
+        if (Cache::has($cacheKey)) {
+            return;
+        }
+
+        try {
+            $user->notify(new DeviceVerificationRequired(
+                fingerprint: $fingerprint,
+                ipAddress: $this->getClientIp($request),
+                userAgent: (string) $request->userAgent()
+            ));
+            Cache::put($cacheKey, true, now()->addMinutes(10));
+        } catch (\Throwable $e) {
+            \Log::warning('Failed to send device verification challenge email: ' . $e->getMessage());
+        }
+    }
+
+    protected function findDevice(User $user, string $fingerprint): ?DeviceFingerprint
+    {
+        try {
+            return DeviceFingerprint::where('user_id', $user->id)
+                ->where('fingerprint', $fingerprint)
+                ->first();
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }
-

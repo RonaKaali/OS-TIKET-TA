@@ -98,6 +98,8 @@ class MfaVerificationController extends Controller
         if ($stepUpAction === 'high_risk') {
             $this->mfaService->setMfaVerified($user, 'high_risk');
             $request->session()->forget('mfa_step_up_action');
+        } elseif ($stepUpAction === 'device_verification') {
+            $this->completeDeviceVerification($request, $user, 'mfa_totp');
         }
 
         // Complete login setup (session, tokens, etc)
@@ -161,6 +163,8 @@ class MfaVerificationController extends Controller
         if ($stepUpAction === 'high_risk') {
             $this->mfaService->setMfaVerified($user, 'high_risk');
             $request->session()->forget('mfa_step_up_action');
+        } elseif ($stepUpAction === 'device_verification') {
+            $this->completeDeviceVerification($request, $user, 'mfa_backup_code');
         }
 
         // Complete login setup (session, tokens, dll)
@@ -196,5 +200,32 @@ class MfaVerificationController extends Controller
         $this->revocationService->clearRevocationFlag($user);
         $this->revocationService->stampSession($request);
     }
-}
 
+    protected function completeDeviceVerification(Request $request, $user, string $method): void
+    {
+        $fingerprint = $request->session()->get('device_verification_fingerprint');
+
+        if (!$fingerprint) {
+            $request->session()->forget('mfa_step_up_action');
+            return;
+        }
+
+        app(\App\Services\DeviceFingerprintService::class)
+            ->markDeviceVerified($user, $fingerprint, $request);
+
+        $request->session()->put('device_verified_' . $fingerprint, true);
+        $this->mfaService->setMfaVerified($user, 'device_verification');
+
+        app(\App\Services\SecurityEventLogService::class)->logDeviceEvent(
+            $user->id,
+            'verified',
+            ['fingerprint' => $fingerprint, 'method' => $method]
+        );
+
+        $request->session()->forget([
+            'mfa_step_up_action',
+            'device_verification_fingerprint',
+            'device_verification_trust_score',
+        ]);
+    }
+}

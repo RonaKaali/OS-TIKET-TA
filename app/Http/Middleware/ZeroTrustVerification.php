@@ -86,21 +86,38 @@ class ZeroTrustVerification
 
                 // Cek apakah device memerlukan verifikasi tambahan
                 if ($this->deviceService->requiresVerification($user, $fingerprint, $trustScore)) {
-                    // Redirect ke device verification jika diperlukan
-                    if (!$request->session()->get('device_verified_' . $fingerprint)) {
-                        if (\Route::has('device.verify')) {
-                            return redirect()->route('device.verify')
-                                ->with('fingerprint', $fingerprint)
-                                ->with('trust_score', $trustScore);
-                        }
-
-                        // Jika route belum tersedia, jangan block request (fail open),
-                        // tapi tetap log anomaly agar dapat ditindaklanjuti.
-                        $this->logService->logAnomaly($user->id, 'device_verification_route_missing', [
+                    $freshLoginMfa = $request->session()->get('mfa_verified_login');
+                    if ($freshLoginMfa && now()->diffInMinutes(\Carbon\Carbon::parse($freshLoginMfa)) <= 5) {
+                        $this->deviceService->markDeviceVerified($user, $fingerprint, $request);
+                        $request->session()->put('device_verified_' . $fingerprint, true);
+                        $this->logService->logDeviceEvent($user->id, 'verified', [
+                            'fingerprint' => $fingerprint,
+                            'method' => 'fresh_mfa_login',
+                            'trust_score' => $trustScore,
+                        ]);
+                        $trustScore = (int) config('zero_trust.device_trust_score_threshold', 70);
+                        $request->merge(['device_trust_score' => $trustScore]);
+                    } else {
+                        $this->logService->logDeviceEvent($user->id, 'verification_required', [
                             'fingerprint' => $fingerprint,
                             'trust_score' => $trustScore,
                             'path' => $request->path(),
                         ]);
+
+                        $request->session()->put('device_verification_fingerprint', $fingerprint);
+                        $request->session()->put('device_verification_trust_score', $trustScore);
+                        $request->session()->put('url.intended', $request->fullUrl());
+
+                        if ($user->hasMfaEnabled()) {
+                            $request->session()->put('mfa_step_up_action', 'device_verification');
+                            return redirect()->route('mfa.verify')
+                                ->with('status', 'Perangkat baru terdeteksi. Verifikasi MFA diperlukan.');
+                        }
+
+                        $this->deviceService->sendVerificationChallenge($user, $fingerprint, $request);
+
+                        return redirect()->route('mfa.setup')
+                            ->with('status', 'Perangkat baru terdeteksi. Aktifkan MFA untuk memverifikasi perangkat ini. Tautan verifikasi juga dikirim ke email jika layanan email aktif.');
                     }
                 }
             }
@@ -327,4 +344,3 @@ class ZeroTrustVerification
         return $request->ip();
     }
 }
-

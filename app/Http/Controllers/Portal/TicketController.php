@@ -31,7 +31,7 @@ class TicketController extends Controller
                 'help_topic_id' => ['required', Rule::exists('topik_bantuan', 'id')],
                 'reporter_organization' => ['required', 'string', 'max:255'],
                 'message' => ['required', 'string', 'max:20000'],
-                'attachments.*' => ['file', 'max:10240'], // 10MB
+                'attachments.*' => $this->attachmentRules(),
             ]);
 
             $topic = HelpTopic::with('department')->findOrFail($data['help_topic_id']);
@@ -182,7 +182,7 @@ class TicketController extends Controller
 
         $data = $r->validate([
             'message' => ['required', 'string', 'max:20000'],
-            'attachments.*' => ['file', 'max:10240'],
+            'attachments.*' => $this->attachmentRules(),
         ]);
 
         $thread = TicketThread::create([
@@ -274,5 +274,15 @@ class TicketController extends Controller
                 'is_encrypted' => \Illuminate\Support\Facades\DB::raw('true'),
             ]);
         }
+    }
+
+    private function attachmentRules(): array
+    {
+        return [
+            'file',
+            'max:10240',
+            'mimes:jpg,jpeg,png,gif,pdf,doc,docx',
+            'mimetypes:image/jpeg,image/png,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
     }
 }

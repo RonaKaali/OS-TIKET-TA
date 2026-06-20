@@ -102,9 +102,11 @@ class TicketController extends Controller
 
     public function reply(Request $r, Ticket $ticket)
     {
+        $this->authorizeTicketAction($ticket, $r->user());
+
         $data = $r->validate([
             'message' => ['required', 'string', 'max:20000'],
-            'attachments.*' => ['file', 'max:10240'],
+            'attachments.*' => $this->attachmentRules(),
         ]);
 
         $thread = TicketThread::create([
@@ -175,6 +177,8 @@ class TicketController extends Controller
 
     public function setStatus(Request $r, Ticket $ticket)
     {
+        $this->authorizeTicketAction($ticket, $r->user());
+
         $data = $r->validate([
             'status_id' => ['required', 'exists:status,id'],
         ]);
@@ -242,10 +246,7 @@ class TicketController extends Controller
      */
     public function complete(Ticket $ticket)
     {
-        // Pastikan tiket ini ditugaskan ke agent yang sedang login
-        if ($ticket->assigned_to !== request()->user()->id) {
-            abort(403, 'Anda tidak dapat menyelesaikan tiket yang bukan tugas Anda.');
-        }
+        $this->authorizeTicketAction($ticket, request()->user(), 'Anda tidak dapat menyelesaikan tiket yang bukan tugas Anda.');
 
         $oldStatus = $ticket->status;
         $closedStatus = Status::where('slug', 'closed')->orWhere('name', 'like', '%selesai%')->first();
@@ -289,10 +290,7 @@ class TicketController extends Controller
      */
     public function returnToAdmin(Ticket $ticket)
     {
-        // Pastikan tiket ini ditugaskan ke agent yang sedang login
-        if ($ticket->assigned_to !== request()->user()->id) {
-            abort(403, 'Anda tidak dapat mengembalikan tiket yang bukan tugas Anda.');
-        }
+        $this->authorizeTicketAction($ticket, request()->user(), 'Anda tidak dapat mengembalikan tiket yang bukan tugas Anda.');
 
         $oldStatus = $ticket->status;
         $openStatus = Status::where('slug', 'open')->first();
@@ -315,5 +313,24 @@ class TicketController extends Controller
         ]);
 
         return back()->with('ok', 'Tiket dikembalikan ke Super Admin untuk ditugaskan ulang.');
+    }
+
+    protected function authorizeTicketAction(Ticket $ticket, ?\App\Models\User $user, string $message = 'Anda tidak memiliki akses ke tiket ini.'): void
+    {
+        if (RoleUi::canManageAllTickets($user)) {
+            return;
+        }
+
+        abort_unless($user && $ticket->assigned_to === $user->id, 403, $message);
+    }
+
+    protected function attachmentRules(): array
+    {
+        return [
+            'file',
+            'max:10240',
+            'mimes:jpg,jpeg,png,gif,pdf,doc,docx',
+            'mimetypes:image/jpeg,image/png,image/gif,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ];
     }
 }

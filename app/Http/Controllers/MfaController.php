@@ -105,6 +105,19 @@ class MfaController extends Controller
         if ($error === null) {
             $user->refresh();
             Auth::setUser($user);
+            $this->mfaService->setMfaVerified($user, 'login');
+
+            if ($fingerprint = $request->session()->get('device_verification_fingerprint')) {
+                app(\App\Services\DeviceFingerprintService::class)
+                    ->markDeviceVerified($user, $fingerprint, $request);
+
+                $request->session()->put('device_verified_' . $fingerprint, true);
+                $request->session()->forget([
+                    'mfa_step_up_action',
+                    'device_verification_fingerprint',
+                    'device_verification_trust_score',
+                ]);
+            }
 
             $backupCodes = $this->mfaService->generateBackupCodes($user);
 
@@ -172,4 +185,3 @@ class MfaController extends Controller
             ->with('status', 'MFA berhasil dinonaktifkan.');
     }
 }
-

@@ -26,8 +26,11 @@ class RequireMfaVerification
             return $next($request);
         }
 
-        // Portal pelaporan & chatbot AJAX: jangan paksa MFA ulang
-        if ($request->is('portal/ticket') || $request->is('portal/ticket/*') || $request->is('chatbot/message')) {
+        if (!config('zero_trust.mfa_enabled', true)) {
+            return $next($request);
+        }
+
+        if ($this->isAlwaysAllowed($request)) {
             return $next($request);
         }
 
@@ -43,9 +46,21 @@ class RequireMfaVerification
             $mfaEnabled = $this->mfaService->isMfaEnabled($user);
         }
 
-        // Jika user tidak punya MFA enabled, lanjutkan
         if (!$mfaEnabled) {
-            return $next($request);
+            if ($this->isMfaSetupRoute($request)) {
+                return $next($request);
+            }
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => 'MFA wajib diaktifkan sebelum mengakses fitur ini.',
+                    'mfa_setup_required' => true,
+                ], 403);
+            }
+
+            return redirect()
+                ->route('mfa.setup')
+                ->with('status', 'Zero Trust aktif: aktifkan MFA terlebih dahulu sebelum mengakses sistem.');
         }
 
         // Cek apakah MFA sudah diverifikasi untuk login
@@ -90,5 +105,33 @@ class RequireMfaVerification
 
         return $next($request);
     }
-}
 
+    protected function isAlwaysAllowed(Request $request): bool
+    {
+        $paths = [
+            'mfa/verify',
+            'mfa/verify-backup',
+            'logout',
+            'zero-trust/gps',
+            'session/check',
+            'device/verify',
+            'up',
+        ];
+
+        foreach ($paths as $path) {
+            if ($request->is($path) || $request->is($path . '/*')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function isMfaSetupRoute(Request $request): bool
+    {
+        return $request->is('mfa/setup')
+            || $request->is('mfa/setup/*')
+            || $request->is('mfa/enable')
+            || $request->is('mfa/enable/*');
+    }
+}

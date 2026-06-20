@@ -108,16 +108,31 @@ Route::middleware('auth')->group(function () {
 
     // Zero Trust: Automatic Device Verification Route
     Route::get('/device/verify', function(Request $request) {
-        $fingerprint = session('fingerprint');
-        if ($fingerprint) {
-            $request->session()->put('device_verified_' . $fingerprint, true);
-            app(\App\Services\SecurityEventLogService::class)->logDeviceEvent(
-                auth()->id(), 
-                'device_verified', 
-                ['fingerprint' => $fingerprint]
-            );
+        $fingerprint = (string) $request->query('fingerprint', '');
+
+        if (!$fingerprint || !\Illuminate\Support\Facades\URL::hasValidSignature($request)) {
+            return redirect()
+                ->route(auth()->user()?->hasMfaEnabled() ? 'mfa.verify' : 'mfa.setup')
+                ->withErrors(['device' => 'Verifikasi perangkat membutuhkan tautan email yang valid atau challenge MFA.']);
         }
-        return redirect()->intended('/');
+
+        app(\App\Services\DeviceFingerprintService::class)
+            ->markDeviceVerified($request->user(), $fingerprint, $request);
+
+        $request->session()->put('device_verified_' . $fingerprint, true);
+        $request->session()->forget([
+            'device_verification_fingerprint',
+            'device_verification_trust_score',
+            'mfa_step_up_action',
+        ]);
+
+        app(\App\Services\SecurityEventLogService::class)->logDeviceEvent(
+            auth()->id(),
+            'verified',
+            ['fingerprint' => $fingerprint, 'method' => 'signed_email']
+        );
+
+        return redirect()->intended('/')->with('status', 'Perangkat berhasil diverifikasi.');
     })->name('device.verify');
 
     // Session check untuk auto logout
@@ -135,8 +150,8 @@ Route::middleware('auth')->group(function () {
 # Telegram Webhook (untuk menerima update dari bot Telegram)
 Route::post('/telegram/webhook', [\App\Http\Controllers\TelegramWebhookController::class, 'handle'])
     ->name('telegram.webhook');
-// Route sementara untuk migrasi database di Vercel
-Route::get('/deploy-db', function () {
+// Route sementara untuk migrasi database di Vercel (dibatasi untuk Super Admin)
+Route::middleware(['auth', 'role:Super Admin'])->get('/deploy-db', function () {
     $lines = [];
 
     try {
