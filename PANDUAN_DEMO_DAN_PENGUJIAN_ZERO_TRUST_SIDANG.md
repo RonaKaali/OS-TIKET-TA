@@ -1,256 +1,449 @@
-# Panduan Demo Sidang & Pengujian Zero Trust (OS-Tiket)
+# Panduan Demo & Pengujian Zero Trust — Sidang Tugas Akhir
 
-Dokumen ini membantu Anda **mendemokan** seluruh lapisan keamanan Zero Trust di OS-Tiket saat sidang tugas akhir, sekaligus menjadi **kerangka** untuk bab laporan tentang **perbedaan sebelum–sesudah** dan **metode pengujian**.
+Dokumen ini panduan praktis untuk **mendemonstrasikan** implementasi Zero Trust Security pada sistem OS-Tiket CSIRT Kalselprov saat **sidang tugas akhir**, sekaligus menjadi **kerangka pengujian** untuk bab metode dan hasil.
 
-**Referensi di repositori**
+**Fokus proyek:** ticketing insiden siber dengan lapisan keamanan Zero Trust (*Never Trust, Always Verify*).
 
-| Dokumen | Isi |
-|--------|-----|
-| `ZERO_TRUST_DEFENSES.md` | Penjelasan tiap lapisan pertahanan + diagram alur (Mermaid) |
-| `LAPORAN_PERBEDAAN_ZERO_TRUST_SEBELUM_SESUDAH.md` | Tabel perbandingan fitur, checklist screenshot, langkah uji per fitur |
-| `config/zero_trust.php` | Saklar dan parameter (ambang skor, GeoIP, interval session, dll.) |
+**Referensi teknis di repositori:**
 
----
-
-## 1. Prinsip demo sidang (yang ingin ditunjukkan ke penguji)
-
-Zero Trust di OS-Tiket mengikuti gagasan **“Never Trust, Always Verify”** melalui lima area:
-
-1. **Identitas & MFA** — pemastian pemilik akun (TOTP + backup codes).
-2. **Perangkat & konteks** — fingerprint, trust score, jam kerja, GeoIP, GPS opsional, **risk score** → step-up MFA atau pemblokiran.
-3. **Proteksi data** — lampiran terenkripsi di penyimpanan; secret MFA tidak plaintext di database.
-4. **Verifikasi berkelanjutan** — middleware `ZeroTrustVerification` + validasi session berkala.
-5. **Audit** — `SecurityEventLogService`, file `storage/logs/security-*.log`, tabel `security_events`.
-
-**Satu kalimat pembuka yang kuat:** “Setelah login, setiap request tidak lagi hanya mengandalkan cookie session; sistem menilai ulang perangkat, konteks, dan risiko, serta mencatat jejak keamanan.”
+| File | Isi |
+|------|-----|
+| `ZERO_TRUST_DEFENSES.md` | Arsitektur lapisan pertahanan + diagram alur |
+| `LAPORAN_PERBEDAAN_ZERO_TRUST_SEBELUM_SESUDAH.md` | Perbandingan sebelum vs sesudah |
+| `config/zero_trust.php` | Saklar dan parameter keamanan |
 
 ---
 
-## 2. Persiapan sebelum demo
+## 1. Apa yang Didemokan ke Penguji
 
-### 2.1 Lingkungan
+Satu kalimat pembuka:
 
-- Gunakan **development** atau **staging**, bukan produksi langsung.
-- Pastikan aplikasi jalan (`php artisan serve` atau stack Anda), database terisi user uji dengan MFA siap pakai, dan peran/permission sesuai seeder (misalnya agen dengan `admin.panel`).
+> *"Setelah login, sistem tidak lagi hanya mengandalkan session cookie. Setiap request dinilai ulang berdasarkan identitas (MFA), perangkat, konteks akses, dan skor risiko — lalu dicatat di audit trail keamanan."*
 
-### 2.2 Setelah mengubah `.env`
+### Lima pilar Zero Trust yang diimplementasikan
+
+| # | Pilar | Implementasi di OS-Tiket |
+|---|--------|---------------------------|
+| 1 | **Identitas & MFA** | TOTP (Google Authenticator), backup codes, step-up MFA saat risiko tinggi |
+| 2 | **Perangkat & konteks** | Device fingerprint, trust score, jam kerja, GeoIP/GPS, risk score |
+| 3 | **Proteksi data** | Lampiran tiket terenkripsi (`.enc`), secret MFA terenkripsi di database |
+| 4 | **Verifikasi berkelanjutan** | Middleware `ZeroTrustVerification`, validasi session berkala, auto-logout idle |
+| 5 | **Audit & respons insiden** | Ruang Zero Trust, live feed event, export CSV, **Cabut Akses** |
+
+### Alur middleware (urutan eksekusi)
+
+```
+Request masuk
+  → EnforceAccessRevocation   (cek apakah akses dicabut)
+  → CheckUserActivity         (timeout idle 3 menit)
+  → RequireMfaVerification    (wajib MFA jika aktif)
+  → ZeroTrustVerification     (fingerprint, konteks, risk score, logging)
+  → Controller / View
+```
+
+---
+
+## 2. Persiapan Sebelum Sidang
+
+### 2.1 URL aplikasi
+
+| Lingkungan | URL |
+|------------|-----|
+| **Production (Vercel)** | `https://os-tiket-ta-h5k6.vercel.app` |
+| **Lokal** | `http://127.0.0.1:8000` atau domain Laragon Anda |
+
+### 2.2 Konfigurasi wajib (`.env`)
+
+Pastikan minimal:
+
+```env
+ZERO_TRUST_ENABLED=true
+ZERO_TRUST_DEVICE_FINGERPRINTING=true
+ZERO_TRUST_MFA_ENABLED=true
+ZERO_TRUST_CONTEXT_AWARE=true
+
+SESSION_LIFETIME=3
+RISK_SCORE_THRESHOLD_HIGH=70
+RISK_SCORE_THRESHOLD_CRITICAL=85
+DEVICE_TRUST_SCORE_THRESHOLD=70
+```
+
+Setelah mengubah `.env`:
 
 ```bash
 php artisan config:clear
 ```
 
-Jika mengubah JavaScript (`resources/js`), jalankan `npm run build` atau `npm run dev`.
+Di Vercel, set variabel yang sama di dashboard Environment Variables, lalu redeploy.
 
-### 2.3 Saklar utama: sebelum vs sesudah
+### 2.3 Database & user uji
 
-| Kondisi | Variabel | Efek untuk demo |
-|--------|----------|-----------------|
-| **Sebelum (baseline)** | `ZERO_TRUST_ENABLED=false` | Inti logika Zero Trust (fingerprint, risk-based step-up, dll.) tidak aktif seperti saat ZT menyala. |
-| **Sesudah** | `ZERO_TRUST_ENABLED=true` | Alur lengkap: device + konteks + validasi berkala + logging terkait ZT. |
+Jalankan sekali (lokal) atau buka **`/deploy-db`** (Vercel) untuk migrasi:
 
-Detail variabel tambahan ada di `LAPORAN_PERBEDAAN_ZERO_TRUST_SEBELUM_SESUDAH.md` bagian 1–2.
+```
+https://os-tiket-ta-h5k6.vercel.app/deploy-db
+```
 
-### 2.4 Materi yang disiapkan di layar
+Seed user uji:
 
-- Browser (Chrome/Edge) dengan **DevTools** siap (tab Network untuk GPS).
-- Editor/teks untuk menunjukkan `config/zero_trust.php` atau cuplikan `.env` (tanpa rahasia produksi).
-- Akses ke `storage/logs/security-YYYY-MM-DD.log` atau tool DB untuk `security_events`.
-- (Opsional) File GeoLite2 City `.mmdb` jika mendemo GeoIP.
+```bash
+php artisan db:seed --class=RolePermissionSeeder
+php artisan db:seed --class=UserSeeder
+```
 
----
+### 2.4 Akun demonstrasi
 
-## 3. Urutan demo sidang (alur presentasi ±15–25 menit)
+Semua password default: **`password`**
 
-Sesuaikan durasi; urutan di bawah dari **konsep** ke **bukti teknis**.
+| Role | Email | Digunakan untuk demo |
+|------|-------|----------------------|
+| **Super Admin** | `admin@csirt.kalselprov.go.id` | Ruang Zero Trust, export log, Cabut Akses |
+| Admin | `admin1@csirt.kalselprov.go.id` | Penugasan tiket, MFA |
+| Agent 1 | `agent@csirt.kalselprov.go.id` | Akses agen, GPS, step-up MFA |
+| Agent 2 | `agent2@csirt.kalselprov.go.id` | Tab kedua (simulasi korban Cabut Akses) |
+| Support Agent | `support@csirt.kalselprov.go.id` | Peran agen alternatif |
+| Pelapor (User) | Buat akun baru via register | Portal laporan insiden |
 
-| Urutan | Topik | Yang ditunjukkan | Bukti singkat |
-|--------|--------|------------------|---------------|
-| A | **Konfigurasi** | File `config/zero_trust.php` atau `.env` dengan `ZERO_TRUST_ENABLED=true` | “Semua ambang dan fitur diatur terpusat.” |
-| B | **Login & MFA** | Login → halaman MFA → kode TOTP | Alur di `ZERO_TRUST_DEFENSES.md` bagian 1 |
-| C | **Zero Trust aktif** | Browsing ke `/agent` atau dashboard setelah login | Baris baru di `security-*.log` (akses / konteks) |
-| D | **Device & risiko** | Jelaskan fingerprint + risk score (slide atau diagram dari `ZERO_TRUST_DEFENSES.md`) | Log dengan metadata perangkat / anomaly jika ada |
-| E | **Step-up MFA** | Setelah turunkan sementara `RISK_SCORE_THRESHOLD_HIGH`, picu skor tinggi (mis. luar jam kerja + akhir pekan) | Redirect ke `/mfa/verify`, lalu sukses dengan TOTP |
-| F | **Pemblokiran kritis** | (Opsional, hanya jika waktu cukup) turunkan sementara `RISK_SCORE_THRESHOLD_CRITICAL` untuk uji 403 | Halaman 403 atau respons JSON sesuai middleware |
-| G | **Jam kerja** | Akun agen **tanpa** `admin.after_hours_access` mengakses panel di luar jam kerja | 403 + anomaly `after_hours_access_attempt` di log |
-| H | **GPS** | Izinkan lokasi di browser → tab Network | Request `POST /zero-trust/gps` status 200, body `{"status":"ok"}` |
-| I | **GeoIP** | (Jika `.mmdb` terpasang) jelaskan `ALLOWED_COUNTRIES` | Skor risiko naik jika negara di luar daftar |
-| J | **Lampiran** | Upload lampiran → tunjukkan file `.enc` di storage → unduh sebagai user berhak | File terbuka normal; di disk tetap terenkripsi |
-| K | **Secret MFA di DB** | Satu baris penjelasan: kolom `users.mfa_secret` berbentuk ciphertext Laravel | Screenshot query (sensor sebagian jika perlu) |
-| L | **Audit** | Scroll `security-*.log` atau tabel `security_events` | Event `auth_*`, `access`, `high_risk`, unduhan lampiran |
+> **Penting:** MFA **belum** aktif otomatis dari seeder. Aktifkan dulu lewat `/profile` → setup MFA **sebelum sidang** (lihat Skenario 1).
 
-**Tips bicara:** untuk setiap huruf di atas, hubungkan ke **prinsip Zero Trust** (verifikasi berkelanjutan, least privilege, asumsi jaringan tidak tepercaya).
+### 2.5 Build frontend
 
----
+GPS dan session monitor membutuhkan asset ter-build:
 
-## 4. Panduan demo per fitur (langkah praktis)
+```bash
+npm install
+npm run build
+```
 
-Bagian ini merangkum langkah; detail angka ambang dan skenario ada di `LAPORAN_PERBEDAAN_ZERO_TRUST_SEBELUM_SESUDAH.md` bagian 2.
+### 2.6 Materi yang disiapkan di laptop sidang
 
-### 4.1 MFA (login + backup codes)
+- [ ] **2 browser** (Chrome + Edge, atau 2 profil Chrome) — untuk demo Cabut Akses
+- [ ] **DevTools** (F12) → tab **Network** — untuk bukti GPS
+- [ ] Tab **Ruang Zero Trust** sudah login Super Admin
+- [ ] Aplikasi **Google Authenticator** (atau Authy) dengan MFA akun uji sudah ter-scan
+- [ ] (Opsional) Cuplikan `config/zero_trust.php` di slide
+- [ ] (Opsional) Rekaman layar cadangan jika internet bermasalah
 
-1. Login dengan akun yang MFA-nya aktif.
-2. Masukkan kode dari aplikasi authenticator; opsional uji satu **backup code** sekali pakai.
-3. **Laporan:** jelaskan bahwa password saja tidak cukup; cocokkan dengan flowchart di `ZERO_TRUST_DEFENSES.md`.
+### 2.7 Konfigurasi khusus demo (opsional)
 
-### 4.2 Zero Trust middleware & logging
+Untuk memudahkan memicu **step-up MFA** saat sidang, turunkan sementara ambang risiko di `.env`:
 
-1. `ZERO_TRUST_ENABLED=true`, `php artisan config:clear`.
-2. Login dan buka beberapa halaman yang membutuhkan auth.
-3. Buka `storage/logs/security-YYYY-MM-DD.log` — tunjukkan jejak aktivitas/akses.
+```env
+RISK_SCORE_THRESHOLD_HIGH=30
+```
 
-### 4.3 Device fingerprint & trust score
+Lalu `php artisan config:clear`. **Kembalikan ke `70` setelah demo.**
 
-1. Pastikan `ZERO_TRUST_DEVICE_FINGERPRINTING=true`.
-2. Jelaskan bahwa setiap request membangun fingerprint (user-agent, IP, dll.).
-3. Bukti: entri log / metadata yang menyebut fingerprint atau event perangkat.  
-   *Catatan:* jika trust rendah dan route verifikasi perangkat belum tersedia, perilaku bisa *fail open* dengan pencatatan anomaly — jujurkan di sidang sesuai implementasi saat ini.
-
-### 4.4 Risk score, step-up MFA, 403 kritis
-
-**Letak menurunkan ambang (hanya untuk demo/uji di lingkungan non-produksi):**
-
-- **File `.env`** di root proyek OS-Tiket — set variabel lingkungan berikut (tanpa spasi di sekitar `=`):
-  - `RISK_SCORE_THRESHOLD_HIGH` — misalnya `30` agar step-up MFA mudah terpicu (default jika variabel tidak ada: **70**).
-  - `RISK_SCORE_THRESHOLD_CRITICAL` — misalnya `40` hanya saat ingin mendemo respons 403 kritis (default jika tidak ada: **85**).
-- **Pemetaan di kode:** nilai tersebut dibaca di `config/zero_trust.php` pada kunci `risk_score_threshold_high` dan `risk_score_threshold_critical`.
-- Setelah mengubah `.env`, jalankan `php artisan config:clear` supaya Laravel memuat nilai baru.
-
-1. Untuk demo step-up: **sementara** turunkan `RISK_SCORE_THRESHOLD_HIGH` di `.env` (mis. `RISK_SCORE_THRESHOLD_HIGH=30`), pertahankan `RISK_SCORE_THRESHOLD_CRITICAL` lebih tinggi dari skor yang Anda picu; picu skor dengan akses di luar jam kerja / akhir pekan / perubahan IP.
-2. Tunjukkan redirect ke verifikasi MFA, lalu akses lanjut setelah TOTP benar.
-3. Untuk 403 kritis: hanya di lingkungan uji, turunkan sementara `RISK_SCORE_THRESHOLD_CRITICAL` di `.env` (mis. `RISK_SCORE_THRESHOLD_CRITICAL=40`), lalu **kembalikan ke default** (atau hapus barisnya agar memakai default dari `config/zero_trust.php`) setelah demo, dan jangan lupa `php artisan config:clear`.
-
-### 4.5 Konteks jam kerja (agen tanpa izin after-hours)
-
-1. Gunakan akun dengan `admin.panel` tanpa permission akses luar jam kerja.
-2. Akses `/agent` di luar rentang jam kerja (sesuai `APP_TIMEZONE`).
-3. Tunjukkan penolakan akses dan entri log terkait.
-
-### 4.6 GeoIP (opsional)
-
-1. Pasang `GeoLite2-City.mmdb`, set `GEO_LOCATION_ENABLED=true`, `GEOIP_DB_PATH`, `ALLOWED_COUNTRIES`.
-2. Jelaskan penyesuaian skor risiko untuk IP di luar negara yang diizinkan.
-
-### 4.7 GPS browser (`POST /zero-trust/gps`)
-
-1. Build aset frontend; login; izinkan lokasi.
-2. DevTools → Network → cari `zero-trust` atau `gps`.
-3. Pastikan respons sukses; session menyimpan `zero_trust_gps` untuk analisis konteks.
-
-### 4.8 Enkripsi lampiran
-
-1. Unggah lampiran melalui alur tiket.
-2. Di storage: berkas `.enc` dan metadata `is_encrypted`.
-3. Unduh dari `GET /attachments/{id}/download` — file terbuka untuk user berhak.
-4. (Opsional) Tunjukkan penolakan unduhan tanpa hak + log keamanan.
-
-### 4.9 Secret MFA terenkripsi
-
-1. Buka data `users.mfa_secret` untuk user yang sudah setup MFA.
-2. Nilai bukan secret TOTP plaintext — konsisten dengan `encrypt()` di `MfaService`.
+Picu risiko dengan: login di **luar jam 08:00–17:00** atau di **akhir pekan**.
 
 ---
 
-## 5. Membantu bab laporan: sebelum vs sesudah
+## 3. Naskah Demo Sidang (±15–20 menit)
 
-### 5.1 Tabel ringkas (isi bab analisis / pembahasan)
+Urutan dari konsep → bukti visual → respons insiden.
 
-Gunakan struktur berikut lalu perkaya dengan data Anda:
-
-| Aspek | Sebelum | Sesudah |
-|-------|---------|---------|
-| Verifikasi setelah login | Utama berdasarkan session & role | Ditambah evaluasi perangkat, konteks, risk score berkelanjutan |
-| MFA | Fokus saat login | Ditambah **step-up** saat risiko tinggi |
-| Data lampiran | Risiko plaintext di disk (pol lama) | Penyimpanan terenkripsi (`.enc`), dekripsi saat unduh |
-| Secret MFA di DB | Risiko penyimpanan tidak aman | Secret dienkripsi aplikasi |
-| Lokasi / negara | Tidak terintegrasi risiko | GeoIP + GPS opsional memengaruhi skor |
-| Audit | Terbatas | Kanal `security` + `security_events` lebih kaya konteks |
-
-Tabel lengkap dengan nomor baris referensi ada di `LAPORAN_PERBEDAAN_ZERO_TRUST_SEBELUM_SESUDAH.md` bagian 3.
-
-### 5.2 Bukti visual untuk lampiran
-
-- Screenshot `.env` atau config: `ZERO_TRUST_ENABLED=false` vs `true` (sensor rahasia).
-- Screenshot log `security-*.log` sebelum/sesudah (volume atau jenis event berbeda).
-- Screenshot Network untuk `POST /zero-trust/gps`.
-- Screenshot storage berisi `.enc` + UI unduhan sukses.
-- Cuplikan kode (middleware, service) dari peta file di `LAPORAN_PERBEDAAN_ZERO_TRUST_SEBELUM_SESUDAH.md` bagian 5.
-
-### 5.3 Menjawab pertanyaan umum penguji
-
-- **“Apa bedanya Zero Trust dan MFA saja?”** — MFA memastikan identitas di awal; Zero Trust **meneruskan penilaian** (perangkat, konteks, risiko) pada request berikutnya dan bisa meminta MFA lagi.
-- **“Apa jika `APP_KEY` bocor?”** — Lampiran dan secret MFA bergantung pada kunci aplikasi; jelaskan bahwa ini mitigasi **kebocoran storage/DB**, bukan pengganti pengelolaan kunci server yang baik.
-- **“Kenapa threshold bisa diubah?”** — Untuk menyesuaikan toleransi false positive vs keamanan; demo menggunakan nilai sementara hanya di lingkungan uji.
+| Menit | Topik | Pembukaan singkat untuk penguji |
+|-------|--------|----------------------------------|
+| 0–2 | **Konteks** | Jelaskan OS-Tiket + prinsip Zero Trust |
+| 2–5 | **MFA login** | Password saja tidak cukup |
+| 5–8 | **Verifikasi berkelanjutan** | Browsing → event tercatat |
+| 8–10 | **GPS & konteks** | Lokasi browser memperkaya risk score |
+| 10–13 | **Ruang Zero Trust** | Dashboard live feed + export CSV |
+| 13–16 | **Cabut Akses** | Force logout real-time |
+| 16–18 | **Enkripsi lampiran** | Data at-rest terlindungi |
+| 18–20 | **Penutup** | Ringkas lima pilar + batasan |
 
 ---
 
-## 6. Metodologi pengujian (untuk bab metode / pengujian)
+## 4. Skenario Pengujian (Langkah Demi Langkah)
 
-### 6.1 Jenis pengujian
+### Skenario 1 — Setup & Login MFA
 
-| Jenis | Deskripsi untuk laporan |
-|-------|-------------------------|
-| **Fungsional / black-box** | Skenario pengguna: login, MFA, navigasi, upload/unduh lampiran, akses panel sesuai role. |
-| **Keamanan / konfigurasi** | Mengubah `ZERO_TRUST_ENABLED`, ambang risk score, dan memverifikasi perubahan perilaku (redirect MFA, 403, log). |
-| **Audit trail** | Memverifikasi bahwa event penting tertulis ke file log dan/atau database. |
-| **Regresi** | Memastikan fitur bisnis utama (tiket, portal) tetap jalan saat ZT aktif. |
+**Tujuan:** Membuktikan verifikasi identitas multi-faktor.
 
-### 6.2 Matriks skenario (contoh untuk tabel di laporan)
+| Langkah | Aksi | Hasil yang diharapkan |
+|---------|------|------------------------|
+| 1 | Login `agent@csirt.kalselprov.go.id` | Masuk ke halaman login |
+| 2 | Buka `/profile` → aktifkan MFA (`/mfa/setup`) | QR code muncul |
+| 3 | Scan QR dengan Google Authenticator → `/mfa/enable` | MFA aktif, backup codes ditampilkan |
+| 4 | Logout → login ulang | Redirect ke `/mfa/verify` |
+| 5 | Masukkan kode TOTP 6 digit | Masuk dashboard agen |
 
-| ID | Skenario | Langkah utama | Hasil yang diharapkan |
-|----|----------|---------------|------------------------|
-| T1 | Login dengan MFA benar | Email + password + TOTP | Masuk aplikasi; event auth sukses di log |
-| T2 | Login dengan TOTP salah | Kode salah beberapa kali | Penolakan; event gagal MFA |
-| T3 | ZT aktif, browsing biasa | `ZERO_TRUST_ENABLED=true`, navigasi | Log akses / konteks tanpa error aplikasi |
-| T4 | Step-up MFA | Threshold high diturunkan, picu risiko | Redirect `/mfa/verify`, lalu lanjut setelah verifikasi |
-| T5 | Jam kerja | Akses panel di luar jam tanpa izin | 403 sesuai kebijakan |
-| T6 | GPS | Izin lokasi, cek Network | `POST /zero-trust/gps` 200 |
-| T7 | Lampiran | Upload → cek `.enc` → unduh | Unduhan valid; file di disk tetap terenkripsi |
-| T8 | Unduhan tanpa hak | User lain / tamu | Akses ditolak; tercatat di log |
+**Bukti untuk penguji:**
+- Screenshot halaman MFA verify
+- Event `auth_mfa_totp` di Ruang Zero Trust
 
-Sesuaikan ID dan baris dengan pengujian yang benar-benar Anda jalankan.
-
-### 6.3 Kriteria keberhasilan (contoh)
-
-- Semua skenario **kritis** (T1, T3, T7) lulus.
-- Tidak ada error 500 pada alur utama saat ZT aktif.
-- Log keamanan menunjukkan jejak untuk setidaknya: login sukses, satu akses setelah login, satu aksi sensitif (mis. unduhan lampiran atau step-up).
-
-### 6.4 Batasan yang layak disebut di laporan
-
-- GeoIP membutuhkan database MaxMind dan pembaruan berkala.
-- GPS membutuhkan izin pengguna dan tidak selalu akurat.
-- Threshold risiko perlu penyetelan agar tidak mengganggu pengguna sah.
-- Ketergantungan pada `APP_KEY` dan keamanan server secara keseluruhan.
+**Narasi sidang:** *"Ini lapisan identitas — penyerang yang hanya punya password tetap terblokir tanpa perangkat authenticator."*
 
 ---
 
-## 7. Checklist hari-H sidang
+### Skenario 2 — Zero Trust Aktif & Audit Trail
 
-- [ ] `.env` demo sudah `ZERO_TRUST_ENABLED=true` (atau skenario “sebelum” dipersiapkan di clip video cadangan).
-- [ ] `php artisan config:clear` sudah dijalankan setelah perubahan terakhir.
-- [ ] Akun uji: MFA siap, password diketahui, role sesuai skenario jam kerja.
-- [ ] Browser: cache/cookie bersih atau sesi uji terpisah untuk menghindari kebingungan.
-- [ ] File log terbaru dibuka di tab lain untuk scroll cepat.
-- [ ] (Opsional) Rekaman layar cadangan jika jaringan bermasalah.
-- [ ] Setelah demo threshold yang diubah sementara, **kembalikan nilai default** di `.env`.
+**Tujuan:** Membuktikan verifikasi berkelanjutan dan pencatatan event.
+
+| Langkah | Aksi | Hasil yang diharapkan |
+|---------|------|------------------------|
+| 1 | Pastikan `ZERO_TRUST_ENABLED=true` | — |
+| 2 | Login sebagai Agent → buka `/agent`, `/agent/tickets` | Halaman normal |
+| 3 | Login Super Admin → buka `/admin/security-dashboard` | Ruang Zero Trust terbuka |
+| 4 | Perhatikan **Live Feed** (refresh otomatis ~60 detik) | Event `access` dari Agent muncul |
+| 5 | Klik **Hari Ini** (export CSV) | File CSV terunduh |
+
+**Bukti untuk penguji:**
+- Screenshot live feed dengan nama user, IP, risk score
+- Buka CSV — kolom: Waktu, Email, Tipe Event, Risk Score, GPS, Device Fingerprint
+
+**Narasi sidang:** *"Setiap navigasi setelah login tidak otomatis dipercaya — sistem mencatat jejak akses untuk audit dan deteksi anomali."*
 
 ---
 
-## 8. Peta file kode (ringkas)
+### Skenario 3 — GPS Browser (Konteks Lokasi)
 
-| File | Peran |
+**Tujuan:** Membuktikan integrasi geolokasi untuk analisis konteks.
+
+| Langkah | Aksi | Hasil yang diharapkan |
+|---------|------|------------------------|
+| 1 | Login sebagai Agent (HP/laptop dengan GPS) | — |
+| 2 | Izinkan **Allow location** saat browser meminta | — |
+| 3 | Buka DevTools → Network → filter `gps` | Request `POST /zero-trust/gps` status **200** |
+| 4 | Response body | `{"status":"ok","gps":{"latitude":...,"longitude":...}}` |
+| 5 | Buka Ruang Zero Trust | Koordinat GPS tampil di kartu event |
+
+**Bukti untuk penguji:**
+- Screenshot tab Network + response JSON
+- Screenshot event dengan GPS di dashboard
+
+**Catatan:** Jika GPS ditolak, sistem tetap jalan — jelaskan sebagai *graceful degradation* (Zero Trust tetap berjalan tanpa GPS).
+
+---
+
+### Skenario 4 — Device Fingerprint & Trust Score
+
+**Tujuan:** Membuktikan identifikasi perangkat.
+
+| Langkah | Aksi | Hasil yang diharapkan |
+|---------|------|------------------------|
+| 1 | Login dari browser biasa | Perangkat pertama → trust score tinggi (~100) |
+| 2 | Login dari **Incognito** atau browser berbeda | Event `device_registered` / verifikasi perangkat |
+| 3 | Lihat Ruang Zero Trust | Device fingerprint (hash pendek) + trust % di kartu event |
+
+**Narasi sidang:** *"Sistem membangun fingerprint dari user-agent, IP, dan header — perangkat tidak dikenal menurunkan trust score."*
+
+---
+
+### Skenario 5 — Risk Score & Step-up MFA
+
+**Tujuan:** Membuktikan kontrol berbasis risiko (bukan hanya role).
+
+| Langkah | Aksi | Hasil yang diharapkan |
+|---------|------|------------------------|
+| 1 | Set sementara `RISK_SCORE_THRESHOLD_HIGH=30` di `.env` | — |
+| 2 | `php artisan config:clear` | — |
+| 3 | Login Agent **di luar jam 08:00–17:00** atau **Sabtu/Minggu** | Risk score naik (+10 after-hours, +5 weekend) |
+| 4 | Navigasi ke `/agent` | Redirect ke `/mfa/verify` (step-up) |
+| 5 | Masukkan TOTP | Akses lanjut ke halaman yang dituju |
+| 6 | Kembalikan `RISK_SCORE_THRESHOLD_HIGH=70` | — |
+
+**Bukti:** Event `anomaly_detected` / `high_risk` di live feed.
+
+**Catatan implementasi (jujur ke penguji):** Akses di luar jam kerja **tidak langsung diblokir 403** — sistem **mencatat anomaly** dan **menaikkan risk score**, yang dapat memicu step-up MFA sesuai ambang.
+
+---
+
+### Skenario 6 — Cabut Akses (Force Logout)
+
+**Tujuan:** Membuktikan respons insiden — pemutusan sesi aktif oleh Super Admin.
+
+| Langkah | Aksi | Hasil yang diharapkan |
+|---------|------|------------------------|
+| 1 | **Tab A:** Login `agent2@csirt.kalselprov.go.id` → tetap di `/agent` | Session aktif |
+| 2 | **Tab B:** Login Super Admin → `/admin/security-dashboard` | Live feed tampil |
+| 3 | Tab B: cari event Agent 2 → klik **Cabut Akses** | Konfirmasi sukses |
+| 4 | Tab A: klik menu atau tunggu ~30 detik (session monitor) | Alert + redirect ke `/login` |
+| 5 | Tab B: periksa live feed | Event `admin_force_logout` muncul |
+| 6 | Tab A: login ulang | Akses kembali normal |
+
+**Narasi sidang:** *"Ini simulasi respons insiden — admin keamanan dapat memutus sesi aktif tanpa menunggu session expired."*
+
+---
+
+### Skenario 7 — Session Timeout (Idle Logout)
+
+**Tujuan:** Membuktikan hardening session.
+
+| Langkah | Aksi | Hasil yang diharapkan |
+|---------|------|------------------------|
+| 1 | Login sebagai Agent | — |
+| 2 | **Diam 3+ menit** tanpa klik apapun | — |
+| 3 | Klik menu atau tunggu poll JS (~30 detik) | Redirect ke login |
+| 4 | Pesan | *"Session Anda telah berakhir karena tidak ada aktivitas..."* |
+
+**Catatan:** `SESSION_LIFETIME=3` menit. Untuk demo sidang, siapkan timer atau jelaskan dengan rekaman cadangan agar tidak membuang waktu menunggu.
+
+---
+
+### Skenario 8 — Enkripsi Lampiran Tiket
+
+**Tujuan:** Membuktikan proteksi data at-rest.
+
+| Langkah | Aksi | Hasil yang diharapkan |
+|---------|------|------------------------|
+| 1 | Login sebagai pelapor → buat tiket di `/portal/ticket/new` | — |
+| 2 | Upload file lampiran (PDF/gambar) | Tiket terbuat |
+| 3 | (Lokal) Cek folder `storage/app/attachments/` | File berakhiran **`.enc`** |
+| 4 | Login Agent → buka tiket → unduh lampiran | File terbuka normal (dekripsi on-the-fly) |
+| 5 | Ruang Zero Trust | Event `attachment_download_*` tercatat |
+
+**Narasi sidang:** *"File di disk tidak readable meskipun server/storage bocor — dekripsi hanya saat unduh oleh user berwenang."*
+
+---
+
+### Skenario 9 — Perbandingan Sebelum vs Sesudah
+
+**Tujuan:** Menjawab pertanyaan penguji tentang kontribusi Zero Trust.
+
+| Langkah | Aksi | Hasil yang diharapkan |
+|---------|------|------------------------|
+| 1 | Set `ZERO_TRUST_ENABLED=false` → `config:clear` | — |
+| 2 | Login & navigasi | Tidak ada evaluasi risk/fingerprint di middleware ZT |
+| 3 | Set `ZERO_TRUST_ENABLED=true` → `config:clear` | — |
+| 4 | Ulangi navigasi | Event keamanan muncul di live feed |
+
+Gunakan tabel di `LAPORAN_PERBEDAAN_ZERO_TRUST_SEBELUM_SESUDAH.md` sebagai slide pendukung.
+
+---
+
+## 5. Matriks Pengujian (Untuk Bab Laporan)
+
+Salin ke bab **Metode Pengujian** / **Hasil Pengujian**:
+
+| ID | Skenario | Prasyarat | Langkah | Hasil diharapkan | Status |
+|----|----------|-----------|---------|------------------|--------|
+| T-01 | Login MFA sukses | MFA aktif di akun uji | Login + TOTP benar | Masuk aplikasi; event auth sukses | ☐ |
+| T-02 | Login MFA gagal | MFA aktif | TOTP salah 3× | Ditolak; event gagal | ☐ |
+| T-03 | ZT logging aktif | `ZERO_TRUST_ENABLED=true` | Navigasi post-login | Event `access` di dashboard | ☐ |
+| T-04 | GPS terkirim | Izin lokasi diizinkan | Login + tunggu | `POST /zero-trust/gps` → 200 | ☐ |
+| T-05 | Step-up MFA | Threshold high = 30 | Akses luar jam kerja | Redirect `/mfa/verify` | ☐ |
+| T-06 | Cabut Akses | 2 tab browser | Super Admin revoke | Agent logout otomatis | ☐ |
+| T-07 | Session idle | Login agent | Diam 3 menit | Auto logout | ☐ |
+| T-08 | Enkripsi lampiran | Upload file | Cek storage + unduh | File `.enc`; unduh OK | ☐ |
+| T-09 | Export log CSV | Super Admin | Klik "Hari Ini" | CSV berisi event + GPS | ☐ |
+| T-10 | ZT disabled | `ZERO_TRUST_ENABLED=false` | Navigasi | Tanpa evaluasi ZT middleware | ☐ |
+
+**Kriteria lulus:** Semua skenario T-01, T-03, T-06, T-08 **lulus** tanpa error 500.
+
+---
+
+## 6. Jawaban Singkat untuk Pertanyaan Penguji
+
+| Pertanyaan | Jawaban singkat |
+|------------|-----------------|
+| Apa bedanya MFA saja vs Zero Trust? | MFA memverifikasi identitas di awal; Zero Trust **meneruskan penilaian** (perangkat, konteks, risiko) pada **setiap request** dan bisa meminta MFA ulang (step-up). |
+| Apakah akses luar jam kerja diblokir? | Tidak hard-block. Sistem **mencatat anomaly** dan **menaikkan risk score**, yang dapat memicu step-up MFA jika melewati ambang. |
+| Apa jika `APP_KEY` bocor? | Enkripsi lampiran dan secret MFA bergantung kunci aplikasi — ini mitigasi kebocoran storage/DB, bukan pengganti keamanan server. |
+| Kenapa session cuma 3 menit? | Untuk demo keamanan ketat; di produksi bisa disesuaikan via `SESSION_LIFETIME`. |
+| Apakah Zero Trust memperlambat aplikasi? | Overhead minimal (cache fingerprint, log async); trade-off wajar untuk audit trail CSIRT. |
+| Bagaimana dengan pelapor (user biasa)? | Pelapor tidak akses panel admin; aktivitas portal tetap tercatat jika melalui route yang tidak di-skip middleware. |
+
+---
+
+## 7. Checklist Hari-H Sidang
+
+### Malam sebelum / pagi sidang
+
+- [ ] `ZERO_TRUST_ENABLED=true` di environment demo
+- [ ] `php artisan config:clear` (lokal) atau redeploy (Vercel)
+- [ ] MFA sudah diaktifkan di minimal 1 akun Agent + 1 Super Admin
+- [ ] Password semua akun uji diketahui (`password` atau yang Anda ubah)
+- [ ] `npm run build` sudah dijalankan (GPS + session monitor)
+- [ ] `/deploy-db` sudah diakses jika deploy Vercel baru
+- [ ] Threshold demo (`RISK_SCORE_THRESHOLD_HIGH=30`) sudah diset jika akan demo step-up
+
+### 30 menit sebelum presentasi
+
+- [ ] Buka Tab 1: Super Admin → `/admin/security-dashboard`
+- [ ] Buka Tab 2: Agent 2 → `/agent` (untuk demo Cabut Akses)
+- [ ] Bersihkan cookie/cache atau gunakan profil terpisah
+- [ ] Test koneksi internet ke URL Vercel
+- [ ] Siapkan slide arsitektur / diagram dari `ZERO_TRUST_DEFENSES.md`
+
+### Setelah demo
+
+- [ ] Kembalikan `RISK_SCORE_THRESHOLD_HIGH=70` jika sempat diturunkan
+- [ ] `php artisan config:clear`
+
+---
+
+## 8. Peta URL Penting
+
+| Fitur | URL | Role |
+|-------|-----|------|
+| Login | `/login` | Semua |
+| Setup MFA | `/mfa/setup` | User login |
+| Verifikasi MFA | `/mfa/verify` | User dengan MFA aktif |
+| Dashboard Super Admin | `/agent` | Super Admin |
+| Ruang Zero Trust | `/admin/security-dashboard` | Super Admin |
+| Export log (CSV) | `/admin/api/security-events/export?period=day` | Super Admin |
+| Live feed API | `/admin/api/security-events/latest` | Super Admin |
+| Cabut Akses | `POST /admin/api/security-events/revoke/{userId}` | Super Admin (via UI) |
+| GPS update | `POST /zero-trust/gps` | User login |
+| Session check | `GET /session/check` | User login |
+| Portal laporan | `/portal/ticket/new` | Pelapor |
+| Deploy DB (Vercel) | `/deploy-db` | Publik (sementara) |
+
+---
+
+## 9. Peta File Kode (Ringkas)
+
+| File | Fungsi |
 |------|--------|
-| `bootstrap/app.php` | Pendaftaran middleware `ZeroTrustVerification` |
-| `app/Http/Middleware/ZeroTrustVerification.php` | Inti verifikasi berkelanjutan |
-| `app/Services/DeviceFingerprintService.php` | Fingerprint & trust |
+| `bootstrap/app.php` | Registrasi middleware keamanan |
+| `app/Http/Middleware/ZeroTrustVerification.php` | Inti verifikasi berkelanjutan + risk score |
+| `app/Http/Middleware/RequireMfaVerification.php` | MFA wajib + step-up |
+| `app/Http/Middleware/EnforceAccessRevocation.php` | Cabut akses real-time |
+| `app/Http/Middleware/CheckUserActivity.php` | Timeout idle + X-Frame-Options |
+| `app/Services/DeviceFingerprintService.php` | Fingerprint & trust score |
 | `app/Services/ContextAwareAccessService.php` | Konteks, GeoIP, risk score |
-| `app/Services/FileEncryptionService.php` | Enkripsi/dekripsi lampiran |
-| `app/Services/MfaService.php` | MFA & enkripsi secret |
-| `app/Http/Controllers/Auth/MfaVerificationController.php` | MFA login & step-up |
-| `app/Http/Controllers/AttachmentController.php` | Unduhan aman |
-| `routes/web.php` | `POST /zero-trust/gps`, `attachments/{attachment}/download` |
-| `resources/js/geo-location.js` | Pengiriman koordinat ke server |
+| `app/Services/GpsLocationService.php` | Penyimpanan GPS |
+| `app/Services/SecurityEventLogService.php` | Audit trail (file + DB) |
+| `app/Services/MfaService.php` | TOTP + enkripsi secret |
+| `app/Services/AccessRevocationService.php` | Force logout |
+| `app/Services/FileEncryptionService.php` | Enkripsi lampiran |
+| `app/Http/Controllers/Admin/SecurityDashboardController.php` | Dashboard + export + revoke |
+| `resources/js/geo-location.js` | Kirim GPS ke server |
+| `resources/js/session-monitor.js` | Poll session + deteksi revoke |
+| `config/zero_trust.php` | Konfigurasi terpusat |
 
 ---
 
-*Dokumen ini disusun untuk mendukung demo sidang dan penulisan laporan tugas akhir; sesuaikan nama lingkungan, tangkapan layar, dan hasil pengujian aktual Anda.*
+## 10. Diagram Alur Demo (Referensi Slide)
+
+```mermaid
+flowchart LR
+    subgraph Identitas
+        A[Login] --> B{MFA aktif?}
+        B -->|Ya| C[Verifikasi TOTP]
+        B -->|Tidak| D[Session]
+        C --> D
+    end
+
+    subgraph ZeroTrust
+        D --> E[Fingerprint + Konteks]
+        E --> F{Risk Score}
+        F -->|≥ 70| G[Step-up MFA]
+        F -->|≥ 85| H[403 Block]
+        F -->|< 70| I[Akses OK]
+        G --> I
+    end
+
+    subgraph Audit
+        I --> J[Security Event Log]
+        J --> K[Ruang Zero Trust]
+        K --> L[Export CSV]
+        K --> M[Cabut Akses]
+    end
+```
+
+---
+
+*Dokumen ini disusun untuk sidang tugas akhir OS-Tiket CSIRT Kalselprov. Sesuaikan tangkapan layar, tanggal pengujian, dan hasil aktual pada bab laporan Anda.*
