@@ -31,18 +31,26 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:pengguna,email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'organization_name' => ['nullable', 'string', 'max:255'],
-            'telegram_username' => [
-                'nullable',
-                'string',
-                'max:255',
-                'regex:/^[a-zA-Z0-9_]+$/', // Hanya alphanumeric dan underscore
-            ],
-        ]);
+        try {
+            $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:pengguna,email'],
+                'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+                'organization_name' => ['nullable', 'string', 'max:255'],
+                'telegram_username' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                    'regex:/^[a-zA-Z0-9_]+$/', // Hanya alphanumeric dan underscore
+                ],
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            \Log::error('Validation/DB Error: ' . $e->getMessage());
+            return back()->withInput($request->except('password', 'password_confirmation'))
+                ->withErrors(['email' => 'Kesalahan koneksi database/sistem: ' . $e->getMessage()]);
+        }
 
         try {
             // Cari atau buat organisasi baru
