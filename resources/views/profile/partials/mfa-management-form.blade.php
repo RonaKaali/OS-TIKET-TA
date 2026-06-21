@@ -55,16 +55,31 @@
         </div>
 
         <!-- Actions -->
-        <div class="flex items-center space-x-4">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center gap-4">
             @if($mfaEnabled)
                 <!-- Disable MFA -->
-                <form method="POST" action="{{ route('mfa.disable') }}" class="inline">
+                <form method="POST" action="{{ route('mfa.disable') }}" class="w-full max-w-xl">
                     @csrf
-                    <button type="submit"
-                        class="px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-xl border border-red-500/20 transition-all active:scale-95"
-                        onclick="return confirm('Apakah Anda yakin ingin menonaktifkan 2FA? Akun Anda akan menjadi kurang aman.')">
-                        {{ __('Nonaktifkan 2FA') }}
-                    </button>
+                    <label for="mfa_disable_password" class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                        Konfirmasi Password
+                    </label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input id="mfa_disable_password"
+                            name="password"
+                            type="password"
+                            autocomplete="current-password"
+                            placeholder="Password akun"
+                            class="flex-1 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-white placeholder:text-slate-500 focus:border-red-500 focus:ring-red-500">
+
+                        <button type="submit"
+                            class="px-6 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-xl border border-red-500/20 transition-all active:scale-95"
+                            onclick="return confirm('Apakah Anda yakin ingin menonaktifkan 2FA? Akun Anda akan menjadi kurang aman.')">
+                            {{ __('Reset / Ganti 2FA') }}
+                        </button>
+                    </div>
+                    @error('password')
+                        <p class="mt-2 text-[10px] font-bold text-red-400 uppercase tracking-wider">{{ $message }}</p>
+                    @enderror
                 </form>
                 <a href="{{ route('mfa.backup-codes') }}"
                     class="inline-flex items-center px-6 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-xl border border-slate-300 dark:border-slate-700 transition-all">

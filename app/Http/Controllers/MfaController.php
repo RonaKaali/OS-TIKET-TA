@@ -177,11 +177,24 @@ class MfaController extends Controller
         
         // Service sudah handle update database
         $this->mfaService->disableMfa($user);
+        $request->session()->forget([
+            'mfa_verified_login',
+            'mfa_verified_high_risk',
+            'mfa_verified_device_verification',
+        ]);
+
+        app(\App\Services\SecurityEventLogService::class)
+            ->logAuthentication('mfa_disabled', $user->id, true, 'MFA disabled by user for authenticator reset');
         
         // Refresh user untuk mendapatkan data terbaru
         $user->refresh();
 
+        if (config('zero_trust.mfa_enabled', true)) {
+            return redirect()->route('mfa.setup')
+                ->with('status', '2FA dinonaktifkan sementara. Silakan aktifkan ulang dan scan QR code dengan perangkat authenticator baru.');
+        }
+
         return redirect()->route('profile.edit')
-            ->with('status', 'MFA berhasil dinonaktifkan.');
+            ->with('status', 'MFA berhasil dinonaktifkan sementara untuk mode percobaan.');
     }
 }
