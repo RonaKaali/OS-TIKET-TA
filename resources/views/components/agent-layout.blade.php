@@ -58,17 +58,11 @@
                                 class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 {{ request()->routeIs('agent.dashboard') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                 Dashboard
                             </a>
-                            @if(!\App\Support\RoleUi::isFieldAgent(Auth::user()))
-                            @if(\App\Support\RoleUi::canManageAllTickets(Auth::user()) || \App\Support\RoleUi::isFieldAgent(Auth::user()))
+                            @if(\App\Support\RoleUi::canManageAllTickets(Auth::user()))
                             <a href="{{ route('agent.tickets.index') }}"
                                 class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 {{ request()->routeIs('agent.tickets.*') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                @if(\App\Support\RoleUi::isFieldAgent(Auth::user()) && !\App\Support\RoleUi::canManageAllTickets(Auth::user()))
-                                    Tiket Saya
-                                @else
-                                    Tiket Laporan
-                                @endif
+                                Tiket Laporan
                             </a>
-                            @endif
                             @endif
                             @role('Super Admin')
                             <a href="{{ route('admin.index') }}"
@@ -98,8 +92,8 @@
                         <x-theme-toggle />
 
                         <!-- Tutorial / Tour Trigger Button -->
-                        <button onclick="startCsirtTour && startCsirtTour()" class="csirt-tour-trigger" title="Lihat Panduan Sistem">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253" /></svg>
+                        <button onclick="if(window.startCsirtTour) window.startCsirtTour(); else alert('Tutorial sedang dimuat, silakan coba beberapa saat lagi.');" class="flex items-center px-4 py-2 text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-xl transition-all uppercase tracking-widest" title="Lihat Panduan Sistem">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             Tutorial
                         </button>
 
@@ -249,12 +243,10 @@
             <div :class="{'block': open, 'hidden': !open}" class="hidden sm:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 transition-colors">
                 <div class="pt-4 pb-6 space-y-2 px-4">
                     <a href="{{ route('agent.dashboard') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors">Dashboard</a>
-                    @if(!\App\Support\RoleUi::isFieldAgent(Auth::user()))
-                    @if(\App\Support\RoleUi::canManageAllTickets(Auth::user()) || \App\Support\RoleUi::isFieldAgent(Auth::user()))
+                    @if(\App\Support\RoleUi::canManageAllTickets(Auth::user()))
                     <a href="{{ route('agent.tickets.index') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors">
-                        {{ \App\Support\RoleUi::isFieldAgent(Auth::user()) && !\App\Support\RoleUi::canManageAllTickets(Auth::user()) ? 'Tiket Saya' : 'Tiket Laporan' }}
+                        Tiket Laporan
                     </a>
-                    @endif
                     @endif
                     @role('Super Admin')
                     <a href="{{ route('admin.index') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-blue-600 dark:text-blue-400 transition-colors">Panel Admin</a>

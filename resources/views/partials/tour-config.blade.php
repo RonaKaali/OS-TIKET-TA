@@ -152,13 +152,29 @@
                     exitOnEsc: true
                 });
 
+                var stepsAdded = 0;
                 steps.forEach(function(step) {
+                    // Check if element exists before adding step
+                    if (step.attachTo && step.attachTo.element) {
+                        var el = document.querySelector(step.attachTo.element);
+                        if (!el) {
+                            console.warn('CSIRT Tour: Element ' + step.attachTo.element + ' not found. Skipping step.');
+                            return; // Skip this step
+                        }
+                    }
+
                     step.buttons = step.buttons.map(function(b) {
                         if (b.text) b.text = b.text.trim();
                         return b;
                     });
                     tour.addStep(step);
+                    stepsAdded++;
                 });
+
+                if (stepsAdded === 0) {
+                    console.warn('CSIRT Tour: No valid steps found for this page.');
+                    return;
+                }
 
                 tour.on('complete', function() {
                     localStorage.setItem(storageKey, 'true');
@@ -176,17 +192,13 @@
         }
 
         window.startCsirtTour = function() {
+            if (typeof Shepherd === 'undefined') {
+                alert('Sistem panduan sedang dimuat, silakan coba beberapa saat lagi.');
+                return;
+            }
             localStorage.removeItem(storageKey);
             startTour();
         };
-
-        document.querySelectorAll('.csirt-tour-trigger').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                window.startCsirtTour();
-            });
-        });
 
     } catch(err) {
         console.error('CSIRT Tour Init Error:', err);
