@@ -44,66 +44,73 @@ class RegisteredUserController extends Controller
             ],
         ]);
 
-        // Cari atau buat organisasi baru
-        $orgId = null;
-        if ($request->filled('organization_name')) {
-            $org = Organization::firstOrCreate(['name' => $request->organization_name]);
-            $orgId = $org->id;
-        }
-
-        // Bersihkan @ dari awal telegram_username jika ada
-        $telegramUsername = $request->telegram_username;
-        if (!empty($telegramUsername)) {
-            $telegramUsername = ltrim($telegramUsername, '@');
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => $request->password, // Laravel akan auto hash karena ada cast 'hashed'
-            'id_organisasi' => $orgId,
-            'nama_pengguna_telegram' => $telegramUsername ?: null,
-        ]);
-
-        // Coba dapatkan chat_id otomatis jika user mengisi telegram_username
-        if (!empty($telegramUsername)) {
-            try {
-                $telegramService = app(\App\Services\TelegramService::class);
-                $chatId = $telegramService->tryGetChatId($telegramUsername);
-
-                if ($chatId) {
-                    $user->id_chat_telegram = $chatId;
-                    $user->save();
-                    \Log::info("Chat ID {$chatId} otomatis didapatkan saat registrasi untuk @{$telegramUsername}");
-                } else {
-                    \Log::info("Chat ID belum ditemukan untuk @{$telegramUsername}. User perlu mengirim /start ke bot.");
-                }
-            } catch (\Throwable $e) {
-                \Log::warning('Gagal mendapatkan chat_id saat registrasi: ' . $e->getMessage());
+        try {
+            // Cari atau buat organisasi baru
+            $orgId = null;
+            if ($request->filled('organization_name')) {
+                $org = Organization::firstOrCreate(['name' => $request->organization_name]);
+                $orgId = $org->id;
             }
-        }
 
-        // Assign role default "User" untuk user biasa
-        try {
-            $user->assignRole('User');
+            // Bersihkan @ dari awal telegram_username jika ada
+            $telegramUsername = $request->telegram_username;
+            if (!empty($telegramUsername)) {
+                $telegramUsername = ltrim($telegramUsername, '@');
+            }
+
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => $request->password, // Laravel akan auto hash karena ada cast 'hashed'
+                'id_organisasi' => $orgId,
+                'nama_pengguna_telegram' => $telegramUsername ?: null,
+            ]);
+
+            // Coba dapatkan chat_id otomatis jika user mengisi telegram_username
+            if (!empty($telegramUsername)) {
+                try {
+                    $telegramService = app(\App\Services\TelegramService::class);
+                    $chatId = $telegramService->tryGetChatId($telegramUsername);
+
+                    if ($chatId) {
+                        $user->id_chat_telegram = $chatId;
+                        $user->save();
+                        \Log::info("Chat ID {$chatId} otomatis didapatkan saat registrasi untuk @{$telegramUsername}");
+                    } else {
+                        \Log::info("Chat ID belum ditemukan untuk @{$telegramUsername}. User perlu mengirim /start ke bot.");
+                    }
+                } catch (\Throwable $e) {
+                    \Log::warning('Gagal mendapatkan chat_id saat registrasi: ' . $e->getMessage());
+                }
+            }
+
+            // Assign role default "User" untuk user biasa
+            try {
+                $user->assignRole('User');
+            } catch (\Throwable $e) {
+                \Log::warning('Gagal assign role User: ' . $e->getMessage());
+            }
+
+            event(new Registered($user));
+
+            // Notifikasi email selamat datang
+            try {
+                $user->notify(new \App\Notifications\UserRegistered($user));
+            } catch (\Throwable $e) {
+                \Log::warning('Gagal mengirim email selamat datang: ' . $e->getMessage());
+            }
+
+            Auth::login($user);
+
+            // Setelah registrasi, arahkan user untuk mengaktifkan 2FA terlebih dahulu
+            return redirect()
+                ->route('mfa.setup')
+                ->with('status', 'Registrasi berhasil! Demi keamanan akun, silakan aktifkan Two-Factor Authentication (2FA) terlebih dahulu.');
+
         } catch (\Throwable $e) {
-            \Log::warning('Gagal assign role User: ' . $e->getMessage());
+            \Log::error('Registration Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return back()->withInput($request->except('password', 'password_confirmation'))
+                ->withErrors(['email' => 'Terjadi kesalahan sistem saat registrasi: ' . $e->getMessage()]);
         }
-
-        event(new Registered($user));
-
-        // Notifikasi email selamat datang
-        try {
-            $user->notify(new \App\Notifications\UserRegistered($user));
-        } catch (\Throwable $e) {
-            \Log::warning('Gagal mengirim email selamat datang: ' . $e->getMessage());
-        }
-
-        Auth::login($user);
-
-        // Setelah registrasi, arahkan user untuk mengaktifkan 2FA terlebih dahulu
-        return redirect()
-            ->route('mfa.setup')
-            ->with('status', 'Registrasi berhasil! Demi keamanan akun, silakan aktifkan Two-Factor Authentication (2FA) terlebih dahulu.');
     }
 }

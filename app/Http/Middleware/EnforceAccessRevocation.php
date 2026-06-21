@@ -20,6 +20,11 @@ class EnforceAccessRevocation
             return $next($request);
         }
 
+        // Jangan blokir jika sedang di route pengecualian (seperti logout, mfa)
+        if ($request->routeIs('logout', 'mfa.verify', 'mfa.verify-backup', 'login')) {
+            return $next($request);
+        }
+
         $user = Auth::user();
         $user->refresh();
 

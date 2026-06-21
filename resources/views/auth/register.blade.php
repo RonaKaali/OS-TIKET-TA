@@ -60,6 +60,7 @@
                     class="block w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none"
                     placeholder="Ketik atau pilih organisasi..." value="{{ old('organization_name') }}">
                 <datalist id="org-list">
+                    <option value="Masyarakat Umum">
                     @foreach($organizations as $org)
                         <option value="{{ $org->name }}">
                     @endforeach
