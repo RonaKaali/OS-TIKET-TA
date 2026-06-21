@@ -140,6 +140,7 @@ class SecurityDashboardController extends Controller
             'user_id' => $event->user_id,
             'user_name' => $event->user ? $event->user->name : 'Guest/System',
             'user_email' => $event->user?->email,
+            'user_is_revoked' => $event->user ? !is_null($event->user->access_revoked_at) : false,
             'event_type' => $event->event_type,
             'severity' => $event->severity,
             'severity_label' => $this->severityLabel($event->severity),
@@ -226,6 +227,39 @@ class SecurityDashboardController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => "Akses {$user->name} telah dicabut. User akan logout otomatis di semua perangkat.",
+        ]);
+    }
+
+    /**
+     * Restore access for a user (Clear Revocation Flag).
+     */
+    public function restoreAccess(Request $request, $userId)
+    {
+        $user = User::findOrFail($userId);
+
+        $this->revocationService->clearRevocationFlag($user);
+
+        SecurityEvent::create([
+            'user_id' => $user->id,
+            'event_type' => 'admin_restore_access',
+            'severity' => 'low',
+            'ip_address' => $request->ip(),
+            'message' => sprintf(
+                'Super Admin memulihkan akses untuk %s (%s). User dapat login kembali.',
+                $user->name,
+                $user->email
+            ),
+            'context' => [
+                'restored_by' => $request->user()?->id,
+                'restored_at' => now()->toIso8601String(),
+            ],
+            'risk_score' => 0,
+            'created_at' => now(),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => "Akses {$user->name} telah dipulihkan. User dapat login kembali.",
         ]);
     }
 }

@@ -98,6 +98,7 @@ Route::middleware(['auth', 'role:Super Admin'])->prefix('admin')->as('admin.')->
     Route::get('/api/security-events/latest', [SecurityDashboardController::class, 'getLatestEvents'])->name('security.api.latest');
     Route::get('/api/security-events/export', [SecurityDashboardController::class, 'exportLogs'])->name('security.api.export');
     Route::post('/api/security-events/revoke/{user}', [SecurityDashboardController::class, 'revokeAccess'])->name('security.api.revoke');
+    Route::post('/api/security-events/restore/{user}', [SecurityDashboardController::class, 'restoreAccess'])->name('security.api.restore');
 });
 
 # Profile (untuk user yang sudah login)

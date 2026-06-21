@@ -153,9 +153,18 @@
                                             </span>
                                         </template>
                                         <template x-if="event.user_id && event.user_id !== {{ auth()->id() }}">
-                                            <button @click="revokeAccess(event.user_id)" class="ml-auto px-2 py-0.5 text-[10px] font-bold rounded bg-red-900/50 border border-red-700 text-red-300 hover:bg-red-700 hover:text-white transition-colors cursor-pointer" title="Logout paksa user di semua perangkat">
-                                                <i class="fas fa-ban mr-1"></i> Cabut Akses
-                                            </button>
+                                            <div class="ml-auto flex gap-2">
+                                                <template x-if="!event.user_is_revoked">
+                                                    <button @click="revokeAccess(event.user_id)" class="px-2 py-0.5 text-[10px] font-bold rounded bg-red-900/50 border border-red-700 text-red-300 hover:bg-red-700 hover:text-white transition-colors cursor-pointer" title="Logout paksa user di semua perangkat">
+                                                        <i class="fas fa-ban mr-1"></i> Cabut Akses
+                                                    </button>
+                                                </template>
+                                                <template x-if="event.user_is_revoked">
+                                                    <button @click="restoreAccess(event.user_id)" class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-900/50 border border-emerald-700 text-emerald-300 hover:bg-emerald-700 hover:text-white transition-colors cursor-pointer" title="Pulihkan akses user untuk login kembali">
+                                                        <i class="fas fa-unlock mr-1"></i> Pulihkan Akses
+                                                    </button>
+                                                </template>
+                                            </div>
                                         </template>
                                     </div>
 
@@ -287,6 +296,31 @@
                 } catch (error) {
                     console.error('Revoke access error:', error);
                     alert('Terjadi kesalahan.');
+                }
+            },
+
+            async restoreAccess(userId) {
+                if (!confirm('Pulihkan akses pengguna ini?\n\nUser akan diizinkan login kembali tanpa perlu reset kredensial.')) return;
+
+                try {
+                    const response = await fetch(`/admin/api/security-events/restore/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        alert(result.message || 'Berhasil memulihkan akses user.');
+                        this.fetchEvents();
+                    } else {
+                        alert(result.message || 'Gagal memulihkan akses.');
+                    }
+                } catch (error) {
+                    console.error('Restore access error:', error);
+                    alert('Terjadi kesalahan saat memulihkan akses.');
                 }
             }
         }
