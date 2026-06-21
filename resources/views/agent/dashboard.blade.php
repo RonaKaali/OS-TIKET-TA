@@ -10,7 +10,7 @@
             </div>
             <div class="flex items-center space-x-3">
                 @hasrole('Super Admin')
-                <a href="{{ route('admin.security.dashboard') }}" class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-black rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.5)] border border-emerald-400/50 flex items-center tracking-widest uppercase transition-all hover:scale-105 mr-4">
+                <a href="{{ route('admin.security.dashboard') }}" id="tour-sa-zerotrust" class="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-black rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.5)] border border-emerald-400/50 flex items-center tracking-widest uppercase transition-all hover:scale-105 mr-4">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                     Ruang Zero Trust
                 </a>
@@ -25,7 +25,7 @@
     </x-slot>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8" id="tour-sa-stats">
         <!-- Open Tickets -->
         <div class="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] hover:shadow-md dark:hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all transform hover:-translate-y-1 border border-slate-200 dark:border-slate-700 overflow-hidden relative group">
             <div class="absolute inset-0 bg-gradient-to-br from-blue-600/5 dark:from-blue-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -139,7 +139,7 @@
         <!-- Main Content Area: Charts and Data -->
         <div class="lg:col-span-2 space-y-8">
             <!-- Analytics Chart Section -->
-            <div class="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 p-8 relative overflow-hidden group transition-colors">
+            <div id="tour-sa-chart" class="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 p-8 relative overflow-hidden group transition-colors">
                 <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
                     <svg class="w-40 h-40 text-emerald-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                 </div>
@@ -258,7 +258,7 @@
 
         <!-- Sidebar Area: Live News -->
         <div class="space-y-8">
-            <div class="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full transition-colors">
+            <div id="tour-sa-news" class="bg-white dark:bg-slate-800/80 backdrop-blur-md rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full transition-colors">
                 <div class="p-6 border-b border-slate-100 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center transition-colors">
                     <h3 class="text-sm font-black text-slate-900 dark:text-white flex items-center tracking-widest transition-colors uppercase">
                         <div class="w-8 h-8 bg-red-500/10 rounded-lg flex items-center justify-center mr-4 transition-colors">

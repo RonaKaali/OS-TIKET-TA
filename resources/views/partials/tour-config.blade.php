@@ -91,6 +91,19 @@ document.addEventListener('DOMContentLoaded', function() {
             ];
 
         // ============================
+        // SUPER ADMIN — Dashboard
+        // ============================
+        case 'super-admin|dashboard':
+            return [
+                { title: '📖 Dashboard Super Admin', text: 'Selamat datang, <strong>Super Admin</strong>! Ini adalah <strong>pusat komando CSIRT</strong> — Anda memiliki akses penuh ke seluruh sistem.', attachTo: { element: '#tour-sa-stats', on: 'bottom' }, buttons: [{ text: ' Lewati', classes: 'csirt-skip', action: function() { this.cancel(); } }, { text: ' Mulai →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📊 Statistik Laporan', text: '<strong>Laporan Aktif</strong>: insiden yang sedang ditangani. <strong>Menunggu Info</strong>: butuh respon. <strong>Status Kritis</strong>: terlambat SLA. <strong>Telah Ditangani</strong>: sudah selesai.', attachTo: { element: '#tour-sa-stats', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '📈 Analitik Insiden', text: 'Grafik <strong>Trend Bulanan</strong> ini menampilkan data laporan selesai vs insiden kritis. Gunakan untuk <strong>analisis pola serangan</strong> dan pengambilan keputusan.', attachTo: { element: '#tour-sa-chart', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🛡️ Zero Trust Security', text: 'Klik tombol ini untuk masuk ke <strong>Ruang Zero Trust</strong> — panel keamanan lanjutan: manajemen perangkat, fingerprint, dan deteksi anomali.', attachTo: { element: '#tour-sa-zerotrust', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🔴 Global Threat Intel', text: 'Panel sebelah kanan menampilkan <strong>umpan berita ancaman siber global</strong> secara real-time. Tetap pantau untuk ancaman terbaru.', attachTo: { element: '#tour-sa-news', on: 'left' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: 'Selanjutnya →', classes: 'shepherd-button-primary', action: function() { this.next(); } }] },
+                { title: '🧭 Navigasi', text: '<strong>Dashboard</strong>: halaman ini. <strong>Tiket Laporan</strong>: daftar semua tiket. <strong>Panel Admin</strong>: pengelolaan pengguna & departemen. <strong>Zero Trust</strong>: keamanan.', attachTo: { element: '#tour-sa-nav', on: 'bottom' }, buttons: [{ text: '← Kembali', action: function() { this.back(); } }, { text: ' Selesai ✓', classes: 'shepherd-button-primary', action: function() { this.complete(); } }] }
+            ];
+
+        // ============================
         // ADMIN — Dashboard
         // ============================
         case 'admin|dashboard':
