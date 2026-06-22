@@ -104,21 +104,32 @@
                             open: false,
                             init() {
                                 this.fetchNotifications();
-                                setInterval(() => this.fetchNotifications(), 30000);
+                                setInterval(() => this.fetchNotifications(), 15000);
                             },
                             fetchNotifications() {
-                                fetch('{{ route('agent.assignments.pending') }}')
+                                fetch('{{ route('agent.notifications') }}')
                                     .then(r => r.json())
                                     .then(data => {
-                                        if (data && data.assignments) {
-                                            this.notifications = data.assignments;
-                                            // Gunakan unacknowledged_count dari server lebih akurat
-                                            this.unreadCount = data.unacknowledged_count ?? this.notifications.filter(n => !n.acknowledged).length;
+                                        if (data && data.notifications) {
+                                            this.notifications = data.notifications;
+                                            this.unreadCount = data.unacknowledged_count ?? 0;
                                         }
                                     })
                                     .catch(() => {});
                             },
                             markRead(notification) {
+                                // Kirim acknowledge ke server
+                                fetch('{{ route('agent.notifications.markRead') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                    },
+                                    body: JSON.stringify({ ticket_ids: [notification.id] })
+                                }).catch(() => {});
+                                // Update lokal
+                                notification.acknowledged = true;
+                                this.unreadCount = Math.max(0, this.unreadCount - 1);
                                 this.open = false;
                             }
                         }" x-init="init()">

@@ -125,6 +125,105 @@
                         </div>
                         <div class="flex items-center space-x-4">
                             <x-theme-toggle />
+                            @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
+                            <!-- Notification Bell -->
+                            <div class="relative" x-data="{
+                                notifications: [],
+                                unreadCount: 0,
+                                open: false,
+                                init() {
+                                    this.fetchNotifications();
+                                    setInterval(() => this.fetchNotifications(), 15000);
+                                },
+                                fetchNotifications() {
+                                    fetch('{{ route('agent.notifications') }}')
+                                        .then(r => r.json())
+                                        .then(data => {
+                                            if (data && data.notifications) {
+                                                this.notifications = data.notifications;
+                                                this.unreadCount = data.unacknowledged_count ?? 0;
+                                            }
+                                        })
+                                        .catch(() => {});
+                                },
+                                markRead(notification) {
+                                    fetch('{{ route('agent.notifications.markRead') }}', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                        },
+                                        body: JSON.stringify({ ticket_ids: [notification.id] })
+                                    }).catch(() => {});
+                                    notification.acknowledged = true;
+                                    this.unreadCount = Math.max(0, this.unreadCount - 1);
+                                    this.open = false;
+                                }
+                            }" x-init="init()">
+                                <button @click="open = !open" @click.outside="open = false"
+                                    class="relative p-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-transparent hover:border-slate-300 dark:hover:border-slate-700 transition-all group">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                    </svg>
+                                    <template x-if="unreadCount > 0">
+                                        <span class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full flex items-center justify-center text-[9px] font-black text-white shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse"
+                                            x-text="unreadCount > 9 ? '9+' : unreadCount">
+                                        </span>
+                                    </template>
+                                </button>
+                                <div x-show="open" x-transition:enter="transition ease-out duration-200"
+                                    x-transition:enter-start="opacity-0 scale-95"
+                                    x-transition:enter-end="opacity-100 scale-100"
+                                    x-transition:leave="transition ease-in duration-150"
+                                    x-transition:leave-start="opacity-100 scale-100"
+                                    x-transition:leave-end="opacity-0 scale-95"
+                                    class="absolute right-0 mt-3 w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden" style="display: none;">
+                                    <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                        <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Notifikasi Tiket Baru</h3>
+                                        <template x-if="unreadCount > 0">
+                                            <span class="px-2 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded text-[9px] font-black" x-text="unreadCount + ' baru'"></span>
+                                        </template>
+                                    </div>
+                                    <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                                        <template x-for="(item, index) in notifications" :key="index">
+                                            <a :href="item.url"
+                                                @click="markRead(item)"
+                                                class="block px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+                                                <div class="flex items-start space-x-3">
+                                                    <div class="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <p class="text-sm font-bold text-slate-900 dark:text-white truncate" x-text="item.subject || 'Tiket #' + item.id"></p>
+                                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5" x-text="item.ticket_number"></p>
+                                                        <p class="text-[9px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-widest mt-1" x-text="item.created_at"></p>
+                                                    </div>
+                                                    <template x-if="!item.acknowledged">
+                                                        <span class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2 shadow-[0_0_6px_rgba(59,130,246,0.5)]"></span>
+                                                    </template>
+                                                </div>
+                                            </a>
+                                        </template>
+                                        <template x-if="notifications.length === 0">
+                                            <div class="px-4 py-10 text-center">
+                                                <svg class="w-12 h-12 mx-auto text-slate-300 dark:text-slate-700 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                <p class="text-sm font-bold text-slate-500 dark:text-slate-400">Tidak ada tiket baru</p>
+                                                <p class="text-[10px] text-slate-400 dark:text-slate-600 mt-1">Semua tiket sudah dilihat</p>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-center">
+                                        <a href="{{ route('agent.tickets.index') }}" class="text-[10px] font-black text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 uppercase tracking-widest transition-colors">
+                                            Lihat Semua Tiket →
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
                             <x-dropdown align="right" width="48">
                                 <x-slot name="trigger">
                                     <button class="inline-flex items-center px-4 py-2 border border-slate-200 dark:border-slate-700 text-sm font-bold rounded-xl text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white hover:border-blue-500/50 transition-all shadow-sm">
