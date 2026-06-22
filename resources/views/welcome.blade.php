@@ -63,14 +63,14 @@
 
 <body class="antialiased min-h-screen cyber-grid relative overflow-x-hidden bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-200">
     <!-- Splash Screen -->
-    <div id="splash-screen" class="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center transition-opacity duration-1000">
+    <div id="splash-screen" class="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center transition-opacity duration-1000 px-6">
         <div class="relative">
             <div class="w-32 h-32 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
             <div class="absolute inset-0 flex items-center justify-center">
                 <img src="{{ asset('images/logo-kalselprov.png') }}" alt="Logo" class="w-16 h-16 animate-pulse">
             </div>
         </div>
-        <h1 class="mt-8 text-lg sm:text-2xl font-black text-white tracking-[0.15em] sm:tracking-[0.3em] uppercase glow-text text-center px-6 leading-relaxed">
+        <h1 class="mt-8 text-lg sm:text-xl md:text-2xl font-black text-white tracking-[0.15em] sm:tracking-[0.3em] uppercase glow-text text-center leading-relaxed">
             Portal Pelaporan Insiden Siber<br>
             <span class="text-emerald-500">Pemprov Kalimantan Selatan</span>
         </h1>
@@ -95,7 +95,7 @@
                         <img src="{{ asset('images/logo-kalselprov.png') }}" alt="Logo Kalselprov" class="w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 object-contain">
                     </div>
                     <div class="min-w-0">
-                        <div class="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 dark:text-white tracking-wide truncate">
+                        <div class="text-xs sm:text-sm md:text-lg font-extrabold text-slate-900 dark:text-white tracking-wide truncate max-w-[120px] sm:max-w-none">
                             CSIRT <span class="text-emerald-600 dark:text-emerald-400">KALSELPROV</span>
                         </div>
                         <div class="hidden sm:flex text-[10px] sm:text-xs text-emerald-700/80 dark:text-emerald-300/70 uppercase tracking-widest items-center">
@@ -148,25 +148,25 @@
         </div>
 
         <!-- Mobile dropdown -->
-        <div x-show="navOpen" x-cloak x-transition class="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-4 space-y-2">
+        <div x-show="navOpen" x-cloak x-transition class="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-6 space-y-3">
             @auth
                 @can('admin.panel')
-                    <a href="{{ route('dashboard') }}" class="block px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Dasbor</a>
+                    <a href="{{ route('dashboard') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Dasbor</a>
                 @endcan
-                <a href="{{ route('portal.ticket.create') }}" class="block px-4 py-3 rounded-xl text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">Laporkan Insiden</a>
-                <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
-                <a href="{{ route('profile.edit') }}" class="block px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Profil</a>
+                <a href="{{ route('portal.ticket.create') }}" class="block px-4 py-3.5 rounded-xl text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">Laporkan Insiden</a>
+                <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
+                <a href="{{ route('profile.edit') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Profil</a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" class="w-full text-left px-4 py-3 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition">Keluar</button>
+                    <button type="submit" class="w-full text-left px-4 py-3.5 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition">Keluar</button>
                 </form>
             @else
-                <a href="{{ route('login') }}" class="block px-4 py-3 rounded-xl text-center font-bold text-white bg-gradient-to-r from-emerald-600 to-blue-600 transition">Masuk / Login untuk Lapor</a>
+                <a href="{{ route('login') }}" class="block px-4 py-3.5 rounded-xl text-center font-bold text-white bg-gradient-to-r from-emerald-600 to-blue-600 transition">Masuk / Login untuk Lapor</a>
                 @if (Route::has('register'))
-                    <a href="{{ route('register') }}" class="block px-4 py-3 rounded-xl text-center font-bold text-emerald-700 dark:text-emerald-300 border-2 border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">Daftar Akun Baru</a>
+                        <a href="{{ route('register') }}" class="block px-4 py-3.5 rounded-xl text-center font-bold text-emerald-700 dark:text-emerald-300 border-2 border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">Daftar Akun Baru</a>
                 @endif
-                <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
-                <a href="/admin" class="block px-4 py-3 rounded-xl text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition">Admin Portal</a>
+                <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
+                <a href="/admin" class="block px-4 py-3.5 rounded-xl text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition">Admin Portal</a>
             @endauth
         </div>
     </nav>
@@ -188,7 +188,7 @@
     @endif
 
     <!-- Hero Section -->
-    <div class="relative py-12 sm:py-16 md:py-20 lg:py-32 overflow-hidden z-10">
+    <div class="relative py-10 sm:py-16 md:py-20 lg:py-32 overflow-hidden z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
                 <div class="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 mb-6 sm:mb-8 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs sm:text-sm font-semibold uppercase tracking-wider backdrop-blur-md">
@@ -255,15 +255,15 @@
     </div>
 
     <!-- Features Section -->
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-slate-200 dark:border-slate-800 transition-colors" id="tour-features">
-        <div class="text-center mb-16">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 border-t border-slate-200 dark:border-slate-800 transition-colors" id="tour-features">
+        <div class="text-center mb-10 sm:mb-16">
             <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight transition-colors">Protokol <span class="text-emerald-600 dark:text-emerald-400">CSIRT</span></h2>
             <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto transition-colors">Sistem penanganan insiden siber canggih dengan perlindungan end-to-end</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <!-- Feature 1 -->
-            <div class="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md rounded-2xl p-8 border border-slate-200 dark:border-slate-800 hover:-translate-y-2 transition-all duration-300 group hover:border-emerald-500/50 shadow-sm hover:shadow-md">
+            <div class="bg-white/80 dark:bg-slate-900/50 backdrop-blur-md rounded-2xl p-5 sm:p-8 border border-slate-200 dark:border-slate-800 hover:-translate-y-2 transition-all duration-300 group hover:border-emerald-500/50 shadow-sm hover:shadow-md">
                 <div class="w-14 h-14 bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl flex items-center justify-center mb-6 group-hover:bg-emerald-500/20 transition-colors shadow-inner">
                     <svg class="w-8 h-8 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -274,7 +274,7 @@
             </div>
 
             <!-- Feature 2 -->
-            <div class="glass-panel dark:bg-slate-900/50 rounded-2xl p-8 hover:-translate-y-2 transition-all duration-300 group hover:border-blue-500/50 shadow-sm hover:shadow-md">
+            <div class="glass-panel dark:bg-slate-900/50 rounded-2xl p-5 sm:p-8 hover:-translate-y-2 transition-all duration-300 group hover:border-blue-500/50 shadow-sm hover:shadow-md">
                 <div class="w-14 h-14 bg-blue-100 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-500/20 transition-colors shadow-inner">
                     <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -285,7 +285,7 @@
             </div>
 
             <!-- Feature 3 -->
-            <div class="glass-panel dark:bg-slate-900/50 rounded-2xl p-8 hover:-translate-y-2 transition-all duration-300 group hover:border-purple-500/50 shadow-sm hover:shadow-md">
+            <div class="glass-panel dark:bg-slate-900/50 rounded-2xl p-5 sm:p-8 hover:-translate-y-2 transition-all duration-300 group hover:border-purple-500/50 shadow-sm hover:shadow-md">
                 <div class="w-14 h-14 bg-purple-100 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/30 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-500/20 transition-colors shadow-inner">
                     <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -298,8 +298,8 @@
     </div>
 
     <!-- Zero Trust Explained Section -->
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 transition-colors" x-data="{ activeTab: 1 }">
-        <div class="text-center mb-16">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 transition-colors" x-data="{ activeTab: 1 }">
+        <div class="text-center mb-10 sm:mb-16">
             <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight transition-colors">Bagaimana Kami <span class="text-emerald-600 dark:text-emerald-400">Melindungi Anda?</span></h2>
             <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto transition-colors">Mengenal teknologi <span class="font-bold text-emerald-600 dark:text-emerald-500">Zero Trust Security</span> yang digunakan pada portal ini.</p>
         </div>
@@ -323,9 +323,9 @@
                 </div>
 
                 <!-- Content Area -->
-                <div class="w-full md:w-2/3 relative" style="min-height: 200px;">
+                <div class="w-full md:w-2/3">
                     <!-- Tab 1 -->
-                    <div x-show="activeTab === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 flex flex-col justify-center">
+                    <div x-show="activeTab === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="flex flex-col justify-center min-h-[200px]">
                         <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Prinsip Utama</span>
                         <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Never Trust, Always Verify.</h3>
                         <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -333,7 +333,7 @@
                         </p>
                     </div>
                     <!-- Tab 2 -->
-                    <div x-show="activeTab === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 flex flex-col justify-center" x-cloak>
+                    <div x-show="activeTab === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="flex flex-col justify-center min-h-[200px]" x-cloak>
                         <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Keamanan Hardware</span>
                         <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Pendeteksi Sidik Jari Perangkat</h3>
                         <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -341,7 +341,7 @@
                         </p>
                     </div>
                     <!-- Tab 3 -->
-                    <div x-show="activeTab === 3" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="absolute inset-0 flex flex-col justify-center" x-cloak>
+                    <div x-show="activeTab === 3" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="flex flex-col justify-center min-h-[200px]" x-cloak>
                         <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Analisis Real-time</span>
                         <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Deteksi Anomali Konteks</h3>
                         <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -418,7 +418,7 @@
     </div>
 
     <!-- Stats Section -->
-    <div class="relative z-10 border-t border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 backdrop-blur-sm py-16 transition-colors" id="tour-stats">
+    <div class="relative z-10 border-t border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 backdrop-blur-sm py-10 sm:py-16 transition-colors" id="tour-stats">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-slate-800">
                 <div class="py-4">
@@ -440,7 +440,7 @@
     <!-- Footer -->
     <footer class="relative z-10 bg-slate-50 dark:bg-[#0b1120] text-slate-500 dark:text-slate-400 py-12 border-t border-slate-200 dark:border-slate-800 transition-colors">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12">
                 <div>
                     <div class="flex items-center space-x-3 mb-6">
                         <div class="w-10 h-10 flex items-center justify-center bg-white dark:bg-white/5 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm transition-all">
