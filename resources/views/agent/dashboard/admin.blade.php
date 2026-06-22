@@ -23,8 +23,8 @@
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Menunggu Info</p>
             <p class="text-3xl font-black text-yellow-600 dark:text-yellow-400">{{ $stats['answered'] }}</p>
         </div>
-        <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-red-200 dark:border-red-800/50 p-5 ring-1 ring-red-500/20">
-            <p class="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">Belum Ditugaskan</p>
+        <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Belum Ditugaskan</p>
             <p class="text-3xl font-black text-red-600 dark:text-red-400">{{ $stats['unassigned'] }}</p>
         </div>
         <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">

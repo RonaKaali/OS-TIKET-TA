@@ -37,16 +37,25 @@ class NotificationController extends Controller
                   ->latest('assigned_at');
         }
 
-        $tickets = $query->take(15)->get()->map(fn (Ticket $t) => [
-            'id' => $t->id,
-            'ticket_number' => $t->ticket_number,
-            'subject' => $t->subject,
-            'status' => $t->status?->name ?? 'Open',
-            'priority' => $t->priority?->name,
-            'created_at' => $t->created_at->diffForHumans(),
-            'url' => route('agent.tickets.show', $t),
-            'acknowledged' => AssignmentAcknowledgment::isAcknowledged($t, $map) || !is_null($t->acknowledged_at),
-        ])->values();
+        // Admin bell dismiss tracking (session-based)
+        $adminDismissed = $request->session()->get('admin_notifications_read', []);
+
+        $tickets = $query->take(15)->get()->map(function (Ticket $t) use ($map, $adminDismissed) {
+            $acknowledged = AssignmentAcknowledgment::isAcknowledged($t, $map)
+                || !is_null($t->acknowledged_at)
+                || in_array($t->id, $adminDismissed);
+
+            return [
+                'id' => $t->id,
+                'ticket_number' => $t->ticket_number,
+                'subject' => $t->subject,
+                'status' => $t->status?->name ?? 'Open',
+                'priority' => $t->priority?->name,
+                'created_at' => $t->created_at->diffForHumans(),
+                'url' => route('agent.tickets.show', $t),
+                'acknowledged' => $acknowledged,
+            ];
+        })->values();
 
         $unacknowledgedCount = $tickets->where('acknowledged', false)->count();
 
@@ -67,7 +76,23 @@ class NotificationController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Agent: acknowledge via assignment system (hanya tiket yang di-assign)
         AssignmentAcknowledgment::acknowledge($request, $user, $data['ticket_ids']);
+
+        // Admin/Super Admin: juga simpan ke session agar tiket yang tidak
+        // di-assign ke admin tetap bisa ditandai sudah dibaca
+        if ($user->hasAnyRole(['Super Admin', 'Admin'])) {
+            $adminDismissed = $request->session()->get('admin_notifications_read', []);
+            $adminDismissed = array_unique(array_merge($adminDismissed, $data['ticket_ids']));
+
+            // Batasi 500 ID terakhir agar session tidak membengkak
+            if (count($adminDismissed) > 500) {
+                $adminDismissed = array_slice($adminDismissed, -500);
+            }
+
+            $request->session()->put('admin_notifications_read', $adminDismissed);
+        }
 
         return response()->json(['status' => 'ok']);
     }
