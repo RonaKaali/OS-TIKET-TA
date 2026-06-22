@@ -132,7 +132,7 @@
                                 this.unreadCount = Math.max(0, this.unreadCount - 1);
                             },
                             async markAllRead() {
-                                const unreadIds = this.notifications.filter(n => !n.acknowledged).map(n => n.id);
+                                const unreadIds = this.notifications.map(n => n.id);
                                 if (unreadIds.length === 0) return;
                                 try {
                                     await fetch('{{ route('agent.notifications.markRead') }}', {
@@ -154,9 +154,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                 </svg>
                                 <!-- Red dot -->
-                                <template x-if="unreadCount > 0">
+                                <template x-if="notifications.length > 0">
                                     <span class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full flex items-center justify-center text-[9px] font-black text-white shadow-[0_0_10px_rgba(239,68,68,0.6)] animate-pulse"
-                                        x-text="unreadCount > 9 ? '9+' : unreadCount">
+                                        x-text="notifications.length > 9 ? '9+' : notifications.length">
                                     </span>
                                 </template>
                             </button>
@@ -171,11 +171,11 @@
                                 <div class="p-4 border-b border-slate-100 dark:border-slate-800">
                                     <div class="flex items-center justify-between gap-2">
                                         <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Notifikasi Tugas Baru</h3>
-                                        <template x-if="unreadCount > 0">
-                                            <span class="px-2 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded text-[9px] font-black" x-text="unreadCount + ' baru'"></span>
+                                        <template x-if="notifications.length > 0">
+                                            <span class="px-2 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded text-[9px] font-black" x-text="notifications.length + ' item'"></span>
                                         </template>
                                     </div>
-                                    <template x-if="unreadCount > 0">
+                                    <template x-if="notifications.length > 0">
                                         <button @click="markAllRead()"
                                             class="mt-2.5 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest transition-all">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
@@ -297,7 +297,7 @@
                                 this.unreadCount = Math.max(0, this.unreadCount - 1);
                             },
                             async markAllRead() {
-                                const unreadIds = this.notifications.filter(n => !n.acknowledged).map(n => n.id);
+                                const unreadIds = this.notifications.map(n => n.id);
                                 if (unreadIds.length === 0) return;
                                 try {
                                     await fetch('{{ route('agent.notifications.markRead') }}', {
@@ -316,8 +316,8 @@
                             <button @click="open = !open" @click.outside="open = false"
                                 class="relative p-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                                <template x-if="unreadCount > 0">
-                                    <span class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full flex items-center justify-center text-[9px] font-black text-white" x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
+                                <template x-if="notifications.length > 0">
+                                    <span class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full flex items-center justify-center text-[9px] font-black text-white" x-text="notifications.length > 9 ? '9+' : notifications.length"></span>
                                 </template>
                             </button>
                             <div x-show="open" x-transition
@@ -325,11 +325,11 @@
                                 <div class="p-4 border-b border-slate-100 dark:border-slate-800">
                                     <div class="flex items-center justify-between gap-2">
                                         <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Notifikasi</h3>
-                                        <template x-if="unreadCount > 0">
-                                            <span class="px-2 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded text-[9px] font-black" x-text="unreadCount + ' baru'"></span>
+                                        <template x-if="notifications.length > 0">
+                                            <span class="px-2 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded text-[9px] font-black" x-text="notifications.length + ' item'"></span>
                                         </template>
                                     </div>
-                                    <template x-if="unreadCount > 0">
+                                    <template x-if="notifications.length > 0">
                                         <button @click="markAllRead()"
                                             class="mt-2.5 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest transition-all">
                                             Tandai Semua Dibaca
