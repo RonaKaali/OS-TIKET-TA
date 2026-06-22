@@ -25,10 +25,10 @@ class TicketController extends Controller
         // Statistik personal
         $totalReports = (clone $baseQuery)->count();
         $activeReports = (clone $baseQuery)
-            ->whereHas('status', fn($q) => $q->where('is_closed', false))
+            ->whereHas('status', fn($q) => $q->whereRaw('"is_closed" = false'))
             ->count();
         $closedReports = (clone $baseQuery)
-            ->whereHas('status', fn($q) => $q->where('is_closed', true))
+            ->whereHas('status', fn($q) => $q->whereRaw('"is_closed" = true'))
             ->count();
         $overdueReports = (clone $baseQuery)
             ->whereNull('closed_at')
