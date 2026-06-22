@@ -97,8 +97,8 @@
                                 @endphp
                                 @foreach($adminLinks as $link)
                                 <a href="{{ route($link['route']) }}"
-                                    class="flex items-center px-4 py-2.5 text-xs font-bold rounded-xl transition-all duration-200 {{ request()->routeIs($link['route']) ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' : 'text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                    <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $link['icon'] }}" /></svg>
+                                    class="flex items-center px-4 py-3 text-sm font-bold rounded-xl transition-all duration-200 {{ request()->routeIs($link['route']) ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20' : 'text-slate-500 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $link['icon'] }}" /></svg>
                                     {{ $link['label'] }}
                                 </a>
                                 @endforeach
@@ -157,7 +157,22 @@
                                     }).catch(() => {});
                                     notification.acknowledged = true;
                                     this.unreadCount = Math.max(0, this.unreadCount - 1);
-                                    this.open = false;
+                                },
+                                async markAllRead() {
+                                    const unreadIds = this.notifications.filter(n => !n.acknowledged).map(n => n.id);
+                                    if (unreadIds.length === 0) return;
+                                    try {
+                                        await fetch('{{ route('agent.notifications.markRead') }}', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                            },
+                                            body: JSON.stringify({ ticket_ids: unreadIds })
+                                        });
+                                    } catch(e) {}
+                                    this.notifications.forEach(n => n.acknowledged = true);
+                                    this.unreadCount = 0;
                                 }
                             }" x-init="init()">
                                 <button @click="open = !open" @click.outside="open = false"
@@ -178,10 +193,19 @@
                                     x-transition:leave-start="opacity-100 scale-100"
                                     x-transition:leave-end="opacity-0 scale-95"
                                     class="absolute right-0 mt-3 w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden" style="display: none;">
-                                    <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                        <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Notifikasi Tiket Baru</h3>
+                                    <div class="p-4 border-b border-slate-100 dark:border-slate-800">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Notifikasi Tiket Baru</h3>
+                                            <template x-if="unreadCount > 0">
+                                                <span class="px-2 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded text-[9px] font-black" x-text="unreadCount + ' baru'"></span>
+                                            </template>
+                                        </div>
                                         <template x-if="unreadCount > 0">
-                                            <span class="px-2 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded text-[9px] font-black" x-text="unreadCount + ' baru'"></span>
+                                            <button @click="markAllRead()"
+                                                class="mt-2.5 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded-lg text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest transition-all">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                Tandai Semua Dibaca
+                                            </button>
                                         </template>
                                     </div>
                                     <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">

@@ -135,46 +135,48 @@
             </div>
 
             <!-- Stat Cards -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 mb-8">
                 <!-- Total -->
-                <div class="glass-card rounded-2xl p-5 sm:p-6 stat-glow-blue transform hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0.15s">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="w-10 h-10 bg-blue-50 dark:bg-blue-500/20 border border-blue-200 dark:border-blue-500/50 rounded-xl flex items-center justify-center transition-colors">
-                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="glass-card rounded-3xl p-7 sm:p-8 stat-glow-blue transform hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0.15s">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-14 h-14 bg-blue-50 dark:bg-blue-500/20 border border-blue-200 dark:border-blue-500/50 rounded-2xl flex items-center justify-center transition-colors">
+                            <svg class="w-7 h-7 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
                         </div>
                     </div>
-                    <p class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white animate-count-up transition-colors">{{ $totalReports }}</p>
-                    <p class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1 transition-colors">Total Laporan</p>
+                    <p class="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white animate-count-up transition-colors">{{ $totalReports }}</p>
+                    <p class="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-2 transition-colors">Total Laporan</p>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 transition-colors">Seluruh laporan insiden yang pernah Anda buat</p>
                 </div>
 
                 <!-- Active -->
-                <div class="glass-card rounded-2xl p-5 sm:p-6 stat-glow-yellow transform hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0.2s">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="w-10 h-10 bg-yellow-50 dark:bg-yellow-500/20 border border-yellow-200 dark:border-yellow-500/50 rounded-xl flex items-center justify-center transition-colors">
-                            <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="glass-card rounded-3xl p-7 sm:p-8 stat-glow-yellow transform hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0.2s">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-14 h-14 bg-yellow-50 dark:bg-yellow-500/20 border border-yellow-200 dark:border-yellow-500/50 rounded-2xl flex items-center justify-center transition-colors">
+                            <svg class="w-7 h-7 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                     </div>
-                    <p class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white animate-count-up transition-colors">{{ $activeReports }}</p>
-                    <p class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1 transition-colors">Sedang Diproses</p>
+                    <p class="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white animate-count-up transition-colors">{{ $activeReports }}</p>
+                    <p class="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-2 transition-colors">Sedang Diproses</p>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 transition-colors">Laporan yang sedang ditangani tim CSIRT</p>
                 </div>
 
                 <!-- Closed -->
-                <div class="glass-card rounded-2xl p-5 sm:p-6 stat-glow-green transform hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0.25s">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="w-10 h-10 bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/50 rounded-xl flex items-center justify-center transition-colors">
-                            <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="glass-card rounded-3xl p-7 sm:p-8 stat-glow-green transform hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0.25s">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-14 h-14 bg-emerald-50 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/50 rounded-2xl flex items-center justify-center transition-colors">
+                            <svg class="w-7 h-7 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                             </svg>
                         </div>
                     </div>
-                    <p class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white animate-count-up transition-colors">{{ $closedReports }}</p>
-                    <p class="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1 transition-colors">Selesai</p>
+                    <p class="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white animate-count-up transition-colors">{{ $closedReports }}</p>
+                    <p class="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-2 transition-colors">Selesai</p>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 transition-colors">Laporan yang telah diselesaikan dan ditutup</p>
                 </div>
-
             </div>
 
             <!-- Charts Row -->
