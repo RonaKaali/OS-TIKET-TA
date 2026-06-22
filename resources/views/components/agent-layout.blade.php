@@ -53,29 +53,29 @@
                             </div>
                         </a>
                         
-                        <div id="tour-nav" class="hidden sm:ml-12 sm:flex sm:space-x-2">
+                        <div id="tour-nav" class="hidden sm:ml-12 sm:flex sm:items-center sm:space-x-2">
                             <a href="{{ route('agent.dashboard') }}" 
-                                class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 {{ request()->routeIs('agent.dashboard') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                class="inline-flex items-center min-h-[42px] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border transition-all duration-200 {{ request()->routeIs('agent.dashboard') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                 Dashboard
                             </a>
                             @if(\App\Support\RoleUi::canManageAllTickets(Auth::user()))
                             <a href="{{ route('agent.tickets.index') }}"
-                                class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 {{ request()->routeIs('agent.tickets.*') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                class="inline-flex items-center min-h-[42px] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border transition-all duration-200 {{ request()->routeIs('agent.tickets.*') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                 Tiket Laporan
                             </a>
                             @endif
                             @role('Super Admin')
                             <a href="{{ route('admin.index') }}"
-                                class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 border border-blue-500/20">
+                                class="inline-flex items-center min-h-[42px] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border transition-all duration-200 {{ request()->routeIs('admin.index') ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-500/10' }}">
                                 Panel Admin
                             </a>
                             <a href="{{ route('admin.security.dashboard') }}"
-                                class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 border border-emerald-500/20">
+                                class="inline-flex items-center min-h-[42px] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border transition-all duration-200 {{ request()->routeIs('admin.security.dashboard') ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-500/10' }}">
                                 Zero Trust
                             </a>
                             @endrole
                             @role('Admin')
-                            <span class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                            <span class="inline-flex items-center min-h-[42px] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 bg-blue-500/10 border border-blue-500/20">
                                 Mode Penugasan
                             </span>
                             @endrole
@@ -84,7 +84,7 @@
                     
                     <div class="hidden sm:flex sm:items-center sm:space-x-6">
                         <!-- Security Context Badge -->
-                        <div class="flex items-center px-4 py-2 bg-emerald-500/10 dark:bg-slate-800/50 border border-emerald-500/20 dark:border-slate-700 rounded-full transition-colors">
+                        <div class="hidden md:flex items-center min-h-[42px] px-4 py-2 bg-emerald-500/10 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-xl transition-colors">
                             <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-2 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                             <span class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest transition-colors">Zero Trust Verified</span>
                         </div>
@@ -144,7 +144,7 @@
                                         body: JSON.stringify({ ticket_ids: unreadIds })
                                     });
                                 } catch(e) {}
-                                this.notifications.forEach(n => n.acknowledged = true);
+                                this.notifications = [];
                                 this.unreadCount = 0;
                             }
                         }" x-init="init()">
@@ -167,7 +167,7 @@
                                 x-transition:leave="transition ease-in duration-150"
                                 x-transition:leave-start="opacity-100 scale-100"
                                 x-transition:leave-end="opacity-0 scale-95"
-                                class="absolute right-0 mt-3 w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden" style="display: none;">
+                                class="fixed sm:absolute right-3 sm:right-0 left-3 sm:left-auto mt-3 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden" style="display: none;">
                                 <div class="p-4 border-b border-slate-100 dark:border-slate-800">
                                     <div class="flex items-center justify-between gap-2">
                                         <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Notifikasi Tugas Baru</h3>
@@ -263,7 +263,94 @@
                         </x-dropdown>
                     </div>
                     
-                    <div class="flex items-center sm:hidden">
+                    <div class="flex items-center sm:hidden gap-2">
+                        <!-- Mobile Notification Bell -->
+                        <div class="relative" x-data="{
+                            notifications: [],
+                            unreadCount: 0,
+                            open: false,
+                            init() {
+                                this.fetchNotifications();
+                                setInterval(() => this.fetchNotifications(), 15000);
+                            },
+                            fetchNotifications() {
+                                fetch('{{ route('agent.notifications') }}')
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        if (data && data.notifications) {
+                                            this.notifications = data.notifications;
+                                            this.unreadCount = data.unacknowledged_count ?? 0;
+                                        }
+                                    })
+                                    .catch(() => {});
+                            },
+                            markRead(notification) {
+                                fetch('{{ route('agent.notifications.markRead') }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                    },
+                                    body: JSON.stringify({ ticket_ids: [notification.id] })
+                                }).catch(() => {});
+                                notification.acknowledged = true;
+                                this.unreadCount = Math.max(0, this.unreadCount - 1);
+                            },
+                            async markAllRead() {
+                                const unreadIds = this.notifications.filter(n => !n.acknowledged).map(n => n.id);
+                                if (unreadIds.length === 0) return;
+                                try {
+                                    await fetch('{{ route('agent.notifications.markRead') }}', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                        },
+                                        body: JSON.stringify({ ticket_ids: unreadIds })
+                                    });
+                                } catch(e) {}
+                                this.notifications = [];
+                                this.unreadCount = 0;
+                            }
+                        }" x-init="init()">
+                            <button @click="open = !open" @click.outside="open = false"
+                                class="relative p-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                                <template x-if="unreadCount > 0">
+                                    <span class="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 border-2 border-white dark:border-slate-900 rounded-full flex items-center justify-center text-[9px] font-black text-white" x-text="unreadCount > 9 ? '9+' : unreadCount"></span>
+                                </template>
+                            </button>
+                            <div x-show="open" x-transition
+                                class="fixed right-3 left-3 top-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden" style="display: none;">
+                                <div class="p-4 border-b border-slate-100 dark:border-slate-800">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <h3 class="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Notifikasi</h3>
+                                        <template x-if="unreadCount > 0">
+                                            <span class="px-2 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 rounded text-[9px] font-black" x-text="unreadCount + ' baru'"></span>
+                                        </template>
+                                    </div>
+                                    <template x-if="unreadCount > 0">
+                                        <button @click="markAllRead()"
+                                            class="mt-2.5 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest transition-all">
+                                            Tandai Semua Dibaca
+                                        </button>
+                                    </template>
+                                </div>
+                                <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                                    <template x-for="(item, index) in notifications" :key="index">
+                                        <a :href="item.url || '{{ url('/agent/tickets') }}/' + item.id" @click="markRead(item)" class="block px-4 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                            <p class="text-sm font-bold text-slate-900 dark:text-white truncate" x-text="item.subject || 'Tiket #' + item.id"></p>
+                                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5" x-text="item.ticket_number || 'Tiket Baru'"></p>
+                                        </a>
+                                    </template>
+                                    <template x-if="notifications.length === 0">
+                                        <div class="px-4 py-10 text-center">
+                                            <p class="text-sm font-bold text-slate-500 dark:text-slate-400">Tidak ada notifikasi baru</p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                         <button @click="open = !open" class="p-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                             <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                 <path :class="{'hidden': open, 'inline-flex': !open}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
