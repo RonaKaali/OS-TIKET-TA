@@ -4,9 +4,12 @@
 foreach ([
     '/tmp/storage/framework/views',
     '/tmp/storage/framework/cache',
+    '/tmp/storage/framework/cache/data',
     '/tmp/storage/framework/sessions',
+    '/tmp/storage/framework/testing',
     '/tmp/storage/logs',
     '/tmp/storage/app',
+    '/tmp/storage/app/public',
 ] as $path) {
     if (!is_dir($path)) @mkdir($path, 0755, true);
 }
@@ -18,11 +21,14 @@ putenv("APP_PACKAGES_CACHE={$cachePath}/packages.php");
 putenv("APP_CONFIG_CACHE={$cachePath}/config.php");
 putenv("APP_ROUTES_CACHE={$cachePath}/routes.php");
 putenv("APP_EVENTS_CACHE={$cachePath}/events.php");
+putenv("VIEW_COMPILED_PATH=/tmp/storage/framework/views");
 $_SERVER['APP_SERVICES_CACHE'] = "{$cachePath}/services.php";
 $_SERVER['APP_PACKAGES_CACHE'] = "{$cachePath}/packages.php";
 $_SERVER['APP_CONFIG_CACHE'] = "{$cachePath}/config.php";
 $_SERVER['APP_ROUTES_CACHE'] = "{$cachePath}/routes.php";
 $_SERVER['APP_EVENTS_CACHE'] = "{$cachePath}/events.php";
+$_SERVER['VIEW_COMPILED_PATH'] = '/tmp/storage/framework/views';
+$_ENV['VIEW_COMPILED_PATH'] = '/tmp/storage/framework/views';
 
 // =========================================================================
 // FORCE OVERRIDE: Selalu paksa env vars dari Vercel menimpa .env yang ada
