@@ -40,7 +40,7 @@ class NotificationController extends Controller
         // Admin bell dismiss tracking (session-based)
         $adminDismissed = $request->session()->get('admin_notifications_read', []);
 
-        $tickets = $query->take(15)->get()->map(function (Ticket $t) use ($map, $adminDismissed) {
+        $notifications = $query->take(15)->get()->map(function (Ticket $t) use ($map, $adminDismissed) {
             $acknowledged = AssignmentAcknowledgment::isAcknowledged($t, $map)
                 || !is_null($t->acknowledged_at)
                 || in_array($t->id, $adminDismissed);
@@ -55,13 +55,14 @@ class NotificationController extends Controller
                 'url' => route('agent.tickets.show', $t),
                 'acknowledged' => $acknowledged,
             ];
-        })->values();
-
-        $unacknowledgedCount = $tickets->where('acknowledged', false)->count();
+        })
+            // Yang sudah ditandai dibaca jangan dikirim lagi ke bell.
+            ->filter(fn (array $notification) => $notification['acknowledged'] === false)
+            ->values();
 
         return response()->json([
-            'notifications' => $tickets,
-            'unacknowledged_count' => $unacknowledgedCount,
+            'notifications' => $notifications,
+            'unacknowledged_count' => $notifications->count(),
         ]);
     }
 
