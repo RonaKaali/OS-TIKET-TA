@@ -156,6 +156,10 @@
                 <a href="{{ route('portal.ticket.create') }}" class="block px-4 py-3.5 rounded-xl text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">Laporkan Insiden</a>
                 <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
                 <a href="{{ route('profile.edit') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Profil</a>
+                <button onclick="startCsirtTour && startCsirtTour()" class="csirt-tour-trigger w-full text-left px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253" /></svg>
+                    Tutorial
+                </button>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="w-full text-left px-4 py-3.5 rounded-xl text-red-600 dark:text-red-400 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition">Keluar</button>
@@ -167,6 +171,10 @@
                 @endif
                 <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
                 <a href="/admin" class="block px-4 py-3.5 rounded-xl text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition">Admin Portal</a>
+                <button onclick="startCsirtTour && startCsirtTour()" class="csirt-tour-trigger w-full text-left px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253" /></svg>
+                    Tutorial
+                </button>
             @endauth
         </div>
     </nav>
