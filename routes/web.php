@@ -36,6 +36,7 @@ Route::post('/chatbot/message', [ChatbotController::class, 'message'])->name('ch
 Route::prefix('portal')->group(function () {
     // Route untuk melaporkan - memerlukan login
     Route::middleware('auth')->group(function () {
+        Route::get('dashboard', [PortalTicket::class, 'userDashboard'])->name('portal.dashboard');
         Route::get('ticket/new', [PortalTicket::class, 'create'])->name('portal.ticket.create');
         Route::post('ticket', [PortalTicket::class, 'store'])->name('portal.ticket.store');
         Route::post('ticket/{number}/reply', [PortalTicket::class, 'reply'])->name('portal.ticket.reply');

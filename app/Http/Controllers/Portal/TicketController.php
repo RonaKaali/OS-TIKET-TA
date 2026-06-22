@@ -14,6 +14,74 @@ use Illuminate\Validation\Rule;
 class TicketController extends Controller
 {
     use LoggableActivity;
+    /**
+     * Dashboard personal untuk user pelapor — menampilkan riwayat & statistik laporan sendiri.
+     */
+    public function userDashboard(Request $r)
+    {
+        $user = $r->user();
+        $baseQuery = Ticket::where('user_id', $user->id);
+
+        // Statistik personal
+        $totalReports = (clone $baseQuery)->count();
+        $activeReports = (clone $baseQuery)
+            ->whereHas('status', fn($q) => $q->where('is_closed', false))
+            ->count();
+        $closedReports = (clone $baseQuery)
+            ->whereHas('status', fn($q) => $q->where('is_closed', true))
+            ->count();
+        $overdueReports = (clone $baseQuery)
+            ->whereNull('closed_at')
+            ->whereNotNull('due_at')
+            ->where('due_at', '<', now())
+            ->get()
+            ->filter(fn($t) => $t->isOverdue())
+            ->count();
+
+        // Chart: laporan per bulan (12 bulan terakhir)
+        $monthlyData = [];
+        $monthlyLabels = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $monthlyLabels[] = $month->locale('id')->isoFormat('MMM');
+            $count = (clone $baseQuery)
+                ->whereYear('created_at', $month->year)
+                ->whereMonth('created_at', $month->month)
+                ->count();
+            $monthlyData[] = $count;
+        }
+
+        // Chart: distribusi status
+        $statusDistribution = (clone $baseQuery)
+            ->selectRaw('s.name as status_name, s.is_closed, COUNT(*) as total')
+            ->join('status as s', 'tiket.status_id', '=', 's.id')
+            ->groupBy('s.name', 's.is_closed')
+            ->get();
+
+        $statusLabels = $statusDistribution->pluck('status_name')->toArray();
+        $statusData = $statusDistribution->pluck('total')->toArray();
+
+        // 5 Laporan terbaru
+        $recentTickets = (clone $baseQuery)
+            ->with(['status', 'priority', 'department'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('portal.dashboard', compact(
+            'user',
+            'totalReports',
+            'activeReports',
+            'closedReports',
+            'overdueReports',
+            'monthlyLabels',
+            'monthlyData',
+            'statusLabels',
+            'statusData',
+            'recentTickets'
+        ));
+    }
+
     public function create()
     {
         $topics = HelpTopic::with('department')->orderBy('name')->get();
