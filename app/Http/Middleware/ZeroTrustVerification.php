@@ -241,6 +241,8 @@ class ZeroTrustVerification
             'register',
             'logout',
             'password',
+            'forgot-password',
+            'reset-password',
             'email/verify',
             'chatbot/message',
             'mfa/verify', // MFA verification page

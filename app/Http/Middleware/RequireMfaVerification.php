@@ -116,6 +116,8 @@ class RequireMfaVerification
             'session/check',
             'device/verify',
             'up',
+            'forgot-password',
+            'reset-password',
         ];
 
         foreach ($paths as $path) {
