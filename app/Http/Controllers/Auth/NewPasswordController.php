@@ -48,6 +48,11 @@ class NewPasswordController extends Controller
                     'remember_token' => Str::random(60),
                 ])->save();
 
+                // Hapus seluruh data MFA user (secret, backup codes, dll.)
+                // agar setelah login, user harus scan QR code baru untuk setup MFA ulang
+                \App\Support\MfaSchema::clearMfaForUser($user->id);
+                $user->refresh();
+
                 event(new PasswordReset($user));
             }
         );
