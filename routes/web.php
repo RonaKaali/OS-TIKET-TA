@@ -6,7 +6,8 @@ use App\Http\Controllers\Agent\{
     TicketController as AgentTicket,
     AssignmentController as AgentAssignment,
     NewAssignmentController as AgentNewAssignment,
-    NoteController as AgentNote
+    NoteController as AgentNote,
+    NotificationController as AgentNotification
 };
 use App\Http\Controllers\Admin\{
     DepartmentController,
@@ -61,6 +62,8 @@ Route::middleware(['auth', 'permission:admin.panel'])->prefix('agent')->group(fu
     Route::get('/', AgentDashboard::class)->name('agent.dashboard');
     Route::get('/assignments/pending', [AgentNewAssignment::class, 'index'])->name('agent.assignments.pending');
     Route::post('/assignments/acknowledge', [AgentNewAssignment::class, 'acknowledge'])->name('agent.assignments.acknowledge');
+    Route::get('/notifications', [AgentNotification::class, 'index'])->name('agent.notifications');
+    Route::post('/notifications/mark-read', [AgentNotification::class, 'markRead'])->name('agent.notifications.markRead');
 
     Route::middleware('assignments.acknowledged')->group(function () {
         Route::get('/tickets', [AgentTicket::class, 'index'])->name('agent.tickets.index');
