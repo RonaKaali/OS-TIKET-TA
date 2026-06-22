@@ -99,7 +99,14 @@ class RegisteredUserController extends Controller
                 \Log::warning('Gagal assign role User: ' . $e->getMessage());
             }
 
-            event(new Registered($user));
+            // Trigger Registered event (may trigger email verification notification)
+            // Wrapped in try-catch because SendEmailVerificationNotification can fail
+            // in serverless environments (Vercel) due to cache/mail issues
+            try {
+                event(new Registered($user));
+            } catch (\Throwable $e) {
+                \Log::warning('Registered event listener error (non-fatal): ' . $e->getMessage());
+            }
 
             // Notifikasi email selamat datang
             try {
