@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use App\Models\Ticket;
 
@@ -10,21 +10,23 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $stats = [
-            'total' => Ticket::count(),
-            'open' => Ticket::whereHas('status', function ($query) {
-                $query->where('slug', 'open');
-            })->count(),
-            'in_progress' => Ticket::whereHas('status', function ($query) {
-                $query->whereIn('slug', ['answered', 'in-progress']);
-            })->count(),
-            'resolved' => Ticket::whereHas('status', function ($query) {
-                $query->whereIn('slug', ['closed', 'resolved']);
-            })->count(),
-        ];
+        // Cache statistik dashboard selama 60 detik
+        $stats = Cache::remember('admin.dashboard.stats', 60, function () {
+            return [
+                'total' => Ticket::count(),
+                'open' => Ticket::whereHas('status', fn($q) => $q->where('slug', 'open'))
+                    ->count(),
+                'in_progress' => Ticket::whereHas('status', fn($q) => $q->whereIn('slug', ['answered', 'in-progress']))
+                    ->count(),
+                'resolved' => Ticket::whereHas('status', fn($q) => $q->whereIn('slug', ['closed', 'resolved']))
+                    ->count(),
+            ];
+        });
 
-        // Laporan per departemen
-        $departments = \App\Models\Department::withCount('tickets')->get();
+        // Cache laporan per departemen selama 60 detik
+        $departments = Cache::remember('admin.dashboard.departments', 60, function () {
+            return \App\Models\Department::withCount('tickets')->get();
+        });
 
         return view('admin.dashboard.index', compact('stats', 'departments'));
     }
