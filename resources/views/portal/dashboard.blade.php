@@ -135,7 +135,7 @@
             </div>
 
             <!-- Stat Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 mb-8">
                 <!-- Jumlah Laporan -->
                 <div class="glass-card rounded-3xl p-8 sm:p-10 stat-glow-blue transform hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0.15s">
                     <div class="flex items-center justify-between mb-5">
@@ -148,6 +148,20 @@
                     <p class="text-5xl sm:text-6xl font-black text-slate-900 dark:text-white animate-count-up transition-colors">{{ $totalReports }}</p>
                     <p class="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-3 transition-colors">Jumlah Laporan</p>
                     <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 transition-colors">Seluruh laporan insiden siber yang pernah Anda buat</p>
+                </div>
+
+                <!-- Sedang Diproses -->
+                <div class="glass-card rounded-3xl p-8 sm:p-10 stat-glow-yellow transform hover:-translate-y-1 transition-all duration-300 animate-fade-in-up" style="animation-delay: 0.18s">
+                    <div class="flex items-center justify-between mb-5">
+                        <div class="w-16 h-16 bg-yellow-50 dark:bg-yellow-500/20 border border-yellow-200 dark:border-yellow-500/50 rounded-2xl flex items-center justify-center transition-colors">
+                            <svg class="w-8 h-8 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-5xl sm:text-6xl font-black text-slate-900 dark:text-white animate-count-up transition-colors">{{ $activeReports }}</p>
+                    <p class="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-3 transition-colors">Sedang Diproses</p>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 transition-colors">Laporan yang sedang ditangani oleh tim CSIRT</p>
                 </div>
 
                 <!-- Laporan Selesai -->
