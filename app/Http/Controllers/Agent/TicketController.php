@@ -87,9 +87,9 @@ class TicketController extends Controller
             \App\Support\AssignmentAcknowledgment::acknowledge(request(), request()->user(), [$ticket->id]);
         }
 
-        // Daftar agen yang bisa ditugaskan
+        // Daftar agen yang bisa ditugaskan - HANYA Agent 2
         $agents = \App\Models\User::whereHas('roles', function ($q) {
-            $q->whereIn('roles.name', RoleUi::ASSIGNABLE_AGENT_ROLES);
+            $q->where('roles.name', 'Agent 2');
         })->with('roles')->get()->unique('id');
 
         // Ambil daftar canned responses untuk dipilih agent

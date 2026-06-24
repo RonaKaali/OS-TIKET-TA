@@ -62,6 +62,11 @@ class RoleUi
             return 'agent.dashboard.admin';
         }
 
+        // Kepala Bidang (Support Agent) juga pakai agent dashboard
+        if ($user->hasRole(self::SUPPORT_AGENT)) {
+            return 'agent.dashboard.field-agent';
+        }
+
         return 'agent.dashboard.field-agent';
     }
 
