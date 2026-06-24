@@ -62,6 +62,12 @@
                                 Panel Admin
                             </a>
                             @endrole
+                            @role('Support Agent')
+                            <a href="{{ route('agent.verification.index') }}"
+                                class="px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 {{ request()->routeIs('agent.verification.*') ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                Verifikasi Surat Tugas
+                            </a>
+                            @endrole
                         </div>
                     </div>
                     
@@ -129,6 +135,9 @@
                 <div class="pt-4 pb-6 space-y-2 px-4">
                     <a href="{{ route('agent.dashboard') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors">Dasbor</a>
                     <a href="{{ route('agent.tickets.index') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors">Tiket Laporan</a>
+                    @role('Support Agent')
+                    <a href="{{ route('agent.verification.index') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors">Verifikasi Surat Tugas</a>
+                    @endrole
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-red-500 dark:text-red-400 transition-colors">Keluar Sistem</button>

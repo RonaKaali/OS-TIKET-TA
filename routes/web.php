@@ -7,7 +7,8 @@ use App\Http\Controllers\Agent\{
     AssignmentController as AgentAssignment,
     NewAssignmentController as AgentNewAssignment,
     NoteController as AgentNote,
-    NotificationController as AgentNotification
+    NotificationController as AgentNotification,
+    VerificationController as AgentVerification
 };
 use App\Http\Controllers\Admin\{
     DepartmentController,
@@ -79,6 +80,10 @@ Route::middleware(['auth', 'permission:admin.panel'])->prefix('agent')->group(fu
     Route::post('/tickets/{ticket}/assign', AgentAssignment::class)
         ->name('agent.tickets.assign')
         ->middleware('permission:tickets.assign');
+
+    // Verification Routes for Kepala Bidang
+    Route::get('/verification', [AgentVerification::class, 'index'])->name('agent.verification.index');
+    Route::post('/verification/{ticket}', [AgentVerification::class, 'verify'])->name('agent.verification.verify');
 });
 
 # Panel Admin (Hanya Super Admin)

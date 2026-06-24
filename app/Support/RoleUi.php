@@ -76,7 +76,7 @@ class RoleUi
             $user->hasRole(self::ADMIN) => 'Pusat Penugasan Admin',
             $user->hasRole(self::AGENT_1) => 'Ruang Kerja Agent 1',
             $user->hasRole(self::AGENT_2) => 'Ruang Kerja Agent 2',
-            $user->hasRole(self::SUPPORT_AGENT) => 'Ruang Kerja Support Agent',
+            $user->hasRole(self::SUPPORT_AGENT) => 'Ruang Kerja Kepala Bidang',
             $user->hasRole(self::AGENT) => 'Ruang Kerja Analis',
             default => 'Portal Agen',
         };

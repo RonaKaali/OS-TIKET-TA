@@ -43,7 +43,8 @@ class TicketController extends Controller
 
         // Batasi untuk agen lapangan: hanya lihat tiket yang ditugaskan kepadanya
         if (!RoleUi::canManageAllTickets($r->user())) {
-            $q->where('assigned_to', $r->user()->id);
+            $q->where('assigned_to', $r->user()->id)
+              ->whereHas('status', fn($qq) => $qq->where('slug', '!=', 'menunggu_verifikasi_kepala_bidang'));
         }
 
         $tickets = $q->latest()->paginate(20)->withQueryString();

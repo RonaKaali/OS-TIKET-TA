@@ -41,19 +41,11 @@ class AssignmentController extends Controller
             'priority_id' => $data['priority_id'],
         ]);
 
-        // Update status menjadi "assigned" jika ada
-        if ($assignedStatus = Status::where('slug', 'assigned')->first()) {
-            $ticket->update(['status_id' => $assignedStatus->id]);
+        // Update status menjadi "menunggu_verifikasi_kepala_bidang" jika ada
+        if ($pendingStatus = Status::where('slug', 'menunggu_verifikasi_kepala_bidang')->first()) {
+            $ticket->update(['status_id' => $pendingStatus->id]);
         }
 
-        // Kirim notifikasi email ke agent yang ditugaskan
-        try {
-            $agent->notify(new \App\Notifications\TicketAssigned($ticket));
-            Log::info('Email notifikasi assignment berhasil dikirim ke: ' . $agent->email);
-        } catch (\Throwable $e) {
-            Log::error('Gagal mengirim email assignment ke agent: ' . $e->getMessage());
-        }
-
-        return back()->with('ok', 'Tiket telah di-assign ke ' . $agent->name . '.');
+        return back()->with('ok', 'Tiket telah di-assign ke ' . $agent->name . ' dan menunggu verifikasi Kepala Bidang.');
     }
 }

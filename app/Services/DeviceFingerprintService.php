@@ -20,11 +20,6 @@ class DeviceFingerprintService
         $components = [
             $request->userAgent(),
             $clientIp,
-            $request->header('Accept-Language'),
-            $request->header('Accept-Encoding'),
-            $request->header('Accept'),
-            $request->header('DNT'),
-            $request->header('Connection'),
         ];
 
         // Tambahkan screen resolution jika tersedia (dari JavaScript)

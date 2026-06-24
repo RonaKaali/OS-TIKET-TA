@@ -30,6 +30,7 @@ class NewAssignmentController extends Controller
         $assignments = Ticket::query()
             ->with(['status', 'priority'])
             ->where('assigned_to', $user->id)
+            ->whereHas('status', fn($qq) => $qq->where('slug', '!=', 'menunggu_verifikasi_kepala_bidang'))
             ->latest('assigned_at')
             ->latest('updated_at')
             ->take(20)
