@@ -322,20 +322,21 @@ class SecurityEventLogService
     }
 
     /**
-     * Log device event (dengan rate-limiting untuk mencegah spam)
+     * Log device event (dengan aggressive rate-limiting untuk STOP SPAM)
+     * Max 1 event per 12 jam per user+fingerprint per event_type
      */
     public function logDeviceEvent(?int $userId, string $eventType, array $deviceInfo): void
     {
-        // Rate-limit: log event yang sama hanya 1x per jam per user+fingerprint
+        // AGGRESSIVE RATE-LIMIT: log event yang sama hanya 1x per 12 JAM per user+fingerprint
         $fingerprint = $deviceInfo['fingerprint'] ?? 'unknown';
         $cacheKey = "security_log_rate:{$userId}:{$eventType}:{$fingerprint}";
 
         if (Cache::has($cacheKey)) {
-            return; // Sudah di-log dalam 1 jam terakhir, skip
+            return; // Sudah di-log dalam 12 jam terakhir, SKIP
         }
 
-        // Tandai sudah di-log, berlaku selama 1 jam
-        Cache::put($cacheKey, true, now()->addHour());
+        // Tandai sudah di-log, berlaku selama 12 jam
+        Cache::put($cacheKey, true, now()->addHours(12));
 
         $gps = $userId
             ? app(GpsLocationService::class)->resolve(request(), $userId)
