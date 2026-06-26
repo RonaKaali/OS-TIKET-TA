@@ -222,7 +222,7 @@
                                     </template>
                                 </div>
                                 <div class="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/50 text-center">
-                                    <a href="{{ route('agent.dashboard') }}" class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 uppercase tracking-widest transition-colors">
+                                    <a href="{{ auth()->user()->hasRole(\App\Support\RoleUi::SUPPORT_AGENT) ? route('agent.verification.index') : route('agent.dashboard') }}" class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 uppercase tracking-widest transition-colors">
                                         Lihat Semua Tiket →
                                     </a>
                                 </div>

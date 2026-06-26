@@ -54,7 +54,7 @@
                 </div>
             </div>
             @if($myTickets->isNotEmpty())
-                <a href="{{ route('agent.tickets.index') }}" class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 uppercase tracking-widest transition-colors flex items-center">
+                <a href="{{ $isKepalaBidang ? route('agent.verification.index') : route('agent.tickets.index') }}" class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 uppercase tracking-widest transition-colors flex items-center">
                     Lihat Semua
                     <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                 </a>

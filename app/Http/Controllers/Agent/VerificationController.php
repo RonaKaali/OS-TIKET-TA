@@ -28,7 +28,7 @@ class VerificationController extends Controller
         if (!$pendingStatus) {
             $tickets = collect();
         } else {
-            $tickets = Ticket::with(['priority', 'department'])
+            $tickets = Ticket::with(['priority', 'department', 'assignee'])
                 ->where('status_id', $pendingStatus->id)
                 ->latest()
                 ->paginate(10);
