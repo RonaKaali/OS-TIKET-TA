@@ -53,10 +53,16 @@ class MfaVerificationController extends Controller
             ]);
             // Complete login karena tidak ada MFA
             $this->completeLogin(request(), $user);
-            
+
+            // Log successful login
+            $logService = app(\App\Services\SecurityEventLogService::class);
+            $logService->logAuthentication('login', $user->id, true, "Login berhasil (tanpa MFA): {$user->email}");
+
             // Redirect sesuai permission
-            if ($user->can('admin.panel')) {
-                return redirect()->intended(route('dashboard', absolute: false));
+            if ($user->hasRole('Super Admin') || $user->hasRole('Admin')) {
+                return redirect()->route('admin.index');
+            } elseif ($user->hasRole('Agent 2') || $user->hasRole('Kepala Bidang') || $user->can('admin.panel')) {
+                return redirect()->route('agent.dashboard');
             } else {
                 return redirect()->intended(route('welcome', absolute: false))->with('status', 'Selamat datang!');
             }
@@ -111,8 +117,10 @@ class MfaVerificationController extends Controller
         $logService->logAuthentication('login', $user->id, true, "Login berhasil (setelah MFA): {$user->email}");
 
         // Redirect sesuai permission
-        if ($user->can('admin.panel')) {
-            return redirect()->intended(route('dashboard', absolute: false));
+        if ($user->hasRole('Super Admin') || $user->hasRole('Admin')) {
+            return redirect()->route('admin.index');
+        } elseif ($user->hasRole('Agent 2') || $user->hasRole('Kepala Bidang') || $user->can('admin.panel')) {
+            return redirect()->route('agent.dashboard');
         } else {
             return redirect()->intended(route('welcome', absolute: false))->with('status', 'Selamat datang! Anda dapat menggunakan fitur di bawah untuk melaporkan insiden siber.');
         }
@@ -176,8 +184,10 @@ class MfaVerificationController extends Controller
         $logService->logAuthentication('login', $user->id, true, "Login berhasil (setelah MFA backup): {$user->email}");
 
         // Redirect sesuai permission
-        if ($user->can('admin.panel')) {
-            return redirect()->intended(route('dashboard', absolute: false));
+        if ($user->hasRole('Super Admin') || $user->hasRole('Admin')) {
+            return redirect()->route('admin.index');
+        } elseif ($user->hasRole('Agent 2') || $user->hasRole('Kepala Bidang') || $user->can('admin.panel')) {
+            return redirect()->route('agent.dashboard');
         } else {
             return redirect()->intended(route('welcome', absolute: false))->with('status', 'Selamat datang! Anda dapat menggunakan fitur di bawah untuk melaporkan insiden siber.');
         }

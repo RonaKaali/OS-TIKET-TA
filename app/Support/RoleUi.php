@@ -27,10 +27,7 @@ class RoleUi
     ];
 
     public const ASSIGNABLE_AGENT_ROLES = [
-        self::AGENT,
-        self::AGENT_1,
         self::AGENT_2,
-        self::SUPPORT_AGENT,
     ];
 
     public static function isFieldAgent(?User $user): bool

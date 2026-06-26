@@ -10,6 +10,7 @@ use App\Services\DeviceFingerprintService;
 use App\Services\ContextAwareAccessService;
 use App\Services\GpsLocationService;
 use App\Services\SecurityEventLogService;
+use Illuminate\Support\Facades\Cache;
 
 class ZeroTrustVerification
 {
@@ -185,40 +186,47 @@ class ZeroTrustVerification
             // 3. Session Validation
             $this->validateSession($request, $user);
 
-            // 4. Log access (untuk monitoring)
+            // 4. Log access (untuk monitoring) - with rate limiting to prevent spam
             if ($this->shouldSkipLogging($request)) {
                 return $next($request);
             }
 
-            $accessContext = $request->get('access_context', []);
-            $riskScore = $request->get('risk_score');
-            $deviceFingerprint = $request->get('device_fingerprint');
-            $deviceTrustScore = $request->get('device_trust_score');
-            $gps = $this->gpsService->resolve(
-                $request,
-                $user->id
-            ) ?? ($accessContext['gps'] ?? null);
+            // Rate limit: max 1 access event per 5 minutes per user per path
+            $path = $request->path();
+            $accessCacheKey = "access_log_rate:{$user->id}:{$path}";
+            if (!Cache::has($accessCacheKey)) {
+                Cache::put($accessCacheKey, true, now()->addMinutes(5));
 
-            $this->logService->logEvent([
-                'user_id' => $user->id,
-                'event_type' => 'access',
-                'severity' => 'low',
-                'message' => "Access to {$request->path()}",
-                'risk_score' => is_numeric($riskScore) ? (int) $riskScore : null,
-                'device_fingerprint' => $deviceFingerprint,
-                'context' => [
-                    'method' => $request->method(),
-                    'path' => $request->path(),
-                    'ip' => $clientIp,
-                    'location' => $accessContext['location'] ?? null,
-                    'gps' => $gps,
-                    'risk_score' => $riskScore,
-                ],
-                'metadata' => [
+                $accessContext = $request->get('access_context', []);
+                $riskScore = $request->get('risk_score');
+                $deviceFingerprint = $request->get('device_fingerprint');
+                $deviceTrustScore = $request->get('device_trust_score');
+                $gps = $this->gpsService->resolve(
+                    $request,
+                    $user->id
+                ) ?? ($accessContext['gps'] ?? null);
+
+                $this->logService->logEvent([
+                    'user_id' => $user->id,
+                    'event_type' => 'access',
+                    'severity' => 'low',
+                    'message' => "Access to {$path}",
+                    'risk_score' => is_numeric($riskScore) ? (int) $riskScore : null,
                     'device_fingerprint' => $deviceFingerprint,
-                    'device_trust_score' => $deviceTrustScore,
-                ],
-            ]);
+                    'context' => [
+                        'method' => $request->method(),
+                        'path' => $path,
+                        'ip' => $clientIp,
+                        'location' => $accessContext['location'] ?? null,
+                        'gps' => $gps,
+                        'risk_score' => $riskScore,
+                    ],
+                    'metadata' => [
+                        'device_fingerprint' => $deviceFingerprint,
+                        'device_trust_score' => $deviceTrustScore,
+                    ],
+                ]);
+            }
 
         } catch (\Exception $e) {
             // Log error tapi jangan block request (fail open untuk availability)

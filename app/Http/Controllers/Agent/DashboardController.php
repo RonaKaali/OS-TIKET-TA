@@ -48,22 +48,37 @@ class DashboardController extends Controller
             return view($view, compact('stats', 'unassignedTickets'));
         }
 
-        $myQuery = Ticket::query()->where('assigned_to', $user->id);
+        if ($user->hasRole(RoleUi::SUPPORT_AGENT)) {
+            $stats = [
+                'assigned' => Ticket::whereHas('status', fn ($q) => $q->where('slug', 'menunggu_verifikasi_kepala_bidang'))->count(),
+                'in_progress' => Ticket::whereHas('status', fn ($q) => $q->whereIn('slug', ['in_progress', 'in-progress', 'dalam-proses']))->count(),
+                'closed' => Ticket::whereHas('status', fn ($q) => $q->whereIn('slug', ['closed', 'resolved']))->count(),
+                'pending_ack' => Ticket::whereHas('status', fn ($q) => $q->where('slug', 'menunggu_verifikasi_kepala_bidang'))->count(),
+            ];
 
-        $stats = [
-            'assigned' => (clone $myQuery)->whereHas('status', fn ($q) => $q->where('slug', 'assigned'))->count(),
-            'in_progress' => (clone $myQuery)->whereHas('status', fn ($q) => $q->whereIn('slug', ['in_progress', 'in-progress', 'dalam-proses']))->count(),
-            'closed' => (clone $myQuery)->whereHas('status', fn ($q) => $q->where('slug', 'closed'))->count(),
-            'pending_ack' => AssignmentAcknowledgment::pendingFor($user, AssignmentAcknowledgment::map($request))->count(),
-        ];
+            $myTickets = Ticket::with(['status', 'priority', 'department'])
+                ->whereHas('status', fn ($q) => $q->where('slug', 'menunggu_verifikasi_kepala_bidang'))
+                ->orderByDesc('updated_at')
+                ->limit(10)
+                ->get();
+        } else {
+            $myQuery = Ticket::query()->where('assigned_to', $user->id);
 
-        $myTickets = Ticket::with(['status', 'priority', 'department'])
-            ->where('assigned_to', $user->id)
-            ->whereHas('status', fn ($q) => $q->whereNotIn('slug', ['closed']))
-            ->orderByDesc('assigned_at')
-            ->orderByDesc('updated_at')
-            ->limit(10)
-            ->get();
+            $stats = [
+                'assigned' => (clone $myQuery)->whereHas('status', fn ($q) => $q->where('slug', 'assigned'))->count(),
+                'in_progress' => (clone $myQuery)->whereHas('status', fn ($q) => $q->whereIn('slug', ['in_progress', 'in-progress', 'dalam-proses']))->count(),
+                'closed' => (clone $myQuery)->whereHas('status', fn ($q) => $q->where('slug', 'closed'))->count(),
+                'pending_ack' => AssignmentAcknowledgment::pendingFor($user, AssignmentAcknowledgment::map($request))->count(),
+            ];
+
+            $myTickets = Ticket::with(['status', 'priority', 'department'])
+                ->where('assigned_to', $user->id)
+                ->whereHas('status', fn ($q) => $q->whereNotIn('slug', ['closed', 'menunggu_verifikasi_kepala_bidang']))
+                ->orderByDesc('assigned_at')
+                ->orderByDesc('updated_at')
+                ->limit(10)
+                ->get();
+        }
 
         return view($view, compact('stats', 'myTickets'));
     }

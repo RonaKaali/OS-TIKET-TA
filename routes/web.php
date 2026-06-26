@@ -53,8 +53,12 @@ Route::prefix('portal')->group(function () {
 # Auth bawaan Breeze
 require __DIR__ . '/auth.php';
 
-# Dashboard (redirect ke agent dashboard - hanya untuk admin/agent)
+# Dashboard (redirect sesuai role - admin ke admin panel, lainnya ke agent dashboard)
 Route::middleware(['auth', 'permission:admin.panel'])->get('/dashboard', function () {
+    $user = auth()->user();
+    if ($user->hasRole('Super Admin') || $user->hasRole('Admin')) {
+        return redirect()->route('admin.index');
+    }
     return redirect()->route('agent.dashboard');
 })->name('dashboard');
 

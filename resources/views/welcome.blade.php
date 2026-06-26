@@ -111,8 +111,9 @@
                     @auth
                         @can('admin.panel')
                             <a href="{{ route('dashboard') }}" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium text-sm transition">Dasbor Admin</a>
+                        @else
+                            <a href="{{ route('portal.dashboard') }}" class="text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold text-sm transition">Dasbor Saya</a>
                         @endcan
-                        <a href="{{ route('portal.dashboard') }}" class="text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 font-bold text-sm transition">Dasbor Saya</a>
                         <a href="{{ route('portal.ticket.create') }}" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium text-sm transition">Lapor Insiden</a>
                         <a href="{{ route('profile.edit') }}" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium text-sm transition">Profil</a>
                         <form method="POST" action="{{ route('logout') }}" class="inline">
@@ -154,8 +155,9 @@
             @auth
                 @can('admin.panel')
                     <a href="{{ route('dashboard') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Dasbor Admin</a>
+                @else
+                    <a href="{{ route('portal.dashboard') }}" class="block px-4 py-3.5 rounded-xl text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">📊 Dasbor Saya</a>
                 @endcan
-                <a href="{{ route('portal.dashboard') }}" class="block px-4 py-3.5 rounded-xl text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">📊 Dasbor Saya</a>
                 <a href="{{ route('portal.ticket.create') }}" class="block px-4 py-3.5 rounded-xl text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">Laporkan Insiden</a>
                 <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
                 <a href="{{ route('profile.edit') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Profil</a>

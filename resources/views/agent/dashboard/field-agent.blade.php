@@ -6,7 +6,7 @@
                     <svg class="w-7 h-7 mr-3 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                     {{ \App\Support\RoleUi::portalLabel(auth()->user()) }}
                 </h2>
-                <p class="text-sm font-bold text-slate-500 dark:text-slate-400 mt-1">Surat tugas dan tiket yang ditugaskan kepada Anda</p>
+                <p class="text-sm font-bold text-slate-500 dark:text-slate-400 mt-1">{{ auth()->user()->hasRole(\App\Support\RoleUi::SUPPORT_AGENT) ? 'Persetujuan dan verifikasi surat tugas agen' : 'Surat tugas dan tiket yang ditugaskan kepada Anda' }}</p>
             </div>
             @if($stats['pending_ack'] > 0)
                 <div class="px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 text-xs font-black rounded-xl uppercase tracking-widest">
@@ -20,9 +20,12 @@
         </div>
     </x-slot>
 
+    @php
+        $isKepalaBidang = auth()->user()->hasRole(\App\Support\RoleUi::SUPPORT_AGENT);
+    @endphp
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="tour-agent-stats">
         <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
-            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Ditugaskan</p>
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{{ $isKepalaBidang ? 'Menunggu Verifikasi' : 'Ditugaskan' }}</p>
             <p class="text-3xl font-black text-blue-600 dark:text-blue-400">{{ $stats['assigned'] }}</p>
         </div>
         <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
@@ -34,7 +37,7 @@
             <p class="text-3xl font-black text-emerald-600 dark:text-emerald-400">{{ $stats['closed'] }}</p>
         </div>
         <div class="bg-white dark:bg-slate-800/80 rounded-2xl border border-amber-200 dark:border-amber-800/50 p-5">
-            <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Surat Tugas Baru</p>
+            <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">{{ $isKepalaBidang ? 'Perlu Verifikasi' : 'Surat Tugas Baru' }}</p>
             <p class="text-3xl font-black text-amber-600 dark:text-amber-400">{{ $stats['pending_ack'] }}</p>
         </div>
     </div>
@@ -46,8 +49,8 @@
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Tugas Aktif Saya</h3>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 tracking-wide">{{ $myTickets->count() }} tiket ditugaskan</p>
+                    <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">{{ $isKepalaBidang ? 'Surat Tugas Menunggu Verifikasi' : 'Tugas Aktif Saya' }}</h3>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 tracking-wide">{{ $myTickets->count() }} {{ $isKepalaBidang ? 'tiket menunggu verifikasi' : 'tiket ditugaskan' }}</p>
                 </div>
             </div>
             @if($myTickets->isNotEmpty())
@@ -62,8 +65,8 @@
                 <div class="w-20 h-20 bg-slate-100 dark:bg-slate-900/50 rounded-3xl flex items-center justify-center mx-auto mb-5 border border-slate-200 dark:border-slate-700/50">
                     <svg class="w-10 h-10 text-slate-300 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 </div>
-                <p class="text-sm font-bold text-slate-400 dark:text-slate-500 mb-2">Belum ada tiket ditugaskan</p>
-                <p class="text-[10px] text-slate-400 dark:text-slate-600 font-bold tracking-wide">Admin akan mengirim surat tugas melalui sistem penugasan</p>
+                <p class="text-sm font-bold text-slate-400 dark:text-slate-500 mb-2">{{ $isKepalaBidang ? 'Tidak ada tiket menunggu verifikasi' : 'Belum ada tiket ditugaskan' }}</p>
+                <p class="text-[10px] text-slate-400 dark:text-slate-600 font-bold tracking-wide">{{ $isKepalaBidang ? 'Semua penugasan surat tugas telah diverifikasi' : 'Admin akan mengirim surat tugas melalui sistem penugasan' }}</p>
             </div>
         @else
             <div class="p-6">
@@ -91,7 +94,7 @@
                                 default => 'from-slate-400 to-slate-300',
                             };
                         @endphp
-                        <a href="{{ route('agent.tickets.show', $ticket) }}"
+                        <a href="{{ $isKepalaBidang ? route('agent.verification.index') : route('agent.tickets.show', $ticket) }}"
                            class="group relative bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:-translate-y-1 overflow-hidden cursor-pointer block no-underline">
                             <!-- Hover glow effect -->
                             <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -126,7 +129,10 @@
 
                                 <!-- Action -->
                                 <div class="flex items-center text-[10px] font-black text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 uppercase tracking-widest transition-colors">
-                                    @if(!$isAck)
+                                    @if($isKepalaBidang)
+                                        <svg class="w-3.5 h-3.5 mr-1.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                        Verifikasi Surat Tugas
+                                    @elseif(!$isAck)
                                         <svg class="w-3.5 h-3.5 mr-1.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                         Lihat Surat Tugas
                                     @else

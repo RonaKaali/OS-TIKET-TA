@@ -31,19 +31,28 @@ class NotificationController extends Controller
         if ($user->hasAnyRole(['Super Admin', 'Admin'])) {
             // Admin lihat semua tiket terbaru
             $query->latest('created_at');
+        } elseif ($user->hasRole(\App\Support\RoleUi::SUPPORT_AGENT)) {
+            // Kepala Bidang lihat tiket yang menunggu verifikasi
+            $query->whereHas('status', fn ($q) => $q->where('slug', 'menunggu_verifikasi_kepala_bidang'))
+                  ->latest('updated_at');
         } else {
             // Agent hanya lihat tiket yang di-assign ke mereka
             $query->where('assigned_to', $user->id)
+                  ->whereHas('status', fn ($q) => $q->where('slug', '!=', 'menunggu_verifikasi_kepala_bidang'))
                   ->latest('assigned_at');
         }
 
         // Admin bell dismiss tracking (session-based)
         $adminDismissed = $request->session()->get('admin_notifications_read', []);
 
-        $notifications = $query->take(15)->get()->map(function (Ticket $t) use ($map, $adminDismissed) {
+        $notifications = $query->take(15)->get()->map(function (Ticket $t) use ($map, $adminDismissed, $user) {
             $acknowledged = AssignmentAcknowledgment::isAcknowledged($t, $map)
                 || !is_null($t->acknowledged_at)
                 || in_array($t->id, $adminDismissed);
+
+            if ($user->hasRole(\App\Support\RoleUi::SUPPORT_AGENT)) {
+                $acknowledged = false; // Selalu tampilkan yang perlu verifikasi di notification
+            }
 
             return [
                 'id' => $t->id,
@@ -52,7 +61,7 @@ class NotificationController extends Controller
                 'status' => $t->status?->name ?? 'Open',
                 'priority' => $t->priority?->name,
                 'created_at' => $t->created_at->diffForHumans(),
-                'url' => route('agent.tickets.show', $t),
+                'url' => $user->hasRole(\App\Support\RoleUi::SUPPORT_AGENT) ? route('agent.verification.index') : route('agent.tickets.show', $t),
                 'acknowledged' => $acknowledged,
             ];
         })

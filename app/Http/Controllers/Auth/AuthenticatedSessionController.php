@@ -67,8 +67,10 @@ class AuthenticatedSessionController extends Controller
         $this->securityLog->logAuthentication('login', $user->id, true, "Login berhasil: {$user->email}");
 
         // Redirect sesuai permission
-        if ($user->can('admin.panel')) {
-            return redirect()->intended(route('dashboard', absolute: false));
+        if ($user->hasRole('Super Admin') || $user->hasRole('Admin')) {
+            return redirect()->route('admin.index');
+        } elseif ($user->hasRole('Agent 2') || $user->hasRole('Kepala Bidang') || $user->can('admin.panel')) {
+            return redirect()->route('agent.dashboard');
         } else {
             // User biasa di-redirect ke welcome page
             return redirect()->intended(route('welcome', absolute: false))->with('status', 'Selamat datang! Anda dapat menggunakan fitur di bawah untuk melaporkan insiden siber.');

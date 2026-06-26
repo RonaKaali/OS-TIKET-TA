@@ -88,13 +88,16 @@ class SecurityEvent extends Model
 
     /**
      * Sembunyikan event polling/heartbeat yang membanjiri feed monitoring.
+     * Juga filter event device_registered agar tidak spam.
      */
     public function scopeExcludeNoise($query)
     {
         return $query->where(function ($q) {
             $q->where('message', 'not like', '%security-events/latest%')
                 ->where('message', 'not like', '%session/check%')
-                ->where('message', 'not like', '%zero-trust/gps%');
+                ->where('message', 'not like', '%zero-trust/gps%')
+                ->where('event_type', 'not like', '%device_registered%')
+                ->where('event_type', 'not like', '%device_registration%');
         });
     }
 

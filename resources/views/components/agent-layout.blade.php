@@ -79,6 +79,12 @@
                                 Mode Penugasan
                             </span>
                             @endrole
+                            @role('Support Agent')
+                            <a href="{{ route('agent.verification.index') }}"
+                                class="inline-flex items-center min-h-[42px] px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest border transition-all duration-200 {{ request()->routeIs('agent.verification.*') ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                Verifikasi Surat Tugas
+                            </a>
+                            @endrole
                         </div>
                     </div>
                     
@@ -374,6 +380,9 @@
                     <a href="{{ route('admin.index') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-blue-600 dark:text-blue-400 transition-colors">Panel Admin</a>
                     <a href="{{ route('admin.security.dashboard') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-emerald-600 dark:text-emerald-400 transition-colors">Zero Trust</a>
                     @endrole
+                    @role('Support Agent')
+                    <a href="{{ route('agent.verification.index') }}" class="block px-4 py-3 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-colors">Verifikasi Surat Tugas</a>
+                    @endrole
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-full text-left px-4 py-3 rounded-xl text-sm font-bold text-red-500 dark:text-red-400 transition-colors">Keluar Sistem</button>
@@ -433,7 +442,7 @@
     <script>
         @php
             $userRole = Auth::user()->roles->first()->name ?? 'agent';
-            if (in_array($userRole, ['Agent 1', 'Agent 2'])) {
+            if (in_array($userRole, ['Agent 1', 'Agent 2', 'Support Agent'])) {
                 $tourRole = 'agent';
             } elseif ($userRole === 'Super Admin') {
                 $tourRole = 'super-admin';
