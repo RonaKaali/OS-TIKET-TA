@@ -88,9 +88,26 @@ class TicketController extends Controller
         }
 
         // Daftar agen yang bisa ditugaskan - HANYA Agent 2
-        $agents = \App\Models\User::whereHas('roles', function ($q) {
-            $q->whereIn('roles.name', RoleUi::ASSIGNABLE_AGENT_ROLES);
-        })->with('roles')->get()->unique('id');
+        $agents = collect();
+        try {
+            $agents = \App\Models\User::whereHas('roles', function ($q) {
+                $q->where('roles.name', RoleUi::AGENT_2)
+                  ->where('roles.guard_name', 'web');
+            })->with('roles')->get()->unique('id');
+            
+            if ($agents->isEmpty()) {
+                // Fallback: coba tanpa guard filter
+                $agents = \App\Models\User::whereHas('roles', function ($q) {
+                    $q->where('roles.name', RoleUi::AGENT_2);
+                })->with('roles')->get()->unique('id');
+            }
+            
+            if ($agents->isEmpty()) {
+                \Illuminate\Support\Facades\Log::warning('Tidak ada user dengan role Agent 2 ditemukan. Jalankan: php artisan db:seed --class=UserSeeder');
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal memuat agents: ' . $e->getMessage());
+        }
 
         // Ambil daftar canned responses untuk dipilih agent
         $cannedResponses = CannedResponse::latest()->get();
