@@ -89,27 +89,28 @@ class VerificationController extends Controller
         if ($assignedStatus) {
             $ticket->update(['status_id' => $assignedStatus->id]);
 
-        // Log aktivitas UPDATE (Kepala Bidang memverifikasi surat tugas)
-        try {
-            app(SecurityEventLogService::class)->logActivity(
-                userId: $user->id,
-                action: 'UPDATE',
-                resource: 'Verification',
-                resourceId: $ticket->id,
-                resourceName: $ticket->ticket_number,
-                changes: [
-                    'status_id' => [
-                        'old' => $pendingStatus->name ?? $pendingStatus->slug,
-                        'new' => $assignedStatus->name ?? $assignedStatus->slug,
+            // Log aktivitas UPDATE (Kepala Bidang memverifikasi surat tugas)
+            try {
+                app(SecurityEventLogService::class)->logActivity(
+                    userId: $user->id,
+                    action: 'UPDATE',
+                    resource: 'Verification',
+                    resourceId: $ticket->id,
+                    resourceName: $ticket->ticket_number,
+                    changes: [
+                        'status_id' => [
+                            'old' => $pendingStatus->name ?? $pendingStatus->slug,
+                            'new' => $assignedStatus->name ?? $assignedStatus->slug,
+                        ]
+                    ],
+                    additionalContext: [
+                        'ticket_subject' => $ticket->subject,
+                        'assigned_agent_id' => $ticket->assigned_to,
                     ]
-                ],
-                additionalContext: [
-                    'ticket_subject' => $ticket->subject,
-                    'assigned_agent_id' => $ticket->assigned_to,
-                ]
-            );
-        } catch (\Throwable $e) {
-            Log::warning('Gagal log aktivitas verifikasi: ' . $e->getMessage());
+                );
+            } catch (\Throwable $e) {
+                Log::warning('Gagal log aktivitas verifikasi: ' . $e->getMessage());
+            }
         }
 
         // Kirim notifikasi email ke agent yang ditugaskan setelah diverifikasi
