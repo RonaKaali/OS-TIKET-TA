@@ -164,7 +164,7 @@
 
         <!-- Footer: Sign-off -->
         <div class="flex justify-between items-end mt-12 pt-8 border-t border-slate-200">
-            <!-- Left: Badge -->
+            <!-- Left: Verified by Kepala Bidang -->
             <div class="flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-2xl">
                 <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
                     <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,8 +172,9 @@
                     </svg>
                 </div>
                 <div>
-                    <div class="text-xs font-black text-emerald-700 uppercase tracking-widest">Zero Trust Verified</div>
-                    <div class="text-xs font-semibold text-slate-500">Secured &amp; Digitally Signed</div>
+                    <div class="text-xs font-black text-emerald-700 uppercase tracking-widest">Diverifikasi Oleh</div>
+                    <div class="text-sm font-extrabold text-slate-800">Kepala Bidang CSIRT Kalselprov</div>
+                    <div class="text-[10px] font-semibold text-slate-500">Tanda tangan digital &amp; stempel resmi</div>
                 </div>
             </div>
 
