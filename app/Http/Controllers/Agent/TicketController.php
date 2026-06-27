@@ -204,10 +204,9 @@ class TicketController extends Controller
         $oldStatus = $ticket->status;
         $newStatus = Status::findOrFail($data['status_id']);
 
-        // Simpan data original untuk logging
-        $originalData = [
-            'status_id' => $ticket->status_id,
-        ];
+        // Ambil nama status untuk log (sebelum diubah)
+        $oldStatusName = $oldStatus->name ?? $oldStatus->slug ?? '#' . $ticket->status_id;
+        $newStatusName = $newStatus->name ?? $newStatus->slug ?? '#' . $data['status_id'];
 
         // Load relasi yang diperlukan
         $ticket->load(['status', 'priority', 'department']);
@@ -217,10 +216,12 @@ class TicketController extends Controller
             'closed_at' => $newStatus->is_closed ? now() : null,
         ]);
 
-        // Log aktivitas UPDATE
-        $this->logUpdate('Ticket', $ticket, $originalData, [
-            'old_status' => $oldStatus->name ?? $oldStatus->slug,
-            'new_status' => $newStatus->name ?? $newStatus->slug,
+        // Log aktivitas UPDATE dengan NAMA status (bukan ID)
+        $this->logUpdate('Ticket', $ticket, [
+            'Status' => $oldStatusName,
+        ], [
+            'new_status' => $newStatusName,
+            'old_status' => $oldStatusName,
         ]);
 
         // Reload ticket dengan status baru

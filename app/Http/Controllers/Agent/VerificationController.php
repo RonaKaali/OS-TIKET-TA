@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Ticket;
 use App\Models\Status;
 use App\Models\User;
+use App\Services\SecurityEventLogService;
 use App\Support\RoleUi;
+use App\Traits\LoggableActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class VerificationController extends Controller
 {
+    use LoggableActivity;
+    
     public function __construct()
     {
         $this->middleware('auth');
@@ -52,6 +56,20 @@ class VerificationController extends Controller
 
         $ticket->load(['threads.attachments', 'status', 'priority', 'department', 'assignee', 'requester']);
 
+        // Log aktivitas READ (Kepala Bidang melihat surat tugas untuk verifikasi)
+        try {
+            app(SecurityEventLogService::class)->logActivity(
+                userId: $user->id,
+                action: 'READ',
+                resource: 'Verification',
+                resourceId: $ticket->id,
+                resourceName: $ticket->ticket_number,
+                additionalContext: ['ticket_subject' => $ticket->subject]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Gagal log aktivitas verifikasi: ' . $e->getMessage());
+        }
+
         return view('agent.dashboard.verification-show', compact('ticket'));
     }
 
@@ -70,6 +88,28 @@ class VerificationController extends Controller
         $assignedStatus = Status::where('slug', 'assigned')->first();
         if ($assignedStatus) {
             $ticket->update(['status_id' => $assignedStatus->id]);
+
+        // Log aktivitas UPDATE (Kepala Bidang memverifikasi surat tugas)
+        try {
+            app(SecurityEventLogService::class)->logActivity(
+                userId: $user->id,
+                action: 'UPDATE',
+                resource: 'Verification',
+                resourceId: $ticket->id,
+                resourceName: $ticket->ticket_number,
+                changes: [
+                    'status_id' => [
+                        'old' => $pendingStatus->name ?? $pendingStatus->slug,
+                        'new' => $assignedStatus->name ?? $assignedStatus->slug,
+                    ]
+                ],
+                additionalContext: [
+                    'ticket_subject' => $ticket->subject,
+                    'assigned_agent_id' => $ticket->assigned_to,
+                ]
+            );
+        } catch (\Throwable $e) {
+            Log::warning('Gagal log aktivitas verifikasi: ' . $e->getMessage());
         }
 
         // Kirim notifikasi email ke agent yang ditugaskan setelah diverifikasi
