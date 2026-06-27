@@ -94,7 +94,7 @@
                                 default => 'from-slate-400 to-slate-300',
                             };
                         @endphp
-                        <a href="{{ $isKepalaBidang ? route('agent.verification.index') : route('agent.tickets.show', $ticket) }}"
+                        <a href="{{ $isKepalaBidang ? route('agent.verification.show', $ticket) : route('agent.tickets.show', $ticket) }}"
                            class="group relative bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:-translate-y-1 overflow-hidden cursor-pointer block no-underline">
                             <!-- Hover glow effect -->
                             <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>

@@ -37,6 +37,24 @@ class VerificationController extends Controller
         return view('agent.dashboard.verification-list', compact('tickets'));
     }
 
+    public function show(Ticket $ticket)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole(RoleUi::SUPPORT_AGENT)) {
+            abort(403, 'Akses ditolak. Anda bukan Kepala Bidang.');
+        }
+
+        $pendingStatus = Status::where('slug', 'menunggu_verifikasi_kepala_bidang')->first();
+        if ($ticket->status_id !== $pendingStatus?->id) {
+            return redirect()->route('agent.verification.index')
+                ->with('error', 'Tiket ini sudah diverifikasi atau tidak dalam status verifikasi.');
+        }
+
+        $ticket->load(['threads.attachments', 'status', 'priority', 'department', 'assignee', 'requester']);
+
+        return view('agent.dashboard.verification-show', compact('ticket'));
+    }
+
     public function verify(Request $request, Ticket $ticket)
     {
         $user = auth()->user();

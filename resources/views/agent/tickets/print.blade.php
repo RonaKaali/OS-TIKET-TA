@@ -64,7 +64,7 @@
             </div>
             <div class="flex-1 text-center">
                 <p class="text-sm font-semibold text-slate-600 uppercase tracking-widest">Pemerintah Provinsi Kalimantan Selatan</p>
-                <h2 class="text-2xl font-extrabold text-slate-900 uppercase tracking-tight mt-1">Dinas Komunikasi, Informatika, dan Statistik</h2>
+                <h2 class="text-2xl font-extrabold text-slate-900 uppercase tracking-tight mt-1">Dinas Komunikasi dan Informatika</h2>
                 <h3 class="text-lg font-black text-emerald-700 tracking-[0.25em] uppercase mt-1">CSIRT Kalselprov</h3>
                 <p class="text-xs text-slate-500 font-medium mt-1.5">Jl. Dharma Praja II, Kawasan Perkantoran Pemprov Kalsel, Banjarbaru</p>
             </div>
@@ -87,7 +87,7 @@
 
         <!-- Preamble -->
         <div class="text-base text-slate-800 mb-8 leading-relaxed font-medium text-justify">
-            Menimbang urgensi keamanan siber dan perlu mitigasi insiden secara cepat pada infrastruktur teknologi informasi Pemerintah Provinsi Kalimantan Selatan, Kepala Dinas Komunikasi, Informatika, dan Statistik menginstruksikan kepada analis berikut untuk melaksanakan penanganan insiden:
+            Menimbang urgensi keamanan siber dan perlu mitigasi insiden secara cepat pada infrastruktur teknologi informasi Pemerintah Provinsi Kalimantan Selatan, Kepala Dinas Komunikasi dan Informatika menginstruksikan kepada analis berikut untuk melaksanakan penanganan insiden:
         </div>
 
         <!-- Grid Info -->

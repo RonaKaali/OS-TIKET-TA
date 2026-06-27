@@ -87,6 +87,7 @@ Route::middleware(['auth', 'permission:admin.panel'])->prefix('agent')->group(fu
 
     // Verification Routes for Kepala Bidang
     Route::get('/verification', [AgentVerification::class, 'index'])->name('agent.verification.index');
+    Route::get('/verification/{ticket}', [AgentVerification::class, 'show'])->name('agent.verification.show');
     Route::post('/verification/{ticket}', [AgentVerification::class, 'verify'])->name('agent.verification.verify');
 });
 

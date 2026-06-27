@@ -43,7 +43,8 @@
                     };
                     $agent = \App\Models\User::find($ticket->assigned_to);
                 @endphp
-                <div class="group relative bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:-translate-y-1 overflow-hidden">
+                <a href="{{ route('agent.verification.show', $ticket) }}"
+                   class="group relative bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-5 hover:border-emerald-500/30 dark:hover:border-emerald-500/30 transition-all duration-300 hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:-translate-y-1 overflow-hidden cursor-pointer block no-underline">
                     <!-- Hover glow effect -->
                     <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     
@@ -90,16 +91,14 @@
                             Ditugaskan {{ $ticket->assigned_at?->diffForHumans() ?? '-' }}
                         </div>
 
-                        <!-- Action: Verify Button -->
-                        <form action="{{ route('agent.verification.verify', $ticket) }}" method="POST" onsubmit="return confirm('Anda yakin ingin menyetujui surat tugas ini?\n\nTiket #{{ $ticket->ticket_number }}\nAgen: {{ $agent?->name }}\n\nAgen akan segera menerima notifikasi dan surat tugas.');">
-                            @csrf
-                            <button type="submit" class="w-full inline-flex items-center justify-center px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 group-hover:shadow-xl group-hover:shadow-emerald-500/30">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                Verifikasi & Teruskan ke {{ $agent?->name ?? 'Agen' }}
-                            </button>
-                        </form>
+                        <!-- Action -->
+                        <div class="flex items-center text-[10px] font-black text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 uppercase tracking-widest transition-colors">
+                            <svg class="w-3.5 h-3.5 mr-1.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            Lihat & Verifikasi Surat Tugas
+                            <svg class="w-3 h-3 ml-auto group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </div>
                     </div>
-                </div>
+                </a>
             @endforeach
         </div>
 
