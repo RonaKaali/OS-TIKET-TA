@@ -21,7 +21,7 @@
     <style>
         /* Global Admin Theme Overrides */
         main .bg-white { background-color: white !important; }
-        .dark main .bg-white { background-color: rgba(15, 23, 42, 0.5) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .dark main .bg-white { background-color: rgba(15, 23, 42, 1) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
         
         main .text-gray-900, main .text-gray-800 { color: #1e293b !important; }
         .dark main .text-gray-900, .dark main .text-gray-800 { color: #f8fafc !important; }
@@ -41,7 +41,7 @@
 </head>
 
 <body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 transition-colors duration-300">
-    <div class="min-h-screen flex relative overflow-hidden">
+    <div class="min-h-screen flex relative">
         <!-- Ambient Background Lights -->
         <div class="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-900/10 blur-[120px] pointer-events-none"></div>
         <div class="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-900/10 blur-[120px] pointer-events-none"></div>
@@ -111,7 +111,7 @@
         @endif
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden relative z-10">
+        <div class="flex-1 flex flex-col relative z-30">
             <!-- Top Navigation -->
             <header class="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 transition-colors">
                 <div class="px-4 sm:px-6 lg:px-8 py-4">
