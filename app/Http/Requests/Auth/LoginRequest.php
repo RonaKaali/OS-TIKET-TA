@@ -43,9 +43,8 @@ class LoginRequest extends FormRequest
         $this->ensureIsNotRateLimited();
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
-
-            // Log failed attempt ke Security Monitoring
+            // Hitung attempt + log
+            $this->incrementFailedAttempt();
             $this->logFailedAttempt();
 
             throw ValidationException::withMessages([
@@ -53,33 +52,78 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Login sukses — reset counter
+        $this->clearFailedAttempts();
         RateLimiter::clear($this->throttleKey());
     }
 
     /**
      * Ensure the login request is not rate limited.
+     * Uses SESSION (cookie) for persistence across serverless requests.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
-            return;
+        // Cek dari session (cookie-based — work di Vercel serverless)
+        $lockoutUntil = session()->get('login_lockout_' . $this->throttleKey());
+        if ($lockoutUntil && now()->lt($lockoutUntil)) {
+            $seconds = now()->diffInSeconds($lockoutUntil);
+            $minutes = ceil($seconds / 60);
+
+            // Log lockout event
+            $this->logLockout($seconds);
+
+            throw ValidationException::withMessages([
+                'email' => trans('auth.throttle', [
+                    'seconds' => $seconds,
+                    'minutes' => $minutes,
+                ]),
+            ]);
         }
 
-        event(new Lockout($this));
+        // Cek dari Laravel cache (fallback for local)
+        if (RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+            event(new Lockout($this));
+            $seconds = RateLimiter::availableIn($this->throttleKey());
+            $minutes = ceil($seconds / 60);
 
-        $seconds = RateLimiter::availableIn($this->throttleKey());
+            $this->logLockout($seconds);
 
-        // Log lockout ke Security Monitoring
-        $this->logLockout($seconds);
+            throw ValidationException::withMessages([
+                'email' => trans('auth.throttle', [
+                    'seconds' => $seconds,
+                    'minutes' => $minutes,
+                ]),
+            ]);
+        }
+    }
 
-        throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
-        ]);
+    /**
+     * Increment failed attempt counter using session (cookie-based).
+     */
+    protected function incrementFailedAttempt(): void
+    {
+        // Session-based counter (work di serverless)
+        $attempts = (int) session()->get('login_attempts_' . $this->throttleKey(), 0);
+        $attempts++;
+        session()->put('login_attempts_' . $this->throttleKey(), $attempts);
+
+        // Set lockout jika sudah 5 attempts
+        if ($attempts >= 5) {
+            session()->put('login_lockout_' . $this->throttleKey(), now()->addMinutes(1));
+            // Reset counter untuk next cycle
+            session()->put('login_attempts_' . $this->throttleKey(), 0);
+        }
+    }
+
+    /**
+     * Clear failed attempt counter.
+     */
+    protected function clearFailedAttempts(): void
+    {
+        session()->forget('login_attempts_' . $this->throttleKey());
+        session()->forget('login_lockout_' . $this->throttleKey());
     }
 
     /**

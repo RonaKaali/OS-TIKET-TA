@@ -43,19 +43,30 @@ class AuthenticatedSessionController extends Controller
         // ============================================================
         if (config('zero_trust.vpn_block_enabled', false)) {
             $clientIp = $request->ip();
-            $vpnResult = $this->vpnDetection->isVpn($clientIp);
+            $userAgent = $request->userAgent();
 
-            // Debug: log hasil deteksi untuk setiap login
-            Log::info('VPN Detection result', [
-                'email' => $request->input('email'),
-                'ip' => $clientIp,
-                'is_vpn' => $vpnResult['is_vpn'],
-                'confidence' => $vpnResult['confidence'],
-                'provider' => $vpnResult['provider'],
-                'details' => $vpnResult['details'],
-            ]);
+            // BYPASS: Mobile/HP tidak di-cek VPN (CGNAT false positives)
+            $isMobile = preg_match('/Mobile|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i', $userAgent ?? '');
+            if ($isMobile) {
+                Log::info('VPN Detection: Mobile device bypassed', [
+                    'email' => $request->input('email'),
+                    'ip' => $clientIp,
+                    'user_agent' => substr($userAgent ?? '', 0, 100),
+                ]);
+            } else {
+                $vpnResult = $this->vpnDetection->isVpn($clientIp);
 
-            if ($vpnResult['is_vpn']) {
+                // Debug: log hasil deteksi untuk setiap login
+                Log::info('VPN Detection result', [
+                    'email' => $request->input('email'),
+                    'ip' => $clientIp,
+                    'is_vpn' => $vpnResult['is_vpn'],
+                    'confidence' => $vpnResult['confidence'],
+                    'provider' => $vpnResult['provider'],
+                    'details' => $vpnResult['details'],
+                ]);
+
+                if ($vpnResult['is_vpn']) {
                 // Logout user yang baru saja authenticated
                 Auth::guard('web')->logout();
 
@@ -87,8 +98,9 @@ class AuthenticatedSessionController extends Controller
                 ]);
             }
         }
+    }
 
-        $request->session()->regenerate();
+    $request->session()->regenerate();
 
         $user = Auth::user();
         $user->refresh();
