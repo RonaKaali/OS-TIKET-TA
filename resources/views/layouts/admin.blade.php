@@ -41,7 +41,7 @@
 </head>
 
 <body class="font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-200 transition-colors">
-    <div class="min-h-screen flex relative overflow-hidden">
+    <div class="min-h-screen flex relative">
         <!-- Ambient Background Lights -->
         <div class="fixed top-[-10%] left-[-10%] w-[30%] h-[30%] rounded-full bg-emerald-900/10 blur-[100px] pointer-events-none"></div>
         <div class="fixed bottom-[-10%] right-[-10%] w-[30%] h-[30%] rounded-full bg-blue-900/10 blur-[100px] pointer-events-none"></div>
