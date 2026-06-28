@@ -757,43 +757,30 @@ class VpnDetectionService
         }
 
         // ========== Decision Logic ==========
+        // SIMPLE RULE:
+        // 1. CIDR database match → BLOCK (definitive VPN provider)
+        // 2. IP dari Indonesia → ALLOW
+        // 3. IP bukan Indonesia → BLOCK (pasti VPN/proxy)
         $country = $ispResult['country'] ?? null;
         $isIndonesia = ($country === 'Indonesia' || $country === 'ID');
 
         if ($cidrResult['is_vpn']) {
-            // CIDR match is definitive - block regardless
             $result['is_vpn'] = true;
             $result['confidence'] = 80;
             $result['provider'] = $cidrResult['provider'];
             $result['details']['cidr_match'] = $cidrResult['provider'];
             $result['details']['decision'] = 'blocked_by_cidr';
         } elseif ($isIndonesia) {
-            // INDONESIAN IPs: only block based on CIDR database
-            // Reason: Indonesian mobile carriers (Telkomsel, XL, Indosat, Smartfren)
-            // use CGNAT which causes ip-api to return false proxy/hosting flags.
             $result['is_vpn'] = false;
             $result['confidence'] = 0;
             $result['details']['decision'] = 'allowed_indonesia_ip';
-            $result['details']['reason'] = 'Indonesian IP - skipped ip-api flags (CGNAT)';
+            $result['details']['reason'] = 'IP Indonesia - diizinkan';
         } else {
-            // NON-INDONESIAN IPs: check ip-api flags
-            if ($ispResult['proxy'] ?? false) {
-                $result['is_vpn'] = true;
-                $result['confidence'] = 95;
-                $result['details']['decision'] = 'blocked_by_proxy_flag';
-                if (!$result['provider']) {
-                    $result['provider'] = $ispResult['isp_name'] ?: 'Proxy/VPN (ip-api)';
-                }
-            } elseif ($ispResult['hosting'] ?? false) {
-                $result['is_vpn'] = true;
-                $result['confidence'] = 85;
-                $result['details']['decision'] = 'blocked_by_hosting_flag';
-                if (!$result['provider']) {
-                    $result['provider'] = $ispResult['isp_name'] ?: 'Datacenter/Hosting (ip-api)';
-                }
-            } else {
-                $result['details']['decision'] = 'allowed_clean_ip';
-            }
+            $result['is_vpn'] = true;
+            $result['confidence'] = 100;
+            $result['provider'] = $ispResult['isp_name'] ?: 'Non-Indonesia IP';
+            $result['details']['decision'] = 'blocked_non_indonesia';
+            $result['details']['reason'] = 'Bukan IP Indonesia - diblokir';
         }
 
         return $result;
