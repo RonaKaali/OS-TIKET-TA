@@ -758,9 +758,10 @@ class VpnDetectionService
 
         // ========== Decision Logic ==========
         // SIMPLE RULE:
-        // 1. CIDR database match → BLOCK (definitive VPN provider)
-        // 2. IP dari Indonesia → ALLOW
-        // 3. IP bukan Indonesia → BLOCK (pasti VPN/proxy)
+        // 1. CIDR database match → BLOCK
+        // 2. Negara tidak diketahui (lookup gagal) → ALLOW (fail open)
+        // 3. IP dari Indonesia → ALLOW
+        // 4. IP bukan Indonesia → BLOCK
         $country = $ispResult['country'] ?? null;
         $isIndonesia = ($country === 'Indonesia' || $country === 'ID');
 
@@ -770,6 +771,11 @@ class VpnDetectionService
             $result['provider'] = $cidrResult['provider'];
             $result['details']['cidr_match'] = $cidrResult['provider'];
             $result['details']['decision'] = 'blocked_by_cidr';
+        } elseif ($country === null) {
+            $result['is_vpn'] = false;
+            $result['confidence'] = 0;
+            $result['details']['decision'] = 'allowed_unknown_country';
+            $result['details']['reason'] = 'Negara tidak diketahui - fail open';
         } elseif ($isIndonesia) {
             $result['is_vpn'] = false;
             $result['confidence'] = 0;
