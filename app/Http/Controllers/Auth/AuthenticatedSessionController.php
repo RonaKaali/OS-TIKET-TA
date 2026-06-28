@@ -11,6 +11,7 @@ use App\Services\VpnDetectionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
@@ -39,49 +40,89 @@ class AuthenticatedSessionController extends Controller
         $request->authenticate();
 
         // ============================================================
-        // VPN / Proxy Detection — Block login if VPN is detected
+        // VPN / Proxy Detection — Block login if detected
+        // Simple: hanya IP Indonesia yang diizinkan
         // ============================================================
         if (config('zero_trust.vpn_block_enabled', false)) {
             $clientIp = $request->ip();
-            $vpnResult = $this->vpnDetection->isVpn($clientIp);
 
-            Log::info('VPN Detection result', [
-                'email' => $request->input('email'),
-                'ip' => $clientIp,
-                'is_vpn' => $vpnResult['is_vpn'],
-                'confidence' => $vpnResult['confidence'],
-                'provider' => $vpnResult['provider'],
-                'details' => $vpnResult['details'],
-            ]);
+            try {
+                // Cek negara IP via ip-api.com
+                $response = Http::timeout(3)
+                    ->get("http://ip-api.com/json/{$clientIp}?fields=status,country,countryCode,proxy,hosting,mobile,isp,query");
 
-            if ($vpnResult['is_vpn']) {
-                Auth::guard('web')->logout();
+                $isVpn = false;
+                $provider = null;
+                $decision = 'allowed';
 
-                $this->securityLog->logAnomaly(
-                    null,
-                    'vpn_detected',
-                    [
-                        'ip_address' => $clientIp,
-                        'email' => $request->input('email'),
-                        'vpn_provider' => $vpnResult['provider'],
-                        'confidence' => $vpnResult['confidence'],
-                        'details' => $vpnResult['details'],
-                        'user_agent' => $request->userAgent(),
-                    ]
-                );
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $country = $data['country'] ?? null;
+                    $countryCode = $data['countryCode'] ?? null;
+                    $isIndonesia = ($country === 'Indonesia' || $countryCode === 'ID');
 
-                Log::warning('VPN login blocked', [
+                    Log::info('VPN Check', [
+                        'ip' => $clientIp,
+                        'country' => $country,
+                        'countryCode' => $countryCode,
+                        'isp' => $data['isp'] ?? null,
+                        'proxy' => $data['proxy'] ?? false,
+                        'hosting' => $data['hosting'] ?? false,
+                        'mobile' => $data['mobile'] ?? false,
+                    ]);
+
+                    if ($isIndonesia) {
+                        // IP Indonesia → allow
+                        $decision = 'allowed_indonesia';
+                    } else {
+                        // Bukan Indonesia → block
+                        $isVpn = true;
+                        $provider = $data['isp'] ?? 'Non-Indonesia IP';
+                        $decision = 'blocked_non_indonesia';
+                    }
+                } else {
+                    // API gagal → allow (fail open)
+                    $decision = 'allowed_api_failed';
+                    Log::warning('VPN Check: ip-api gagal', ['ip' => $clientIp, 'status' => $response->status()]);
+                }
+
+                Log::info('VPN Decision', [
                     'email' => $request->input('email'),
                     'ip' => $clientIp,
-                    'provider' => $vpnResult['provider'],
-                    'confidence' => $vpnResult['confidence'],
+                    'is_vpn' => $isVpn,
+                    'decision' => $decision,
                 ]);
 
-                return redirect()->route('login.vpn-blocked')->with([
-                    'vpn_ip' => $clientIp,
-                    'vpn_provider' => $vpnResult['provider'],
-                    'vpn_confidence' => $vpnResult['confidence'],
-                ]);
+                if ($isVpn) {
+                    Auth::guard('web')->logout();
+
+                    $this->securityLog->logAnomaly(
+                        null,
+                        'vpn_detected',
+                        [
+                            'ip_address' => $clientIp,
+                            'email' => $request->input('email'),
+                            'vpn_provider' => $provider,
+                            'user_agent' => $request->userAgent(),
+                            'decision' => $decision,
+                        ]
+                    );
+
+                    Log::warning('VPN login blocked', [
+                        'email' => $request->input('email'),
+                        'ip' => $clientIp,
+                        'provider' => $provider,
+                    ]);
+
+                    return redirect()->route('login.vpn-blocked')->with([
+                        'vpn_ip' => $clientIp,
+                        'vpn_provider' => $provider,
+                        'vpn_confidence' => 100,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                // Error → allow (fail open)
+                Log::warning('VPN Check: error', ['ip' => $clientIp, 'error' => $e->getMessage()]);
             }
         }
 
