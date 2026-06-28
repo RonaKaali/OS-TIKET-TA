@@ -63,14 +63,15 @@ foreach ($criticalKeys as $key) {
     }
 }
 
-// Jika CACHE_STORE belum di-set dari Vercel, paksa ke 'array' (tidak butuh DB)
-if (empty(getenv('CACHE_STORE')) || getenv('CACHE_STORE') === 'database') {
+// Jika CACHE_STORE belum di-set dari Vercel, paksa ke 'file' (butuh persistent storage)
+// JANGAN paksa ke 'array' karena RateLimiter dan VPN cache butuh persist antar request
+if (empty(getenv('CACHE_STORE')) || getenv('CACHE_STORE') === 'database' || getenv('CACHE_STORE') === 'array') {
     $cs = getenv('CACHE_STORE');
-    // Hanya paksa ke array jika Vercel belum set CACHE_STORE yang valid
-    if ($cs === false || $cs === '' || $cs === 'database') {
-        putenv('CACHE_STORE=array');
-        $_ENV['CACHE_STORE'] = 'array';
-        $_SERVER['CACHE_STORE'] = 'array';
+    // Hanya paksa ke file jika Vercel belum set CACHE_STORE yang valid
+    if ($cs === false || $cs === '' || $cs === 'database' || $cs === 'array') {
+        putenv('CACHE_STORE=file');
+        $_ENV['CACHE_STORE'] = 'file';
+        $_SERVER['CACHE_STORE'] = 'file';
     }
 }
 

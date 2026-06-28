@@ -712,18 +712,12 @@ class VpnDetectionService
             ['cidr' => '2600:3c00::/24', 'provider' => 'Linode'],
         ];
     }
-
     /**
      * Check if an IP address is associated with a VPN/proxy/datacenter.
      *
-     * Uses a multi-layered approach:
-     * 1. Fast CIDR lookup against known VPN/datacenter ranges
-     * 2. Real-time ip-api.com check with proxy/hosting/mobile flags
-     * 3. ISP name keyword matching
-     * 4. Cached responses to avoid rate limits
-     *
-     * @param string $ip The IP address to check
-     * @return array ['is_vpn' => bool, 'confidence' => int (0-100), 'provider' => ?string, 'details' => []]
+     * CRITICAL: Mobile IPs (4G/5G) are NEVER blocked based on ip-api flags alone.
+     * Only definitive CIDR matches can block mobile IPs.
+     * This prevents false positives from CGNAT/operator-grade NAT.
      */
     public function isVpn(string $ip): array
     {
@@ -744,68 +738,66 @@ class VpnDetectionService
             'details' => [],
         ];
 
-        // Layer 1: Fast CIDR lookup against known ranges
+        // ========== Layer 1: CIDR lookup (definitive) ==========
         $cidrResult = $this->checkCidrRanges($ip);
-        if ($cidrResult['is_vpn']) {
-            $result['is_vpn'] = true;
-            $result['confidence'] = max($result['confidence'], 80);
-            $result['provider'] = $cidrResult['provider'];
-            $result['details']['cidr_match'] = $cidrResult['provider'];
+
+        // ========== Layer 2: ip-api.com lookup ==========
+        $ispResult = $this->lookupIsp($ip);
+
+        // If ISP lookup succeeded, populate details
+        if (isset($ispResult['isp_name']) && $ispResult['isp_name']) {
+            $result['details'] = [
+                'isp' => $ispResult['isp_name'],
+                'org' => $ispResult['org'] ?? null,
+                'country' => $ispResult['country'] ?? null,
+                'proxy_flag' => $ispResult['proxy'] ?? false,
+                'hosting_flag' => $ispResult['hosting'] ?? false,
+                'mobile_flag' => $ispResult['mobile'] ?? false,
+            ];
         }
 
-        // Layer 2: Real-time IP check via ip-api.com
-        // This API directly provides proxy, hosting, and mobile flags
-        $ispResult = $this->lookupIsp($ip);
-        if ($ispResult['isp_name']) {
-            $result['details']['isp'] = $ispResult['isp_name'];
-            $result['details']['org'] = $ispResult['org'];
-            $result['details']['country'] = $ispResult['country'];
-            $result['details']['proxy_flag'] = $ispResult['proxy'];
-            $result['details']['hosting_flag'] = $ispResult['hosting'];
-            $result['details']['mobile_flag'] = $ispResult['mobile'];
+        // ========== Decision Logic ==========
+        $isMobile = $ispResult['mobile'] ?? false;
 
-            // ip-api.com 'proxy' field = direct proxy/VPN detection (highly reliable)
-            if ($ispResult['proxy']) {
+        if ($cidrResult['is_vpn']) {
+            // CIDR match is definitive - block regardless
+            $result['is_vpn'] = true;
+            $result['confidence'] = 80;
+            $result['provider'] = $cidrResult['provider'];
+            $result['details']['cidr_match'] = $cidrResult['provider'];
+            $result['details']['decision'] = 'blocked_by_cidr';
+        } elseif ($isMobile) {
+            // Mobile IPs are NEVER blocked by ip-api flags (CGNAT false positives)
+            $result['is_vpn'] = false;
+            $result['confidence'] = 0;
+            $result['details']['decision'] = 'allowed_mobile_carrier';
+            $result['details']['mobile_carrier'] = $ispResult['isp_name'] ?? 'Unknown';
+        } else {
+            // Non-mobile IPs: check ip-api flags
+            if ($ispResult['proxy'] ?? false) {
                 $result['is_vpn'] = true;
-                $result['confidence'] = max($result['confidence'], 95);
-                $result['details']['detection_method'] = 'proxy_flag';
+                $result['confidence'] = 95;
+                $result['details']['decision'] = 'blocked_by_proxy_flag';
                 if (!$result['provider']) {
                     $result['provider'] = $ispResult['isp_name'] ?: 'Proxy/VPN (ip-api)';
                 }
-            }
-
-            // ip-api.com 'hosting' field = hosting/datacenter (but exclude mobile carriers)
-            if ($ispResult['hosting'] && !$ispResult['mobile']) {
+            } elseif ($ispResult['hosting'] ?? false) {
                 $result['is_vpn'] = true;
-                $result['confidence'] = max($result['confidence'], 85);
-                $result['details']['detection_method'] = 'hosting_flag';
+                $result['confidence'] = 85;
+                $result['details']['decision'] = 'blocked_by_hosting_flag';
                 if (!$result['provider']) {
                     $result['provider'] = $ispResult['isp_name'] ?: 'Datacenter/Hosting (ip-api)';
                 }
-            }
-
-            // Mobile IPs that are NOT flagged as proxy are safe (bypass hosting check)
-            if ($ispResult['mobile'] && !$ispResult['proxy'] && !$ispResult['hosting']) {
-                $result['details']['mobile_carrier'] = $ispResult['isp_name'];
-                $result['details']['detection_method'] = 'mobile_excluded';
-                // Jangan set is_vpn=true, biarkan false
-            }
-
-            // ISP keyword matching (fallback if proxy/hosting flags not set)
-            if ($ispResult['is_suspicious']) {
+            } elseif ($ispResult['is_suspicious'] ?? false) {
                 $result['is_vpn'] = true;
-                $result['confidence'] = max($result['confidence'], 70);
+                $result['confidence'] = 70;
+                $result['details']['decision'] = 'blocked_by_keyword';
                 if (!$result['provider']) {
                     $result['provider'] = $ispResult['isp_name'];
                 }
-                $result['details']['detection_method'] = 'keyword_match';
+            } else {
+                $result['details']['decision'] = 'allowed_clean_ip';
             }
-        }
-
-        // Final confidence boost
-        if ($result['is_vpn'] && $cidrResult['is_vpn'] && $ispResult['is_suspicious']) {
-            $result['confidence'] = min(100, $result['confidence'] + 15);
-            $result['details']['both_layers_agree'] = true;
         }
 
         return $result;
