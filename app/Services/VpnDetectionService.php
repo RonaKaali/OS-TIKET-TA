@@ -757,7 +757,8 @@ class VpnDetectionService
         }
 
         // ========== Decision Logic ==========
-        $isMobile = $ispResult['mobile'] ?? false;
+        $country = $ispResult['country'] ?? null;
+        $isIndonesia = ($country === 'Indonesia' || $country === 'ID');
 
         if ($cidrResult['is_vpn']) {
             // CIDR match is definitive - block regardless
@@ -766,30 +767,16 @@ class VpnDetectionService
             $result['provider'] = $cidrResult['provider'];
             $result['details']['cidr_match'] = $cidrResult['provider'];
             $result['details']['decision'] = 'blocked_by_cidr';
-        } elseif ($isMobile) {
-            // Mobile IP: only block if CIDR match or definitive proxy flag
-            // Hosting flag & keyword matching are skipped (operator CGNAT false positives)
-            if ($cidrResult['is_vpn']) {
-                $result['is_vpn'] = true;
-                $result['confidence'] = 80;
-                $result['provider'] = $cidrResult['provider'];
-                $result['details']['decision'] = 'blocked_by_cidr';
-                $result['details']['cidr_match'] = $cidrResult['provider'];
-            } elseif ($ispResult['proxy'] ?? false) {
-                $result['is_vpn'] = true;
-                $result['confidence'] = 90;
-                $result['details']['decision'] = 'blocked_by_proxy_flag';
-                if (!$result['provider']) {
-                    $result['provider'] = $ispResult['isp_name'] ?: 'Proxy/VPN (ip-api)';
-                }
-            } else {
-                $result['is_vpn'] = false;
-                $result['confidence'] = 0;
-                $result['details']['decision'] = 'allowed_mobile_carrier';
-                $result['details']['mobile_carrier'] = $ispResult['isp_name'] ?? 'Unknown';
-            }
+        } elseif ($isIndonesia) {
+            // INDONESIAN IPs: only block based on CIDR database
+            // Reason: Indonesian mobile carriers (Telkomsel, XL, Indosat, Smartfren)
+            // use CGNAT which causes ip-api to return false proxy/hosting flags.
+            $result['is_vpn'] = false;
+            $result['confidence'] = 0;
+            $result['details']['decision'] = 'allowed_indonesia_ip';
+            $result['details']['reason'] = 'Indonesian IP - skipped ip-api flags (CGNAT)';
         } else {
-            // Non-mobile IPs: check ip-api flags
+            // NON-INDONESIAN IPs: check ip-api flags
             if ($ispResult['proxy'] ?? false) {
                 $result['is_vpn'] = true;
                 $result['confidence'] = 95;
@@ -1038,4 +1025,5 @@ class VpnDetectionService
         return false;
     }
 }
+
 
