@@ -43,34 +43,20 @@ class AuthenticatedSessionController extends Controller
         // ============================================================
         if (config('zero_trust.vpn_block_enabled', false)) {
             $clientIp = $request->ip();
-            $userAgent = $request->userAgent();
+            $vpnResult = $this->vpnDetection->isVpn($clientIp);
 
-            // BYPASS: Mobile/HP tidak di-cek VPN (CGNAT false positives)
-            $isMobile = preg_match('/Mobile|Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i', $userAgent ?? '');
-            if ($isMobile) {
-                Log::info('VPN Detection: Mobile device bypassed', [
-                    'email' => $request->input('email'),
-                    'ip' => $clientIp,
-                    'user_agent' => substr($userAgent ?? '', 0, 100),
-                ]);
-            } else {
-                $vpnResult = $this->vpnDetection->isVpn($clientIp);
+            Log::info('VPN Detection result', [
+                'email' => $request->input('email'),
+                'ip' => $clientIp,
+                'is_vpn' => $vpnResult['is_vpn'],
+                'confidence' => $vpnResult['confidence'],
+                'provider' => $vpnResult['provider'],
+                'details' => $vpnResult['details'],
+            ]);
 
-                // Debug: log hasil deteksi untuk setiap login
-                Log::info('VPN Detection result', [
-                    'email' => $request->input('email'),
-                    'ip' => $clientIp,
-                    'is_vpn' => $vpnResult['is_vpn'],
-                    'confidence' => $vpnResult['confidence'],
-                    'provider' => $vpnResult['provider'],
-                    'details' => $vpnResult['details'],
-                ]);
-
-                if ($vpnResult['is_vpn']) {
-                // Logout user yang baru saja authenticated
+            if ($vpnResult['is_vpn']) {
                 Auth::guard('web')->logout();
 
-                // Log ke security monitoring
                 $this->securityLog->logAnomaly(
                     null,
                     'vpn_detected',
@@ -98,17 +84,15 @@ class AuthenticatedSessionController extends Controller
                 ]);
             }
         }
-    }
 
-    $request->session()->regenerate();
+        $request->session()->regenerate();
 
         $user = Auth::user();
         $user->refresh();
 
         $mfaEnabled = $user->hasMfaEnabled();
 
-        // Log untuk debugging
-        \Log::info('Login MFA check', [
+        Log::info('Login MFA check', [
             'user_id' => $user->id,
             'email' => $user->email,
             'mfa_enabled_db' => $user->mfa_enabled ?? false,
@@ -117,27 +101,22 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         if ($mfaEnabled) {
-            // Jika MFA enabled, redirect ke halaman verifikasi MFA
-            // Jangan set session lengkap dulu, tunggu MFA verified
-            \Log::info('MFA enabled for user, redirecting to MFA verification', [
+            Log::info('MFA enabled for user, redirecting to MFA verification', [
                 'user_id' => $user->id,
                 'email' => $user->email,
             ]);
             return redirect()->route('mfa.verify');
         }
 
-        // Jika tidak ada MFA, lanjutkan dengan setup session normal
         $this->completeLogin($request, $user);
 
         $this->securityLog->logAuthentication('login', $user->id, true, "Login berhasil: {$user->email}");
 
-        // Redirect sesuai permission
         if ($user->hasRole('Super Admin') || $user->hasRole('Admin')) {
             return redirect()->route('admin.index');
         } elseif ($user->hasRole('Agent 2') || $user->hasRole('Kepala Bidang') || $user->can('admin.panel')) {
             return redirect()->route('agent.dashboard');
         } else {
-            // User biasa di-redirect ke welcome page
             return redirect()->intended(route('welcome', absolute: false))->with('status', 'Selamat datang! Anda dapat menggunakan fitur di bawah untuk melaporkan insiden siber.');
         }
     }
@@ -149,7 +128,6 @@ class AuthenticatedSessionController extends Controller
     {
         $user = Auth::user();
 
-        // Revoke semua token user saat logout
         if ($user) {
             try {
                 $user->tokens()->delete();
@@ -173,15 +151,12 @@ class AuthenticatedSessionController extends Controller
     protected function completeLogin(Request $request, $user): void
     {
         try {
-            // Generate bearer token untuk keamanan tambahan (disimpan di session, tidak ditampilkan)
-            // Token akan digunakan untuk validasi request internal
             $tokenResult = $user->createToken('web-session-token', ['*'], now()->addMinutes(3));
             $request->session()->put('auth_token_id', $tokenResult->accessToken->id);
         } catch (\Exception $e) {
             // Abaikan jika tabel personal_access_tokens tidak ada
         }
 
-        // Set last activity time untuk auto logout
         $request->session()->put('last_activity', now()->toDateTimeString());
 
         $this->revocationService->clearRevocationFlag($user);

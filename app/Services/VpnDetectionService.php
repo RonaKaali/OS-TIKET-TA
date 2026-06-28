@@ -767,11 +767,27 @@ class VpnDetectionService
             $result['details']['cidr_match'] = $cidrResult['provider'];
             $result['details']['decision'] = 'blocked_by_cidr';
         } elseif ($isMobile) {
-            // Mobile IPs are NEVER blocked by ip-api flags (CGNAT false positives)
-            $result['is_vpn'] = false;
-            $result['confidence'] = 0;
-            $result['details']['decision'] = 'allowed_mobile_carrier';
-            $result['details']['mobile_carrier'] = $ispResult['isp_name'] ?? 'Unknown';
+            // Mobile IP: only block if CIDR match or definitive proxy flag
+            // Hosting flag & keyword matching are skipped (operator CGNAT false positives)
+            if ($cidrResult['is_vpn']) {
+                $result['is_vpn'] = true;
+                $result['confidence'] = 80;
+                $result['provider'] = $cidrResult['provider'];
+                $result['details']['decision'] = 'blocked_by_cidr';
+                $result['details']['cidr_match'] = $cidrResult['provider'];
+            } elseif ($ispResult['proxy'] ?? false) {
+                $result['is_vpn'] = true;
+                $result['confidence'] = 90;
+                $result['details']['decision'] = 'blocked_by_proxy_flag';
+                if (!$result['provider']) {
+                    $result['provider'] = $ispResult['isp_name'] ?: 'Proxy/VPN (ip-api)';
+                }
+            } else {
+                $result['is_vpn'] = false;
+                $result['confidence'] = 0;
+                $result['details']['decision'] = 'allowed_mobile_carrier';
+                $result['details']['mobile_carrier'] = $ispResult['isp_name'] ?? 'Unknown';
+            }
         } else {
             // Non-mobile IPs: check ip-api flags
             if ($ispResult['proxy'] ?? false) {
