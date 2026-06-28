@@ -32,10 +32,6 @@
         main .bg-gray-50 { background-color: #f8fafc !important; }
         .dark main .bg-gray-50 { background-color: rgba(2, 6, 23, 0.3) !important; }
         
-        /* Fix: Cards inside Live Monitoring must respect dark mode */
-        .dark main .rounded-lg.bg-slate-100 { background-color: rgb(17 24 39 / 0.8) !important; }
-        .dark main .border-slate-300 { border-color: rgb(55 65 81 / 1) !important; }
-        
         /* Premium Buttons */
         main .bg-indigo-600 { background: linear-gradient(to right, #059669, #2563eb) !important; border: none !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; font-size: 0.75rem !important; color: white !important; }
         main .bg-indigo-600:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); }
@@ -118,7 +114,7 @@
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden relative z-10">
+        <div class="flex-1 flex flex-col relative z-10">
             <!-- Top Navigation -->
             <header class="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 transition-colors">
                 <div class="px-4 sm:px-6 lg:px-8">

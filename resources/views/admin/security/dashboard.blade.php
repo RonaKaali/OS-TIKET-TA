@@ -176,8 +176,8 @@
 
                                     <!-- Zero Trust Details -->
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px]">
-                                        <div class="rounded-lg bg-slate-100 dark:bg-gray-900/80 border border-slate-300 dark:border-gray-700 px-3 py-2">
-                                            <div class="text-slate-500 dark:text-gray-500 uppercase tracking-widest font-black mb-1">Risk Score</div>
+                                        <div class="rounded-lg bg-slate-100 dark:bg-gray-800 border border-slate-300 dark:border-gray-700 px-3 py-2">
+                                            <div class="text-slate-500 dark:text-gray-400 uppercase tracking-widest font-black mb-1">Risk Score</div>
                                             <template x-if="event.risk_score !== null">
                                                 <div class="flex items-center gap-2">
                                                     <div class="flex-1 h-1.5 bg-slate-300 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -195,8 +195,8 @@
                                             </template>
                                         </div>
 
-                                        <div class="rounded-lg bg-slate-100 dark:bg-gray-900/80 border border-slate-300 dark:border-gray-700 px-3 py-2">
-                                            <div class="text-gray-500 uppercase tracking-widest font-black mb-1">GPS</div>
+                                        <div class="rounded-lg bg-slate-100 dark:bg-gray-800 border border-slate-300 dark:border-gray-700 px-3 py-2">
+                                            <div class="text-slate-500 dark:text-gray-400 uppercase tracking-widest font-black mb-1">GPS</div>
                                             <template x-if="event.gps_label">
                                                 <div class="font-mono text-emerald-600 dark:text-emerald-300 break-all" x-text="event.gps_label"></div>
                                             </template>
@@ -205,8 +205,8 @@
                                             </template>
                                         </div>
 
-                                        <div class="rounded-lg bg-slate-100 dark:bg-gray-900/80 border border-slate-300 dark:border-gray-700 px-3 py-2">
-                                            <div class="text-gray-500 uppercase tracking-widest font-black mb-1">Device</div>
+                                        <div class="rounded-lg bg-slate-100 dark:bg-gray-800 border border-slate-300 dark:border-gray-700 px-3 py-2">
+                                            <div class="text-slate-500 dark:text-gray-400 uppercase tracking-widest font-black mb-1">Device</div>
                                             <template x-if="event.device_fingerprint">
                                                 <div class="font-mono text-cyan-600 dark:text-cyan-300 break-all" :title="event.device_fingerprint" x-text="event.device_fingerprint_short"></div>
                                                 <template x-if="event.device_trust_score !== null">
