@@ -125,8 +125,8 @@
                         </div>
                         <div class="flex items-center space-x-4">
                             <x-theme-toggle />
-                            @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']))
-                            <!-- Notification Bell -->
+                            @if(auth()->user()->hasAnyRole(['Super Admin', 'Admin']) && !request()->routeIs('security.dashboard'))
+                            <!-- Notification Bell (hidden on Zero Trust dashboard) -->
                             <div class="relative" x-data="{
                                 notifications: [],
                                 unreadCount: 0,
