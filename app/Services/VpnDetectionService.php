@@ -804,13 +804,6 @@ class VpnDetectionService
                 if (!$result['provider']) {
                     $result['provider'] = $ispResult['isp_name'] ?: 'Datacenter/Hosting (ip-api)';
                 }
-            } elseif ($ispResult['is_suspicious'] ?? false) {
-                $result['is_vpn'] = true;
-                $result['confidence'] = 70;
-                $result['details']['decision'] = 'blocked_by_keyword';
-                if (!$result['provider']) {
-                    $result['provider'] = $ispResult['isp_name'];
-                }
             } else {
                 $result['details']['decision'] = 'allowed_clean_ip';
             }
@@ -985,6 +978,30 @@ class VpnDetectionService
     }
 
     /**
+     * Add VPN CIDR ranges at runtime (for database-driven ranges from Supabase).
+     */
+    public function addVpnRange(string $cidr, string $provider): void
+    {
+        $this->knownVpnRanges[] = ['cidr' => $cidr, 'provider' => $provider];
+    }
+
+    /**
+     * Load additional VPN ranges from database (Supabase PostgreSQL).
+     * Allows admin to add custom VPN IP ranges via dashboard.
+     */
+    public function loadAdditionalRanges(): void
+    {
+        try {
+            $dbRanges = \Illuminate\Support\Facades\DB::table('vpn_ip_ranges')->get();
+            foreach ($dbRanges as $range) {
+                $this->addVpnRange($range->cidr, $range->provider ?? 'Custom VPN');
+            }
+        } catch (\Throwable $e) {
+            // Table might not exist yet
+        }
+    }
+
+    /**
      * Check if an IP is a private/local address.
      */
     protected function isPrivateIp(string $ip): bool
@@ -1021,3 +1038,4 @@ class VpnDetectionService
         return false;
     }
 }
+
