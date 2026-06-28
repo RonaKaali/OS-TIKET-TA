@@ -15,6 +15,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | VPN / Proxy Detection
+    |--------------------------------------------------------------------------
+    | Saat diaktifkan, login dari VPN/proxy/datacenter akan ditolak dan
+    | dicatat sebagai anomali di Live Security Monitoring.
+    |
+    */
+
+    'vpn_block_enabled' => env('VPN_BLOCK_ENABLED', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Device Fingerprinting
     |--------------------------------------------------------------------------
     */

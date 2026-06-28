@@ -7,9 +7,11 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Services\AccessRevocationService;
 use App\Services\MfaService;
 use App\Services\SecurityEventLogService;
+use App\Services\VpnDetectionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -17,7 +19,8 @@ class AuthenticatedSessionController extends Controller
     public function __construct(
         protected MfaService $mfaService,
         protected SecurityEventLogService $securityLog,
-        protected AccessRevocationService $revocationService
+        protected AccessRevocationService $revocationService,
+        protected VpnDetectionService $vpnDetection
     ) {}
 
     /**
@@ -34,6 +37,46 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
+
+        // ============================================================
+        // VPN / Proxy Detection — Block login if VPN is detected
+        // ============================================================
+        if (config('zero_trust.vpn_block_enabled', false)) {
+            $clientIp = $request->ip();
+            $vpnResult = $this->vpnDetection->isVpn($clientIp);
+
+            if ($vpnResult['is_vpn']) {
+                // Logout user yang baru saja authenticated
+                Auth::guard('web')->logout();
+
+                // Log ke security monitoring
+                $this->securityLog->logAnomaly(
+                    null,
+                    'vpn_detected',
+                    [
+                        'ip_address' => $clientIp,
+                        'email' => $request->input('email'),
+                        'vpn_provider' => $vpnResult['provider'],
+                        'confidence' => $vpnResult['confidence'],
+                        'details' => $vpnResult['details'],
+                        'user_agent' => $request->userAgent(),
+                    ]
+                );
+
+                Log::warning('VPN login blocked', [
+                    'email' => $request->input('email'),
+                    'ip' => $clientIp,
+                    'provider' => $vpnResult['provider'],
+                    'confidence' => $vpnResult['confidence'],
+                ]);
+
+                return redirect()->route('login.vpn-blocked')->with([
+                    'vpn_ip' => $clientIp,
+                    'vpn_provider' => $vpnResult['provider'],
+                    'vpn_confidence' => $vpnResult['confidence'],
+                ]);
+            }
+        }
 
         $request->session()->regenerate();
 

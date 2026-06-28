@@ -24,6 +24,10 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
+    Route::get('login/vpn-blocked', function () {
+        return view('auth.vpn-blocked');
+    })->name('login.vpn-blocked');
+
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
