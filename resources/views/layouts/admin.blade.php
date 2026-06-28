@@ -114,7 +114,7 @@
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col relative z-10">
+        <div class="flex-1 flex flex-col relative z-30">
             <!-- Top Navigation -->
             <header class="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 transition-colors">
                 <div class="px-4 sm:px-6 lg:px-8">
@@ -172,7 +172,7 @@
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 dark:bg-slate-950/50 p-4 sm:p-6 lg:p-8 transition-colors">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 lg:p-8 transition-colors">
                 @if(session('ok'))
                     <div class="mb-6 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-6 py-4 rounded-2xl flex items-center shadow-[0_0_15px_rgba(16,185,129,0.1)]" role="alert">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
