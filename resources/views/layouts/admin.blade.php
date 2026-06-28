@@ -21,7 +21,7 @@
     <style>
         /* Global Admin Theme Overrides */
         main .bg-white { background-color: white !important; }
-        .dark main .bg-white { background-color: rgba(15, 23, 42, 0.5) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .dark main .bg-white { background-color: rgba(15, 23, 42, 0.8) !important; backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
         
         main .text-gray-900, main .text-gray-800 { color: #1e293b !important; }
         .dark main .text-gray-900, .dark main .text-gray-800 { color: #f8fafc !important; }
@@ -31,6 +31,10 @@
         
         main .bg-gray-50 { background-color: #f8fafc !important; }
         .dark main .bg-gray-50 { background-color: rgba(2, 6, 23, 0.3) !important; }
+        
+        /* Fix: Cards inside Live Monitoring must respect dark mode */
+        .dark main .rounded-lg.bg-slate-100 { background-color: rgb(17 24 39 / 0.8) !important; }
+        .dark main .border-slate-300 { border-color: rgb(55 65 81 / 1) !important; }
         
         /* Premium Buttons */
         main .bg-indigo-600 { background: linear-gradient(to right, #059669, #2563eb) !important; border: none !important; font-weight: 800 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; font-size: 0.75rem !important; color: white !important; }
