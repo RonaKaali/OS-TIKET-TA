@@ -20,7 +20,12 @@
         </p>
 
         <!-- IP & Provider Details -->
+        <!-- Notifikasi -->
+        @if(session('vpn_confidence'))
         <div class="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-2xl p-5 space-y-3 text-left">
+        @else
+        <div class="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-3 text-left">
+        @endif
             <!-- IP Address -->
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">IP Address</span>

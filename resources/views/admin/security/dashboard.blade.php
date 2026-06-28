@@ -76,17 +76,17 @@
         </div>
 
         <!-- Live Monitoring Section -->
-        <div class="bg-slate-900 overflow-hidden shadow-xl rounded-2xl border border-slate-700">
+        <div class="bg-white dark:bg-slate-900 overflow-hidden shadow-xl dark:shadow-[0_0_25px_rgba(0,0,0,0.5)] rounded-2xl border border-slate-200 dark:border-slate-700 transition-colors">
             <div class="p-6">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-bold text-cyan-400 flex items-center">
+                    <h3 class="text-lg font-bold text-cyan-600 dark:text-cyan-400 flex items-center">
                         <span class="relative flex h-3 w-3 mr-3">
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
                         </span>
                         LIVE SECURITY MONITORING
                     </h3>
-                    <div class="text-xs text-gray-500 uppercase tracking-widest bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
+                    <div class="text-xs text-slate-500 dark:text-gray-500 uppercase tracking-widest bg-slate-100 dark:bg-gray-800 px-3 py-1 rounded-full border border-slate-200 dark:border-gray-700">
                         Polling: <span x-text="countdown">60</span>s
                     </div>
                 </div>
@@ -95,11 +95,11 @@
                 <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                     <template x-for="event in events" :key="event.id">
                         <div 
-                            class="relative p-4 rounded-lg border bg-gray-800 transition-all duration-500 hover:bg-gray-750"
+                            class="relative p-4 rounded-lg border bg-slate-50 dark:bg-gray-800 transition-all duration-500 hover:bg-slate-100 dark:hover:bg-gray-750"
                             :class="{
-                                'border-red-900 bg-red-950/20': event.severity === 'critical' || event.severity === 'high',
-                                'border-yellow-900 bg-yellow-950/20': event.severity === 'medium',
-                                'border-gray-700': event.severity === 'low'
+                                'border-red-500 dark:border-red-900 bg-red-50 dark:bg-red-950/20': event.severity === 'critical' || event.severity === 'high',
+                                'border-yellow-500 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-950/20': event.severity === 'medium',
+                                'border-slate-200 dark:border-gray-700': event.severity === 'low'
                             }"
                             x-transition:enter="transition ease-out duration-500"
                             x-transition:enter-start="opacity-0 transform -translate-y-4"
@@ -132,22 +132,22 @@
                                 <div class="flex-grow min-w-0">
                                     <div class="flex items-center justify-between mb-1 gap-2">
                                         <div class="min-w-0">
-                                            <span class="text-sm font-bold text-gray-200" x-text="event.user_name"></span>
+                                            <span class="text-sm font-bold text-slate-800 dark:text-gray-200" x-text="event.user_name"></span>
                                             <template x-if="event.user_email">
                                                 <span class="text-[10px] text-gray-500 ml-2" x-text="`(${event.user_email})`"></span>
                                             </template>
                                         </div>
                                         <div class="flex items-center gap-2 shrink-0">
-                                            <span class="px-2 py-0.5 text-[10px] rounded bg-gray-900 border border-gray-700 text-cyan-300 font-black uppercase tracking-wider" x-text="event.severity_label"></span>
+                                            <span class="px-2 py-0.5 text-[10px] rounded bg-slate-200 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-cyan-700 dark:text-cyan-300 font-black uppercase tracking-wider" x-text="event.severity_label"></span>
                                             <span class="text-xs text-gray-500" x-text="event.time_diff"></span>
                                         </div>
                                     </div>
-                                    <div class="text-sm text-gray-400 mb-2" x-text="event.message"></div>
+                                    <div class="text-sm text-slate-600 dark:text-gray-400 mb-2" x-text="event.message"></div>
                                     
                                     <!-- Badges -->
                                     <div class="flex flex-wrap gap-2 items-center mb-3">
-                                        <span class="px-2 py-0.5 text-[10px] rounded bg-gray-900 border border-gray-700 text-gray-300 font-mono" x-text="event.ip_address"></span>
-                                        <span class="px-2 py-0.5 text-[10px] rounded bg-gray-900 border border-gray-700 text-gray-300 font-mono" x-text="event.event_type"></span>
+                                        <span class="px-2 py-0.5 text-[10px] rounded bg-slate-100 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-slate-700 dark:text-gray-300 font-mono" x-text="event.ip_address"></span>
+                                        <span class="px-2 py-0.5 text-[10px] rounded bg-slate-100 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-slate-700 dark:text-gray-300 font-mono" x-text="event.event_type"></span>
                                         <template x-if="event.method && event.path">
                                             <span class="px-2 py-0.5 text-[10px] rounded bg-purple-900/30 border border-purple-800 text-purple-300 font-mono">
                                                 <span x-text="event.method"></span> <span x-text="event.path"></span>
@@ -161,12 +161,12 @@
                                         <template x-if="event.user_id && event.user_id !== {{ auth()->id() }}">
                                             <div class="ml-auto flex gap-2">
                                                 <template x-if="!event.user_is_revoked">
-                                                    <button @click="revokeAccess(event.user_id)" class="px-2 py-0.5 text-[10px] font-bold rounded bg-red-900/50 border border-red-700 text-red-300 hover:bg-red-700 hover:text-white transition-colors cursor-pointer" title="Logout paksa user di semua perangkat">
+                                                    <button @click="revokeAccess(event.user_id)" class="px-2 py-0.5 text-[10px] font-bold rounded bg-red-100 dark:bg-red-900/50 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-500 hover:text-white dark:hover:bg-red-700 transition-colors cursor-pointer" title="Logout paksa user di semua perangkat">
                                                         <i class="fas fa-ban mr-1"></i> Cabut Akses
                                                     </button>
                                                 </template>
                                                 <template x-if="event.user_is_revoked">
-                                                    <button @click="restoreAccess(event.user_id)" class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-900/50 border border-emerald-700 text-emerald-300 hover:bg-emerald-700 hover:text-white transition-colors cursor-pointer" title="Pulihkan akses user untuk login kembali">
+                                                    <button @click="restoreAccess(event.user_id)" class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-100 dark:bg-emerald-900/50 border border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500 hover:text-white dark:hover:bg-emerald-700 transition-colors cursor-pointer" title="Pulihkan akses user untuk login kembali">
                                                         <i class="fas fa-unlock mr-1"></i> Pulihkan Akses
                                                     </button>
                                                 </template>
@@ -176,45 +176,45 @@
 
                                     <!-- Zero Trust Details -->
                                     <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[10px]">
-                                        <div class="rounded-lg bg-gray-900/80 border border-gray-700 px-3 py-2">
-                                            <div class="text-gray-500 uppercase tracking-widest font-black mb-1">Risk Score</div>
+                                        <div class="rounded-lg bg-slate-100 dark:bg-gray-900/80 border border-slate-300 dark:border-gray-700 px-3 py-2">
+                                            <div class="text-slate-500 dark:text-gray-500 uppercase tracking-widest font-black mb-1">Risk Score</div>
                                             <template x-if="event.risk_score !== null">
                                                 <div class="flex items-center gap-2">
-                                                    <div class="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                                                    <div class="flex-1 h-1.5 bg-slate-300 dark:bg-gray-700 rounded-full overflow-hidden">
                                                         <div
                                                             class="h-full transition-all duration-1000"
                                                             :class="event.risk_score > 70 ? 'bg-red-500' : (event.risk_score > 30 ? 'bg-yellow-500' : 'bg-green-500')"
                                                             :style="`width: ${event.risk_score}%`"
                                                         ></div>
                                                     </div>
-                                                    <span class="font-bold text-gray-200" x-text="event.risk_score"></span>
+                                                    <span class="font-bold text-slate-800 dark:text-gray-200" x-text="event.risk_score"></span>
                                                 </div>
                                             </template>
                                             <template x-if="event.risk_score === null">
-                                                <span class="text-gray-500">Tidak tersedia</span>
+                                                <span class="text-slate-400 dark:text-gray-500">Tidak tersedia</span>
                                             </template>
                                         </div>
 
-                                        <div class="rounded-lg bg-gray-900/80 border border-gray-700 px-3 py-2">
+                                        <div class="rounded-lg bg-slate-100 dark:bg-gray-900/80 border border-slate-300 dark:border-gray-700 px-3 py-2">
                                             <div class="text-gray-500 uppercase tracking-widest font-black mb-1">GPS</div>
                                             <template x-if="event.gps_label">
-                                                <div class="font-mono text-emerald-300 break-all" x-text="event.gps_label"></div>
+                                                <div class="font-mono text-emerald-600 dark:text-emerald-300 break-all" x-text="event.gps_label"></div>
                                             </template>
                                             <template x-if="!event.gps_label">
-                                                <span class="text-gray-500">Tidak tersedia</span>
+                                                <span class="text-slate-400 dark:text-gray-500">Tidak tersedia</span>
                                             </template>
                                         </div>
 
-                                        <div class="rounded-lg bg-gray-900/80 border border-gray-700 px-3 py-2">
+                                        <div class="rounded-lg bg-slate-100 dark:bg-gray-900/80 border border-slate-300 dark:border-gray-700 px-3 py-2">
                                             <div class="text-gray-500 uppercase tracking-widest font-black mb-1">Device</div>
                                             <template x-if="event.device_fingerprint">
-                                                <div class="font-mono text-cyan-300 break-all" :title="event.device_fingerprint" x-text="event.device_fingerprint_short"></div>
+                                                <div class="font-mono text-cyan-600 dark:text-cyan-300 break-all" :title="event.device_fingerprint" x-text="event.device_fingerprint_short"></div>
                                                 <template x-if="event.device_trust_score !== null">
-                                                    <div class="text-gray-400 mt-1">Trust: <span class="text-white font-bold" x-text="`${event.device_trust_score}%`"></span></div>
+                                                    <div class="text-slate-500 dark:text-gray-400 mt-1">Trust: <span class="text-slate-800 dark:text-white font-bold" x-text="`${event.device_trust_score}%`"></span></div>
                                                 </template>
                                             </template>
                                             <template x-if="!event.device_fingerprint">
-                                                <span class="text-gray-500">Tidak tersedia</span>
+                                                <span class="text-slate-400 dark:text-gray-500">Tidak tersedia</span>
                                             </template>
                                         </div>
                                     </div>
@@ -225,9 +225,9 @@
 
                     <!-- Loading State -->
                     <template x-if="loading && events.length === 0">
-                        <div class="flex flex-col items-center justify-center py-12 text-gray-500">
-                            <i class="fas fa-circle-notch animate-spin text-3xl mb-4"></i>
-                            <p>Initializing secure connection...</p>
+                        <div class="flex flex-col items-center justify-center py-12 text-slate-500 dark:text-gray-500">
+                            <i class="fas fa-circle-notch animate-spin text-3xl mb-4 text-slate-400"></i>
+                            <p class="text-slate-500 dark:text-gray-500">Initializing secure connection...</p>
                         </div>
                     </template>
                 </div>

@@ -138,7 +138,7 @@
                                 <span class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase">Tingkat Tinggi</span>
                             </div>
                             
-                            <div class="h-6 w-[1px] bg-slate-800 mx-2"></div>
+                            <div class="h-6 w-[1px] bg-white dark:bg-slate-700 mx-2"></div>
 
                             <x-dropdown align="right" width="48">
                                 <x-slot name="trigger">
