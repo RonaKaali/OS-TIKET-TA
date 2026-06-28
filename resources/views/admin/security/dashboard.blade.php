@@ -114,13 +114,16 @@
                                     <template x-if="event.event_type.includes('vpn')">
                                         <i class="fas fa-shield-halved text-xl text-red-500"></i>
                                     </template>
+                                    <template x-if="event.event_type.includes('brute_force')">
+                                        <i class="fas fa-gavel text-xl text-orange-500"></i>
+                                    </template>
                                     <template x-if="event.event_type.includes('anomaly') || event.event_type.includes('failed')">
                                         <i class="fas fa-exclamation-triangle text-xl text-red-500"></i>
                                     </template>
                                     <template x-if="event.event_type.includes('device')">
                                         <i class="fas fa-laptop text-xl text-cyan-400"></i>
                                     </template>
-                                    <template x-if="!event.event_type.includes('auth') && !event.event_type.includes('vpn') && !event.event_type.includes('anomaly') && !event.event_type.includes('device')">
+                                    <template x-if="!event.event_type.includes('auth') && !event.event_type.includes('vpn') && !event.event_type.includes('brute_force') && !event.event_type.includes('anomaly') && !event.event_type.includes('device')">
                                         <i class="fas fa-fingerprint text-xl text-purple-400"></i>
                                     </template>
                                 </div>
