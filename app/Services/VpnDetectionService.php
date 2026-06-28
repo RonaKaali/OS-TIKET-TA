@@ -18,8 +18,6 @@ class VpnDetectionService
 
     /**
      * ISP keywords that indicate VPN/proxy/datacenter hosting.
-     * If the ISP name from ip-api.com contains any of these (case-insensitive),
-     * we flag it as potentially a VPN/proxy.
      */
     protected array $suspiciousIspKeywords = [
         'vpn', 'proxy', 'cloud', 'hosting', 'datacenter', 'server',
@@ -28,7 +26,7 @@ class VpnDetectionService
         'ovh', 'soyoustart', 'scaleway', 'online.net', 'kimsufi',
         'leaseweb', 'contabo', 'netcup', 'ionos', '1&1',
         'rackspace', 'softlayer', 'ibm cloud', 'oracle cloud',
-        'alibaba cloud', 'upcloud', 'exoscale', 'citycloud',
+        'alibaba cloud', 'upcloud', 'exoscale',
         'colo', 'dedicated', 'bare metal',
         'data center', 'data-centre',
         'webhosting', 'web host',
@@ -40,7 +38,23 @@ class VpnDetectionService
         'public proxy', 'socks', 'elite proxy',
         'vps', 'vds', 'virtual private server',
         'fly.io', 'vercel', 'netlify', 'heroku',
-        'layer7', 'ddos-guard', 'cloudflare',
+        'layer7', 'ddos-guard',
+    ];
+
+    /**
+     * Indonesian ISP names that are SAFE (not VPN/proxy).
+     * We exclude these from keyword matching to avoid false positives.
+     */
+    protected array $safeIndonesianIsps = [
+        'telkom', 'telkomsel', 'indihome', 'first media', 'm3 connect',
+        'xl axiata', 'xl', 'tri', '3 indonesia', 'smartfren',
+        'indosat', 'im3', 'my republic', 'mora', 'moratelindo',
+        'biznet', 'biznet networks', 'iconnet', 'icon+', 'pln icon+',
+        'centrin', 'cbn', 'cyberindo', 'd Networks', 'danpac',
+        'global media', 'jalin', 'lintasarta', 'nex hub',
+        'nusanet', 'nusantara', 'orange', 'pacific net',
+        'prima', 'radnet', 'supra', 'varnion', 'wifi.id',
+        'by.u', 'byu', 'big data', 'indonesia',
     ];
 
     public function __construct()
@@ -760,7 +774,7 @@ class VpnDetectionService
                 }
             }
 
-            // ip-api.com 'hosting' field = hosting/datacenter
+            // ip-api.com 'hosting' field = hosting/datacenter (but exclude mobile carriers)
             if ($ispResult['hosting'] && !$ispResult['mobile']) {
                 $result['is_vpn'] = true;
                 $result['confidence'] = max($result['confidence'], 85);
@@ -768,6 +782,13 @@ class VpnDetectionService
                 if (!$result['provider']) {
                     $result['provider'] = $ispResult['isp_name'] ?: 'Datacenter/Hosting (ip-api)';
                 }
+            }
+
+            // Mobile IPs that are NOT flagged as proxy are safe (bypass hosting check)
+            if ($ispResult['mobile'] && !$ispResult['proxy'] && !$ispResult['hosting']) {
+                $result['details']['mobile_carrier'] = $ispResult['isp_name'];
+                $result['details']['detection_method'] = 'mobile_excluded';
+                // Jangan set is_vpn=true, biarkan false
             }
 
             // ISP keyword matching (fallback if proxy/hosting flags not set)
@@ -938,6 +959,13 @@ class VpnDetectionService
     protected function isSuspiciousIsp(string $isp): bool
     {
         $ispLower = strtolower($isp);
+
+        // Skip jika ISP Indonesia yang dikenal aman
+        foreach ($this->safeIndonesianIsps as $safe) {
+            if (str_contains($ispLower, $safe)) {
+                return false;
+            }
+        }
 
         foreach ($this->suspiciousIspKeywords as $keyword) {
             if (str_contains($ispLower, $keyword)) {
