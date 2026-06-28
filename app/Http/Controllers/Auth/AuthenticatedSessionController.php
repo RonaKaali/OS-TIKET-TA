@@ -45,6 +45,16 @@ class AuthenticatedSessionController extends Controller
             $clientIp = $request->ip();
             $vpnResult = $this->vpnDetection->isVpn($clientIp);
 
+            // Debug: log hasil deteksi untuk setiap login
+            Log::info('VPN Detection result', [
+                'email' => $request->input('email'),
+                'ip' => $clientIp,
+                'is_vpn' => $vpnResult['is_vpn'],
+                'confidence' => $vpnResult['confidence'],
+                'provider' => $vpnResult['provider'],
+                'details' => $vpnResult['details'],
+            ]);
+
             if ($vpnResult['is_vpn']) {
                 // Logout user yang baru saja authenticated
                 Auth::guard('web')->logout();

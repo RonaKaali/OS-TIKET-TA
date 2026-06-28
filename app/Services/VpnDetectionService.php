@@ -704,8 +704,9 @@ class VpnDetectionService
      *
      * Uses a multi-layered approach:
      * 1. Fast CIDR lookup against known VPN/datacenter ranges
-     * 2. ISP name check via ip-api.com free API
-     * 3. Cached responses to avoid rate limiting
+     * 2. Real-time ip-api.com check with proxy/hosting/mobile flags
+     * 3. ISP name keyword matching
+     * 4. Cached responses to avoid rate limits
      *
      * @param string $ip The IP address to check
      * @return array ['is_vpn' => bool, 'confidence' => int (0-100), 'provider' => ?string, 'details' => []]
@@ -729,7 +730,7 @@ class VpnDetectionService
             'details' => [],
         ];
 
-        // Layer 1: Fast CIDR lookup
+        // Layer 1: Fast CIDR lookup against known ranges
         $cidrResult = $this->checkCidrRanges($ip);
         if ($cidrResult['is_vpn']) {
             $result['is_vpn'] = true;
@@ -738,23 +739,49 @@ class VpnDetectionService
             $result['details']['cidr_match'] = $cidrResult['provider'];
         }
 
-        // Layer 2: ISP lookup via ip-api.com
+        // Layer 2: Real-time IP check via ip-api.com
+        // This API directly provides proxy, hosting, and mobile flags
         $ispResult = $this->lookupIsp($ip);
         if ($ispResult['isp_name']) {
             $result['details']['isp'] = $ispResult['isp_name'];
             $result['details']['org'] = $ispResult['org'];
+            $result['details']['country'] = $ispResult['country'];
+            $result['details']['proxy_flag'] = $ispResult['proxy'];
+            $result['details']['hosting_flag'] = $ispResult['hosting'];
+            $result['details']['mobile_flag'] = $ispResult['mobile'];
 
+            // ip-api.com 'proxy' field = direct proxy/VPN detection (highly reliable)
+            if ($ispResult['proxy']) {
+                $result['is_vpn'] = true;
+                $result['confidence'] = max($result['confidence'], 95);
+                $result['details']['detection_method'] = 'proxy_flag';
+                if (!$result['provider']) {
+                    $result['provider'] = $ispResult['isp_name'] ?: 'Proxy/VPN (ip-api)';
+                }
+            }
+
+            // ip-api.com 'hosting' field = hosting/datacenter
+            if ($ispResult['hosting'] && !$ispResult['mobile']) {
+                $result['is_vpn'] = true;
+                $result['confidence'] = max($result['confidence'], 85);
+                $result['details']['detection_method'] = 'hosting_flag';
+                if (!$result['provider']) {
+                    $result['provider'] = $ispResult['isp_name'] ?: 'Datacenter/Hosting (ip-api)';
+                }
+            }
+
+            // ISP keyword matching (fallback if proxy/hosting flags not set)
             if ($ispResult['is_suspicious']) {
                 $result['is_vpn'] = true;
                 $result['confidence'] = max($result['confidence'], 70);
                 if (!$result['provider']) {
                     $result['provider'] = $ispResult['isp_name'];
                 }
-                $result['details']['isp_flag'] = 'suspicious_keyword_match';
+                $result['details']['detection_method'] = 'keyword_match';
             }
         }
 
-        // Final confidence boost if both layers agree
+        // Final confidence boost
         if ($result['is_vpn'] && $cidrResult['is_vpn'] && $ispResult['is_suspicious']) {
             $result['confidence'] = min(100, $result['confidence'] + 15);
             $result['details']['both_layers_agree'] = true;
@@ -809,7 +836,12 @@ class VpnDetectionService
     }
 
     /**
-     * Lookup ISP information for an IP address using ip-api.com.
+     * Lookup ISP + proxy/hosting information for an IP address using ip-api.com.
+     *
+     * ip-api.com is free for up to 45 requests/minute from a single IP.
+     * It provides direct 'proxy', 'hosting', and 'mobile' flags that are
+     * highly reliable for VPN/proxy/datacenter detection.
+     *
      * Results are cached for 24 hours to respect rate limits.
      */
     protected function lookupIsp(string $ip): array
@@ -826,6 +858,10 @@ class VpnDetectionService
             $result = [
                 'isp_name' => null,
                 'org' => null,
+                'country' => null,
+                'proxy' => false,
+                'hosting' => false,
+                'mobile' => false,
                 'is_suspicious' => false,
             ];
             Cache::put($cacheKey, $result, now()->addHours(24));
@@ -833,24 +869,46 @@ class VpnDetectionService
         }
 
         try {
-            $response = Http::timeout(3)
-                ->retry(1, 1000)
-                ->get("http://ip-api.com/json/{$ip}?fields=status,isp,org,query");
+            // Fields: proxy=is proxy/vpn, hosting=is hosting/datacenter, mobile=is mobile IP
+            $response = Http::timeout(5)
+                ->retry(2, 1000)
+                ->get("http://ip-api.com/json/{$ip}?fields=status,proxy,hosting,mobile,isp,org,country,countryCode,query");
 
             if ($response->successful()) {
                 $data = $response->json();
 
                 if (($data['status'] ?? '') === 'success') {
+                    $proxy = (bool) ($data['proxy'] ?? false);
+                    $hosting = (bool) ($data['hosting'] ?? false);
+                    $mobile = (bool) ($data['mobile'] ?? false);
                     $isp = $data['isp'] ?? '';
                     $org = $data['org'] ?? '';
+                    $country = $data['country'] ?? null;
 
                     $isSuspicious = $this->isSuspiciousIsp($isp) || $this->isSuspiciousIsp($org);
 
                     $result = [
                         'isp_name' => $isp ?: null,
                         'org' => $org ?: null,
+                        'country' => $country,
+                        'proxy' => $proxy,
+                        'hosting' => $hosting,
+                        'mobile' => $mobile,
                         'is_suspicious' => $isSuspicious,
                     ];
+
+                    // Log deteksi untuk debugging (hanya jika proxy/hosting terdeteksi)
+                    if ($proxy || $hosting) {
+                        Log::info('VPN Detection: IP flagged', [
+                            'ip' => $ip,
+                            'proxy' => $proxy,
+                            'hosting' => $hosting,
+                            'mobile' => $mobile,
+                            'isp' => $isp,
+                            'org' => $org,
+                            'country' => $country,
+                        ]);
+                    }
 
                     Cache::put($cacheKey, $result, now()->addHours(24));
 
@@ -864,6 +922,10 @@ class VpnDetectionService
         $default = [
             'isp_name' => null,
             'org' => null,
+            'country' => null,
+            'proxy' => false,
+            'hosting' => false,
+            'mobile' => false,
             'is_suspicious' => false,
         ];
         Cache::put($cacheKey, $default, now()->addMinutes(5));
