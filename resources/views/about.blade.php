@@ -206,16 +206,34 @@
                     <h2 class="mt-3 text-2xl sm:text-3xl font-black text-slate-950 dark:text-white">Pengembang Sistem</h2>
                     <div class="mt-8 divide-y divide-slate-200 dark:divide-slate-700">
                         <div class="py-4">
-                            <p class="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-500 font-bold">Nama</p>
-                            <p class="mt-1 text-lg font-extrabold text-slate-900 dark:text-white">Abrar</p>
+                            <p class="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-500 font-bold">Mahasiswa Pengembang</p>
+                            <div class="mt-3 grid gap-3">
+                                <div>
+                                    <p class="text-lg font-extrabold text-slate-900 dark:text-white">Muhammad Abrar Ridhani</p>
+                                    <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">C030323137</p>
+                                </div>
+                                <div>
+                                    <p class="text-lg font-extrabold text-slate-900 dark:text-white">Ahmad Rona Fatahilah</p>
+                                    <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">C030323074</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-4">
+                            <p class="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-500 font-bold">Dosen Pembimbing</p>
+                            <div class="mt-3 grid gap-3">
+                                <div>
+                                    <p class="text-sm uppercase tracking-widest text-slate-500 dark:text-slate-500 font-bold">Pembimbing 1</p>
+                                    <p class="mt-1 text-base font-extrabold text-slate-900 dark:text-white">Rahimi Fitri, S.Kom, M.Kom.</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm uppercase tracking-widest text-slate-500 dark:text-slate-500 font-bold">Pembimbing 2</p>
+                                    <p class="mt-1 text-base font-extrabold text-slate-900 dark:text-white">Drs. Koes Wiyatmoko, M.Kom.</p>
+                                </div>
+                            </div>
                         </div>
                         <div class="py-4">
                             <p class="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-500 font-bold">Konteks</p>
                             <p class="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-300">Tugas Akhir - Integrasi Keamanan Zero Trust pada OS-Tiket</p>
-                        </div>
-                        <div class="py-4">
-                            <p class="text-xs uppercase tracking-widest text-slate-500 dark:text-slate-500 font-bold">Fokus</p>
-                            <p class="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-300">Keamanan aplikasi, autentikasi berlapis, audit akses, dan perlindungan data laporan.</p>
                         </div>
                     </div>
                 </div>
