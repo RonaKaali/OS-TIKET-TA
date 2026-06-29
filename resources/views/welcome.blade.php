@@ -108,6 +108,7 @@
                 <!-- Desktop menu -->
                 <div class="hidden md:flex items-center gap-3 lg:gap-4 shrink-0">
                     <x-theme-toggle />
+                    <a href="{{ route('about') }}" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium text-sm transition">Tentang</a>
                     @auth
                         @can('admin.panel')
                             <a href="{{ route('dashboard') }}" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium text-sm transition">Dasbor Admin</a>
@@ -158,6 +159,7 @@
                 @else
                     <a href="{{ route('portal.dashboard') }}" class="block px-4 py-3.5 rounded-xl text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">📊 Dasbor Saya</a>
                 @endcan
+                <a href="{{ route('about') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Tentang Sistem</a>
                 <a href="{{ route('portal.ticket.create') }}" class="block px-4 py-3.5 rounded-xl text-emerald-700 dark:text-emerald-300 font-bold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">Laporkan Insiden</a>
                 <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
                 <a href="{{ route('profile.edit') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Profil</a>
@@ -174,6 +176,7 @@
                 @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="block px-4 py-3.5 rounded-xl text-center font-bold text-emerald-700 dark:text-emerald-300 border-2 border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition">Daftar Akun Baru</a>
                 @endif
+                <a href="{{ route('about') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Tentang Sistem</a>
                 <a href="{{ route('portal.ticket.status.form') }}" class="block px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition">Lacak Laporan</a>
                 <a href="/admin" class="block px-4 py-3.5 rounded-xl text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-800 transition">Admin Portal</a>
                 <button onclick="startCsirtTour && startCsirtTour()" class="csirt-tour-trigger w-full text-left px-4 py-3.5 rounded-xl text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
@@ -469,6 +472,7 @@
                 <div>
                     <h4 class="text-slate-900 dark:text-white font-bold mb-6 tracking-wide transition-colors">Navigasi Keamanan</h4>
                     <ul class="space-y-3">
+                        <li><a href="{{ route('about') }}" class="hover:text-emerald-400 transition-colors flex items-center text-sm"><span class="w-1.5 h-1.5 rounded-full bg-slate-600 mr-2"></span>Tentang & Creator</a></li>
                         <li><a href="{{ route('portal.ticket.create') }}" class="hover:text-emerald-400 transition-colors flex items-center text-sm"><span class="w-1.5 h-1.5 rounded-full bg-slate-600 mr-2"></span>Laporkan Insiden</a></li>
                         <li><a href="{{ route('portal.ticket.status.form') }}" class="hover:text-emerald-400 transition-colors flex items-center text-sm"><span class="w-1.5 h-1.5 rounded-full bg-slate-600 mr-2"></span>Lacak Laporan</a></li>
                         @auth

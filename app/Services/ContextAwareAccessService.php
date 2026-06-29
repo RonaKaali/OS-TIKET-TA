@@ -77,22 +77,15 @@ class ContextAwareAccessService
      */
     protected function checkTimeBasedAccess(User $user, array $context): bool
     {
-        // Log akses di luar jam kerja (08:00 - 17:00) sebagai warning, tapi JANGAN blokir.
-        // Blocking di sini menyebabkan admin terkunci dari sistem di luar jam kerja.
-        if ($user->can('admin.panel')) {
-            $timeOfDay = $context['time_of_day'] ?? null;
+        $decision = app(WorkingHoursAccessService::class)->evaluate(
+            $user,
+            isset($context['timestamp']) ? \Carbon\Carbon::parse($context['timestamp']) : null
+        );
 
-            if (!is_string($timeOfDay)) {
-                $timeOfDay = now()->format('H:i');
-            }
-
-            $parts = explode(':', $timeOfDay);
-            $hour = isset($parts[0]) && is_numeric($parts[0]) ? (int) $parts[0] : (int) now()->format('H');
-
-            if ($hour < 8 || $hour >= 17) {
-                // Hanya log warning, jangan blokir akses
-                $this->logAnomaly($user, 'after_hours_access', $context);
-            }
+        // Login sudah diblokir oleh controller. Middleware tetap mencatat anomali
+        // untuk sesi lama yang masih aktif ketika jam kerja berakhir.
+        if ($user->can('admin.panel') && !$decision['allowed']) {
+            $this->logAnomaly($user, 'after_hours_access', $context);
         }
 
         return true;
@@ -308,15 +301,19 @@ class ContextAwareAccessService
             $riskScore += 30;
         }
 
-        // Risk dari time
-        $hour = (int) date('H', strtotime($context['time_of_day']));
-        if ($hour < 8 || $hour >= 17) {
-            $riskScore += 10;
-        }
+        // Risk dari jadwal kerja. Pengecualian user dihormati di seluruh alur.
+        $workingHours = app(WorkingHoursAccessService::class)->evaluate(
+            $user,
+            isset($context['timestamp']) ? \Carbon\Carbon::parse($context['timestamp']) : null
+        );
+        if ($workingHours['enabled'] && !$workingHours['has_exception']) {
+            if (!$workingHours['is_working_time']) {
+                $riskScore += 10;
+            }
 
-        // Risk dari weekend access
-        if ($context['is_weekend']) {
-            $riskScore += 5;
+            if (!$workingHours['is_working_day']) {
+                $riskScore += 5;
+            }
         }
 
         // Risk dari IP change

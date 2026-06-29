@@ -72,6 +72,7 @@ class UserController extends Controller
             'phone' => ['nullable', 'string', 'max:20'],
             'organization_id' => ['nullable', 'exists:organisasi,id'],
             'role' => ['required', 'exists:roles,name'],
+            'allow_after_hours_access' => ['sometimes', 'boolean'],
         ]);
 
         $user = User::create([
@@ -80,6 +81,7 @@ class UserController extends Controller
             'password' => $data['password'],
             'telepon' => $data['phone'] ?? null,
             'id_organisasi' => $data['organization_id'] ?? null,
+            'allow_after_hours_access' => $r->boolean('allow_after_hours_access'),
         ]);
 
         // Assign role
@@ -118,6 +120,7 @@ class UserController extends Controller
             'phone' => ['nullable', 'string', 'max:20'],
             'organization_id' => ['nullable', 'exists:organisasi,id'],
             'role' => ['required', 'exists:roles,name'],
+            'allow_after_hours_access' => ['sometimes', 'boolean'],
         ]);
 
         // Simpan data original untuk logging
@@ -126,6 +129,7 @@ class UserController extends Controller
             'email' => $user->email,
             'telepon' => $user->telepon,
             'id_organisasi' => $user->id_organisasi,
+            'allow_after_hours_access' => (bool) $user->allow_after_hours_access,
         ];
 
         $updateData = [
@@ -133,6 +137,7 @@ class UserController extends Controller
             'email' => $data['email'],
             'telepon' => $data['phone'] ?? null,
             'id_organisasi' => $data['organization_id'] ?? null,
+            'allow_after_hours_access' => $r->boolean('allow_after_hours_access'),
         ];
 
         // Update password jika diisi

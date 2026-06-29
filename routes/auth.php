@@ -22,6 +22,9 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
+    Route::get('login/work-hours-blocked', [AuthenticatedSessionController::class, 'workHoursBlocked'])
+        ->name('login.work-hours-blocked');
+
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
     Route::get('login/vpn-blocked', function () {

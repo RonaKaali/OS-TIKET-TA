@@ -37,5 +37,6 @@
         <env name="ZERO_TRUST_DEVICE_FINGERPRINTING" value="false"/>
         <env name="GEO_LOCATION_ENABLED" value="false"/>
         <env name="ZERO_TRUST_MFA_ENABLED" value="false"/>
+        <env name="WORKING_HOURS_LOGIN_BLOCK_ENABLED" value="false"/>
     </php>
 </phpunit>

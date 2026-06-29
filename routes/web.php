@@ -30,6 +30,7 @@ use App\Http\Controllers\ZeroTrustGpsController;
 use Illuminate\Http\Request;
 
 Route::get('/', fn() => view('welcome'))->name('welcome');
+Route::get('/about', fn() => view('about'))->name('about');
 
 # Chatbot API (public access)
 Route::post('/chatbot/message', [ChatbotController::class, 'message'])->name('chatbot.message');

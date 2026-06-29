@@ -8,6 +8,7 @@ use App\Services\AccessRevocationService;
 use App\Services\MfaService;
 use App\Services\SecurityEventLogService;
 use App\Services\VpnDetectionService;
+use App\Services\WorkingHoursAccessService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,8 @@ class AuthenticatedSessionController extends Controller
         protected MfaService $mfaService,
         protected SecurityEventLogService $securityLog,
         protected AccessRevocationService $revocationService,
-        protected VpnDetectionService $vpnDetection
+        protected VpnDetectionService $vpnDetection,
+        protected WorkingHoursAccessService $workingHours
     ) {}
 
     /**
@@ -38,6 +40,48 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request): RedirectResponse
     {
         $request->authenticate();
+
+        $user = Auth::user();
+        $user->refresh();
+
+        $workingHoursDecision = $this->workingHours->evaluate($user);
+        if (!$workingHoursDecision['allowed']) {
+            try {
+                $this->securityLog->logEvent([
+                    'user_id' => $user->id,
+                    'event_type' => 'after_hours_login_blocked',
+                    'severity' => 'high',
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'risk_score' => (int) config('zero_trust.risk_score_threshold_high', 70),
+                    'message' => 'Login ditolak karena dilakukan di luar jam kerja.',
+                    'context' => [
+                        'reason' => $workingHoursDecision['reason'],
+                        'attempted_at' => $workingHoursDecision['current_date'] . ' ' . $workingHoursDecision['current_time'],
+                        'day' => $workingHoursDecision['current_day'],
+                        'schedule' => $workingHoursDecision['schedule_label'],
+                        'timezone' => $workingHoursDecision['timezone'],
+                    ],
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Gagal mencatat pemblokiran login di luar jam kerja.', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login.work-hours-blocked')->with([
+                'working_hours_access_time' => str_replace(':', '.', $workingHoursDecision['current_time']),
+                'working_hours_access_date' => $workingHoursDecision['current_date'],
+                'working_hours_access_day' => $workingHoursDecision['current_day'],
+                'working_hours_schedule' => $workingHoursDecision['schedule_label'],
+                'working_hours_timezone' => $workingHoursDecision['timezone_label'],
+            ]);
+        }
 
         // ============================================================
         // VPN / Proxy Detection — Block login if detected
@@ -128,9 +172,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = Auth::user();
-        $user->refresh();
-
         $mfaEnabled = $user->hasMfaEnabled();
 
         Log::info('Login MFA check', [
@@ -184,6 +225,26 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/');
+    }
+
+    /**
+     * Display the working-hours access denial page.
+     */
+    public function workHoursBlocked(Request $request): View
+    {
+        $timezone = (string) config('zero_trust.working_hours.timezone', 'Asia/Makassar');
+        $now = now($timezone);
+
+        return view('auth.work-hours-blocked', [
+            'accessTime' => $request->session()->get('working_hours_access_time', $now->format('H.i')),
+            'accessDate' => $request->session()->get('working_hours_access_date', $now->format('d-m-Y')),
+            'accessDay' => $request->session()->get('working_hours_access_day', ''),
+            'schedule' => $request->session()->get(
+                'working_hours_schedule',
+                'Senin-Jumat, 08.00-17.00'
+            ),
+            'timezone' => $request->session()->get('working_hours_timezone', 'WITA (Asia/Makassar)'),
+        ]);
     }
 
     /**

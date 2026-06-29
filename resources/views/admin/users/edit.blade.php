@@ -98,6 +98,20 @@
                     </div>
                 </div>
 
+                <!-- Working Hours Exception -->
+                <div class="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 dark:border-amber-500/20 dark:bg-amber-500/5">
+                    <label for="allow_after_hours_access" class="flex cursor-pointer items-start gap-4">
+                        <input type="checkbox" name="allow_after_hours_access" id="allow_after_hours_access" value="1"
+                            {{ old('allow_after_hours_access', $user->allow_after_hours_access) ? 'checked' : '' }}
+                            class="peer sr-only">
+                        <span class="mt-0.5 h-6 w-11 shrink-0 rounded-full bg-slate-300 p-0.5 transition-colors after:block after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform peer-checked:bg-amber-500 peer-checked:after:translate-x-5 dark:bg-slate-700"></span>
+                        <span>
+                            <span class="block text-[10px] font-black uppercase tracking-[0.18em] text-amber-700 dark:text-amber-400">Izinkan Akses di Luar Jam Kerja</span>
+                            <span class="mt-1 block text-[10px] font-bold leading-relaxed text-slate-500 dark:text-slate-400">Aktifkan hanya untuk petugas piket atau kebutuhan darurat. Perubahan ini tercatat dalam audit aktivitas.</span>
+                        </span>
+                    </label>
+                </div>
+
                 <!-- Role -->
                 <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800/50 transition-colors">
                     <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 transition-colors">Penugasan Peran (Role)</label>

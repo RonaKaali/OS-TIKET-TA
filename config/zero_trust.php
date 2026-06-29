@@ -87,5 +87,22 @@ return [
     'risk_score_threshold_high' => env('RISK_SCORE_THRESHOLD_HIGH', 70),
     'risk_score_threshold_critical' => env('RISK_SCORE_THRESHOLD_CRITICAL', 85),
 
-];
+    /*
+    |--------------------------------------------------------------------------
+    | Login Working Hours
+    |--------------------------------------------------------------------------
+    |
+    | ISO-8601 day numbers are used: Monday = 1, Sunday = 7. The end time is
+    | exclusive, so a default value of 17:00 rejects attempts at 17:00 onward.
+    |
+    */
 
+    'working_hours' => [
+        'enabled' => env('WORKING_HOURS_LOGIN_BLOCK_ENABLED', true),
+        'start' => env('WORKING_HOURS_START', '08:00'),
+        'end' => env('WORKING_HOURS_END', '17:00'),
+        'days' => explode(',', env('WORKING_HOURS_DAYS', '1,2,3,4,5')),
+        'timezone' => env('WORKING_HOURS_TIMEZONE', 'Asia/Makassar'),
+    ],
+
+];

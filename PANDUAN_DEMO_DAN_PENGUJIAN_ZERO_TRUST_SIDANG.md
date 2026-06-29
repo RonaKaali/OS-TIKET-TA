@@ -66,6 +66,11 @@ SESSION_LIFETIME=3
 RISK_SCORE_THRESHOLD_HIGH=70
 RISK_SCORE_THRESHOLD_CRITICAL=85
 DEVICE_TRUST_SCORE_THRESHOLD=70
+WORKING_HOURS_LOGIN_BLOCK_ENABLED=true
+WORKING_HOURS_START=08:00
+WORKING_HOURS_END=17:00
+WORKING_HOURS_DAYS=1,2,3,4,5
+WORKING_HOURS_TIMEZONE=Asia/Makassar
 ```
 
 Setelah mengubah `.env`:
@@ -134,7 +139,7 @@ RISK_SCORE_THRESHOLD_HIGH=30
 
 Lalu `php artisan config:clear`. **Kembalikan ke `70` setelah demo.**
 
-Picu risiko dengan: login di **luar jam 08:00–17:00** atau di **akhir pekan**.
+Picu step-up dengan perangkat/lokasi/IP baru. Login di luar jam kerja kini memiliki skenario terpisah karena langsung ditolak sebelum sesi dibuat.
 
 ---
 
@@ -231,22 +236,21 @@ Urutan dari konsep → bukti visual → respons insiden.
 
 ---
 
-### Skenario 5 — Risk Score & Step-up MFA
+### Skenario 5 — Pemblokiran Login di Luar Jam Kerja
 
-**Tujuan:** Membuktikan kontrol berbasis risiko (bukan hanya role).
+**Tujuan:** Membuktikan kontrol waktu bekerja pada proses autentikasi server-side.
 
 | Langkah | Aksi | Hasil yang diharapkan |
 |---------|------|------------------------|
-| 1 | Set sementara `RISK_SCORE_THRESHOLD_HIGH=30` di `.env` | — |
-| 2 | `php artisan config:clear` | — |
-| 3 | Login Agent **di luar jam 08:00–17:00** atau **Sabtu/Minggu** | Risk score naik (+10 after-hours, +5 weekend) |
-| 4 | Navigasi ke `/agent` | Redirect ke `/mfa/verify` (step-up) |
-| 5 | Masukkan TOTP | Akses lanjut ke halaman yang dituju |
-| 6 | Kembalikan `RISK_SCORE_THRESHOLD_HIGH=70` | — |
+| 1 | Pastikan konfigurasi working hours aktif | Jadwal Senin–Jumat, 08.00–17.00 WITA |
+| 2 | Login Agent setelah pukul 17.00 atau Sabtu/Minggu | Kredensial valid tetapi sesi langsung dibatalkan |
+| 3 | Amati halaman hasil | Tampil halaman **Akses Ditolak** dengan waktu, jadwal, zona waktu, dan risk level Tinggi |
+| 4 | Buka Live Security Monitoring | Event `after_hours_login_blocked` tercatat dengan severity `high` |
+| 5 | Aktifkan pengecualian jam kerja pada akun petugas piket | Login akun tersebut tetap dapat dilanjutkan |
 
-**Bukti:** Event `anomaly_detected` / `high_risk` di live feed.
+**Bukti:** Halaman penolakan dan event `after_hours_login_blocked` di live feed.
 
-**Catatan implementasi (jujur ke penguji):** Akses di luar jam kerja **tidak langsung diblokir 403** — sistem **mencatat anomaly** dan **menaikkan risk score**, yang dapat memicu step-up MFA sesuai ambang.
+**Catatan implementasi:** Pemeriksaan dilakukan setelah kredensial valid tetapi sebelum sesi login diselesaikan. Pengecualian hanya diberikan melalui atribut `allow_after_hours_access` per pengguna.
 
 ---
 
@@ -323,7 +327,7 @@ Salin ke bab **Metode Pengujian** / **Hasil Pengujian**:
 | T-02 | Login MFA gagal | MFA aktif | TOTP salah 3× | Ditolak; event gagal | ☐ |
 | T-03 | ZT logging aktif | `ZERO_TRUST_ENABLED=true` | Navigasi post-login | Event `access` di dashboard | ☐ |
 | T-04 | GPS terkirim | Izin lokasi diizinkan | Login + tunggu | `POST /zero-trust/gps` → 200 | ☐ |
-| T-05 | Step-up MFA | Threshold high = 30 | Akses luar jam kerja | Redirect `/mfa/verify` | ☐ |
+| T-05 | Blokir luar jam kerja | Working hours aktif | Login setelah 17.00 | Sesi tidak dibuat; halaman `Akses Ditolak` | ☐ |
 | T-06 | Cabut Akses | 2 tab browser | Super Admin revoke | Agent logout otomatis | ☐ |
 | T-07 | Session idle | Login agent | Diam 3 menit | Auto logout | ☐ |
 | T-08 | Enkripsi lampiran | Upload file | Cek storage + unduh | File `.enc`; unduh OK | ☐ |
@@ -339,7 +343,7 @@ Salin ke bab **Metode Pengujian** / **Hasil Pengujian**:
 | Pertanyaan | Jawaban singkat |
 |------------|-----------------|
 | Apa bedanya MFA saja vs Zero Trust? | MFA memverifikasi identitas di awal; Zero Trust **meneruskan penilaian** (perangkat, konteks, risiko) pada **setiap request** dan bisa meminta MFA ulang (step-up). |
-| Apakah akses luar jam kerja diblokir? | Tidak hard-block. Sistem **mencatat anomaly** dan **menaikkan risk score**, yang dapat memicu step-up MFA jika melewati ambang. |
+| Apakah akses luar jam kerja diblokir? | Ya. Login Senin–Jumat hanya diizinkan pukul **08.00–17.00 WITA**. Di luar jadwal, sesi dibatalkan dan event high-risk dicatat; pengecualian hanya untuk akun yang diberi izin eksplisit. |
 | Apa jika `APP_KEY` bocor? | Enkripsi lampiran dan secret MFA bergantung kunci aplikasi — ini mitigasi kebocoran storage/DB, bukan pengganti keamanan server. |
 | Kenapa session cuma 3 menit? | Untuk demo keamanan ketat; di produksi bisa disesuaikan via `SESSION_LIFETIME`. |
 | Apakah Zero Trust memperlambat aplikasi? | Overhead minimal (cache fingerprint, log async); trade-off wajar untuk audit trail CSIRT. |
