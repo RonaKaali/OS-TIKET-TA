@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Cache;
 use App\Models\DeviceFingerprint;
 use App\Models\User;
 use App\Notifications\DeviceVerificationRequired;
+use App\Support\DatabaseBoolean;
 
 class DeviceFingerprintService
 {
@@ -98,7 +99,7 @@ class DeviceFingerprintService
 
             if (!$device->exists) {
                 $device->registered_at = now();
-                $device->is_verified = false;
+                $device->is_verified = DatabaseBoolean::value(false);
                 $device->trust_score = 30;
             }
 
@@ -289,7 +290,7 @@ class DeviceFingerprintService
                 'ip_address' => $metadata['ip'] ?? $device->ip_address,
                 'trust_score' => max((int) $device->trust_score, (int) config('zero_trust.device_trust_score_threshold', 70)),
                 'last_seen_at' => now(),
-                'is_verified' => true,
+                'is_verified' => DatabaseBoolean::value(true),
                 'metadata' => array_merge((array) ($device->metadata ?? []), $metadata),
             ]);
             $device->save();

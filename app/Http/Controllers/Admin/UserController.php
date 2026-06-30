@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\{User, Organization};
+use App\Support\DatabaseBoolean;
 use App\Traits\LoggableActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -81,7 +82,7 @@ class UserController extends Controller
             'password' => $data['password'],
             'telepon' => $data['phone'] ?? null,
             'id_organisasi' => $data['organization_id'] ?? null,
-            'allow_after_hours_access' => $r->boolean('allow_after_hours_access'),
+            'allow_after_hours_access' => DatabaseBoolean::value($r->boolean('allow_after_hours_access')),
         ]);
 
         // Assign role
@@ -137,7 +138,7 @@ class UserController extends Controller
             'email' => $data['email'],
             'telepon' => $data['phone'] ?? null,
             'id_organisasi' => $data['organization_id'] ?? null,
-            'allow_after_hours_access' => $r->boolean('allow_after_hours_access'),
+            'allow_after_hours_access' => DatabaseBoolean::value($r->boolean('allow_after_hours_access')),
         ];
 
         // Update password jika diisi

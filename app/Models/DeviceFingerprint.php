@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\DatabaseBoolean;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -59,7 +60,7 @@ class DeviceFingerprint extends Model
      */
     public function markAsVerified(): void
     {
-        $this->is_verified = \Illuminate\Support\Facades\DB::raw('true');
+        $this->is_verified = DatabaseBoolean::value(true);
         $this->save();
     }
 
@@ -72,4 +73,3 @@ class DeviceFingerprint extends Model
         $this->save();
     }
 }
-
