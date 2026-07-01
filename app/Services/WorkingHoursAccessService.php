@@ -55,6 +55,12 @@ class WorkingHoursAccessService
             FILTER_NULL_ON_FAILURE
         ) ?? true;
         $hasException = (bool) $user->allow_after_hours_access;
+
+        // Super Admin dan Pelapor dapat mengakses 24 jam
+        if (!$hasException && ($user->hasRole('Super Admin') || $user->hasRole('Pelapor'))) {
+            $hasException = true;
+        }
+
         $currentMinutes = ($now->hour * 60) + $now->minute;
         $isWorkingDay = in_array($now->dayOfWeekIso, $days, true);
         $isWorkingTime = $currentMinutes >= $startMinutes && $currentMinutes < $endMinutes;
