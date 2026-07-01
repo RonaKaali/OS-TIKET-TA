@@ -108,27 +108,18 @@
         <x-input-error :messages="$errors->get('password')" class="mt-1" />
         <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1" />
 
-        <!-- Telegram Username (Optional) -->
+        <!-- Phone / WhatsApp -->
         <div class="bg-slate-100 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-4 transition-colors">
-            <label for="telegram_username" class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-3 ml-1 transition-colors">
-                Integrasi Telegram Alert
+            <label for="phone" class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-3 ml-1 transition-colors">
+                Nomor Telepon / WhatsApp
             </label>
             <div class="flex rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 transition-all shadow-sm">
-                <div class="relative flex items-center px-4 bg-slate-50 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 text-slate-400 transition-colors">
-                    <span class="text-sm font-black">@</span>
-                </div>
-                <input id="telegram_username"
+                <input id="phone"
                     class="flex-1 block w-full px-4 py-3 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 outline-none transition-colors"
-                    type="text" name="telegram_username" value="{{ old('telegram_username') }}" autocomplete="off"
-                    placeholder="id_telegram">
+                    type="text" name="phone" value="{{ old('phone') }}" autocomplete="tel"
+                    placeholder="08XXXXXXXXXX">
             </div>
-            <x-input-error :messages="$errors->get('telegram_username')" class="mt-2" />
-            <div class="mt-3 flex items-start space-x-2">
-                <svg class="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <p class="text-[10px] text-slate-500 leading-relaxed italic">
-                    Kirim <code class="text-emerald-400">/start</code> ke Bot CSIRT setelah registrasi untuk aktivasi notifikasi intelijen siber.
-                </p>
-            </div>
+            <x-input-error :messages="$errors->get('phone')" class="mt-2" />
         </div>
 
         <!-- Submit Button -->
