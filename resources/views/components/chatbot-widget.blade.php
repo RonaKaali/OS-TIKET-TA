@@ -56,6 +56,16 @@
      class="fixed z-[99999]"
      style="bottom: max(1rem, env(safe-area-inset-bottom)); right: max(1rem, env(safe-area-inset-right));">
 
+    <!-- About Button -->
+    <a href="{{ route('about') }}"
+       class="block bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-500/50 rounded-full w-12 h-12 shadow-lg hover:shadow-emerald-500/20 transition-all transform hover:scale-105 flex items-center justify-center mb-3"
+       aria-label="Tentang Sistem"
+       title="Tentang Sistem">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+    </a>
+
     <!-- Floating Button -->
     <button id="chatbot-button"
             @click="toggleChat()"

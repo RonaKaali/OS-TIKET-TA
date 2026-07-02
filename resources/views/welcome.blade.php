@@ -108,7 +108,6 @@
                 <!-- Desktop menu -->
                 <div class="hidden md:flex items-center gap-3 lg:gap-4 shrink-0">
                     <x-theme-toggle />
-                    <a href="{{ route('about') }}" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium text-sm transition">Tentang</a>
                     @auth
                         @can('admin.panel')
                             <a href="{{ route('dashboard') }}" class="text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 font-medium text-sm transition">Dasbor Admin</a>
