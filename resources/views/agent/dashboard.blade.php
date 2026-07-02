@@ -230,27 +230,86 @@
                         @endfor
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 transition-colors">
-                        <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2 transition-colors">Identity Verification</div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors">MFA Active</span>
-                            <span class="text-[10px] font-black px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded border border-emerald-500/20 uppercase transition-colors">PASSED</span>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <!-- 1. MFA Active -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest transition-colors">Identity Verification</div>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded border border-emerald-500/20 uppercase transition-colors">PASSED</span>
                         </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors block">MFA Active</span>
                     </div>
-                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 transition-colors">
-                        <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2 transition-colors">Context Analysis</div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors">Geo-Fencing</span>
-                            <span class="text-[10px] font-black px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded border border-emerald-500/20 uppercase transition-colors">ACTIVE</span>
+                    <!-- 2. Geo-Fencing -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest transition-colors">Context Analysis</div>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded border border-emerald-500/20 uppercase transition-colors">ACTIVE</span>
                         </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors block">Geo-Fencing</span>
                     </div>
-                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 transition-colors">
-                        <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2 transition-colors">Device Trust</div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors">Fingerprinting</span>
-                            <span class="text-[10px] font-black px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded border border-emerald-500/20 uppercase transition-colors">SECURE</span>
+                    <!-- 3. Device Fingerprinting -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest transition-colors">Device Trust</div>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded border border-emerald-500/20 uppercase transition-colors">SECURE</span>
                         </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors block">Fingerprinting</span>
+                    </div>
+                    <!-- 4. Brute Force -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest transition-colors">Login Protection</div>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded border border-orange-500/20 uppercase transition-colors">5X LIMIT</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors block">Brute Force Guard</span>
+                    </div>
+                    <!-- 5. Session Verify -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest transition-colors">Session Guard</div>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded border border-cyan-500/20 uppercase transition-colors">3 MIN</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors block">Continuous Verify</span>
+                    </div>
+                    <!-- 6. VPN Block -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest transition-colors">VPN Detection</div>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 bg-red-500/10 text-red-600 dark:text-red-400 rounded border border-red-500/20 uppercase transition-colors">BLOCKED</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors block">Non-Indonesia</span>
+                    </div>
+                    <!-- 7. RBAC -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest transition-colors">Access Control</div>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 rounded border border-indigo-500/20 uppercase transition-colors">ENFORCED</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors block">RBAC + Least Priv.</span>
+                    </div>
+                    <!-- 8. Access Revocation -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest transition-colors">Emergency</div>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded border border-rose-500/20 uppercase transition-colors">READY</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors block">Access Revocation</span>
+                    </div>
+                    <!-- 9. AES-256 -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest transition-colors">Data Protection</div>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded border border-amber-500/20 uppercase transition-colors">AES-256</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors block">File Encryption</span>
+                    </div>
+                    <!-- 10. Working Hours -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700/50 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest transition-colors">Time Policy</div>
+                            <span class="text-[8px] font-black px-1.5 py-0.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded border border-teal-500/20 uppercase transition-colors">08-17</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 transition-colors block">Working Hours</span>
                     </div>
                 </div>
             </div>
