@@ -37,8 +37,12 @@
 
 <body class="font-sans antialiased cyber-bg bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-300 transition-colors">
     <div class="min-h-screen">
-        <div class="fixed top-4 right-4 z-[100]">
+        <div class="fixed top-4 right-4 z-[100] flex items-center space-x-2">
             <x-theme-toggle />
+            <a href="{{ route('about') }}" class="flex items-center px-3 py-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl hover:bg-emerald-500/20 transition-colors" title="Tentang">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c0-2.21-1.79-4-4-4s-4 1.79-4 4 1.79 4 4 4h8c1.66 0 3-1.34 3-3s-1.34-3-3-3h-1" /></svg>
+                <span class="text-xs font-bold uppercase tracking-wider">About</span>
+            </a>
         </div>
         @include('layouts.navigation')
 
