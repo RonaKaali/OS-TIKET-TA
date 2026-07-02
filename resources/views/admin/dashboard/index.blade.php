@@ -68,6 +68,161 @@
             </div>
         </div>
 
+        <!-- ====== PUSAT KOMANDO KEAMANAN ====== -->
+        <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 rounded-3xl p-6 sm:p-8 border border-slate-700 dark:border-slate-700/50 shadow-2xl relative overflow-hidden">
+            <!-- Background Glow -->
+            <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[80px] rounded-full -mr-32 -mt-32"></div>
+            <div class="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/5 blur-[80px] rounded-full -ml-24 -mb-24"></div>
+
+            <div class="relative z-10">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center border border-emerald-500/30">
+                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-white uppercase tracking-widest">Pusat Komando Keamanan</h3>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Zero Trust Security Status — All Systems Operational</p>
+                        </div>
+                    </div>
+                    <div class="hidden sm:flex items-center px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded-full">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2 animate-pulse"></span>
+                        <span class="text-[9px] text-emerald-400 font-black uppercase tracking-widest">ONLINE</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                    <!-- 1. MFA Active -->
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                            </div>
+                            <span class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 text-[8px] font-black uppercase rounded tracking-widest">ACTIVE</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Identity Verification</div>
+                        <div class="text-xs font-black text-white">MFA Active</div>
+                    </div>
+
+                    <!-- 2. Geo-Fencing -->
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            </div>
+                            <span class="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[8px] font-black uppercase rounded tracking-widest">ACTIVE</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Context Analysis</div>
+                        <div class="text-xs font-black text-white">Geo-Fencing</div>
+                    </div>
+
+                    <!-- 3. Device Fingerprinting -->
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" /></svg>
+                            </div>
+                            <span class="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 text-[8px] font-black uppercase rounded tracking-widest">SECURE</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Device Trust</div>
+                        <div class="text-xs font-black text-white">Fingerprinting</div>
+                    </div>
+
+                    <!-- 4. Brute Force Protection -->
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                            </div>
+                            <span class="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 text-[8px] font-black uppercase rounded tracking-widest">5X LIMIT</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Login Protection</div>
+                        <div class="text-xs font-black text-white">Brute Force Guard</div>
+                    </div>
+
+                    <!-- 5. Session Verification -->
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-cyan-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                            </div>
+                            <span class="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 text-[8px] font-black uppercase rounded tracking-widest">3 MIN</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Session Guard</div>
+                        <div class="text-xs font-black text-white">Continuous Verify</div>
+                    </div>
+
+                    <!-- 6. VPN Block -->
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                            </div>
+                            <span class="px-1.5 py-0.5 bg-red-500/20 text-red-400 text-[8px] font-black uppercase rounded tracking-widest">BLOCKED</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">VPN Detection</div>
+                        <div class="text-xs font-black text-white">Non-Indonesia</div>
+                    </div>
+
+                    <!-- 7. RBAC & Least Privilege -->
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                            </div>
+                            <span class="px-1.5 py-0.5 bg-indigo-500/20 text-indigo-400 text-[8px] font-black uppercase rounded tracking-widest">ENFORCED</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Access Control</div>
+                        <div class="text-xs font-black text-white">RBAC + Least Priv.</div>
+                    </div>
+
+                    <!-- 8. Access Revocation -->
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-rose-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                            </div>
+                            <span class="px-1.5 py-0.5 bg-rose-500/20 text-rose-400 text-[8px] font-black uppercase rounded tracking-widest">READY</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Emergency</div>
+                        <div class="text-xs font-black text-white">Access Revocation</div>
+                    </div>
+
+                    <!-- 9. AES-256 Encryption -->
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                            </div>
+                            <span class="px-1.5 py-0.5 bg-amber-500/20 text-amber-400 text-[8px] font-black uppercase rounded tracking-widest">AES-256</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Data Protection</div>
+                        <div class="text-xs font-black text-white">File Encryption</div>
+                    </div>
+
+                    <!-- 10. Working Hours -->
+                    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 hover:border-emerald-500/30 transition-all group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-8 h-8 bg-teal-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                            <span class="px-1.5 py-0.5 bg-teal-500/20 text-teal-400 text-[8px] font-black uppercase rounded tracking-widest">08-17</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Time Policy</div>
+                        <div class="text-xs font-black text-white">Working Hours Block</div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex items-center justify-between">
+                    <p class="text-[10px] text-slate-500 font-bold">10 komponen aktif — Verifikasi berkelanjutan tanpa kepercayaan implisit</p>
+                    <a href="{{ route('admin.security.dashboard') }}" class="text-[10px] font-black text-emerald-400 hover:text-emerald-300 uppercase tracking-widest transition-colors flex items-center">
+                        Buka Dashboard
+                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Distribution by Department -->
             <div class="bg-white dark:bg-slate-800/50 backdrop-blur-md p-8 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all">
