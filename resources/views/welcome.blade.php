@@ -329,12 +329,24 @@
                         Apa itu Zero Trust?
                     </button>
                     <button @click="activeTab = 2" :class="activeTab === 2 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'" class="text-left px-5 py-4 rounded-xl border-l-4 font-bold transition-all flex items-center">
+                        <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        Multi-Factor Authentication
+                    </button>
+                    <button @click="activeTab = 3" :class="activeTab === 3 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'" class="text-left px-5 py-4 rounded-xl border-l-4 font-bold transition-all flex items-center">
                         <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" /></svg>
                         Device Fingerprinting
                     </button>
-                    <button @click="activeTab = 3" :class="activeTab === 3 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'" class="text-left px-5 py-4 rounded-xl border-l-4 font-bold transition-all flex items-center">
+                    <button @click="activeTab = 4" :class="activeTab === 4 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'" class="text-left px-5 py-4 rounded-xl border-l-4 font-bold transition-all flex items-center">
                         <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        Context-Aware Access
+                        Context-Aware & Risk Score
+                    </button>
+                    <button @click="activeTab = 5" :class="activeTab === 5 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'" class="text-left px-5 py-4 rounded-xl border-l-4 font-bold transition-all flex items-center">
+                        <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+                        VPN & Brute Force
+                    </button>
+                    <button @click="activeTab = 6" :class="activeTab === 6 ? 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-400' : 'border-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'" class="text-left px-5 py-4 rounded-xl border-l-4 font-bold transition-all flex items-center">
+                        <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        Enkripsi & Monitoring
                     </button>
                 </div>
 
@@ -350,18 +362,42 @@
                     </div>
                     <!-- Tab 2 -->
                     <div x-show="activeTab === 2" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="flex flex-col justify-center min-h-[200px]" x-cloak>
-                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Keamanan Hardware</span>
-                        <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Pendeteksi Sidik Jari Perangkat</h3>
+                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Autentikasi Berlapis</span>
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Verifikasi Dua Langkah (MFA)</h3>
                         <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Kami mencatat identitas unik dari fisik perangkat (HP/Laptop) yang digunakan. Jika hacker berhasil mencuri password Anda, mereka tetap tidak bisa mengakses akun Anda karena perangkat mereka belum pernah diverifikasi oleh sistem.
+                            Selain password, setiap login wajib melalui kode OTP 6 digit dari aplikasi autentikator atau backup code 8 digit. Sistem juga membatasi 5x percobaan login gagal sebelum memberlakukan waktu tunggu otomatis, sehingga serangan tebak password dapat dicegah secara efektif.
                         </p>
                     </div>
                     <!-- Tab 3 -->
                     <div x-show="activeTab === 3" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="flex flex-col justify-center min-h-[200px]" x-cloak>
-                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Analisis Real-time</span>
-                        <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Deteksi Anomali Konteks</h3>
+                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Keamanan Perangkat</span>
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Pendeteksi Sidik Jari Perangkat</h3>
                         <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Sistem AI kami memantau dari lokasi dan jaringan apa sebuah akses dilakukan. Jika tiba-tiba ada akses dari negara lain atau menggunakan VPN/Proxy anonim, akses akan diblokir secara otomatis demi melindungi kerahasiaan laporan Anda.
+                            Kami mencatat identitas unik dari fisik perangkat (HP/Laptop) yang digunakan berdasarkan browser, resolusi layar, dan timezone. Jika hacker berhasil mencuri password Anda, mereka tetap tidak bisa mengakses akun Anda karena perangkat mereka belum pernah diverifikasi oleh sistem.
+                        </p>
+                    </div>
+                    <!-- Tab 4 -->
+                    <div x-show="activeTab === 4" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="flex flex-col justify-center min-h-[200px]" x-cloak>
+                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Analisis Real-time</span>
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Deteksi Anomali Konteks & Risiko</h3>
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Sistem menganalisis alamat IP, waktu akses, lokasi geografis, dan pola historis untuk menghasilkan skor risiko. Jika akses mencurigakan terdeteksi — seperti dari negara lain, jam tidak biasa, atau impossible travel — sistem akan meminta verifikasi ulang atau menolak akses secara otomatis.
+                        </p>
+                    </div>
+                    <!-- Tab 5 -->
+                    <div x-show="activeTab === 5" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="flex flex-col justify-center min-h-[200px]" x-cloak>
+                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Perimeter Digital</span>
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Blokir VPN & Brute Force</h3>
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Akses dari luar Indonesia otomatis diblokir dan dicatat. Percobaan login berulang kali akan dikenakan waktu tunggu. Setiap pelanggaran tercatat sebagai security event yang dapat dipantau administrator secara langsung.
+                        </p>
+                    </div>
+                    <!-- Tab 6 -->
+                    <div x-show="activeTab === 6" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="flex flex-col justify-center min-h-[200px]" x-cloak>
+                        <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black uppercase tracking-widest rounded-full mb-4 w-max">Proteksi Data</span>
+                        <h3 class="text-2xl font-black text-slate-800 dark:text-white mb-4">Enkripsi AES-256 & Dashboard</h3>
+                        <p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                            Seluruh file bukti insiden dienkripsi menggunakan algoritma AES-256 sebelum disimpan dan hanya dapat didekripsi saat diunduh oleh pengguna yang berhak. Administrator dapat memantau seluruh peristiwa keamanan secara real-time melalui Security Dashboard dan mencabut akses pengguna yang mencurigakan secara instan.
                         </p>
                     </div>
                 </div>
